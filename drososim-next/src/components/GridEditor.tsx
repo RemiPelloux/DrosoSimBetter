@@ -15,6 +15,7 @@ export const CELL_BG: Record<CellType, string> = {
   neutral: '#F1F5F9', forest: '#15803D', 'early-cherry': '#D97706', 'late-cherry': '#991B1B', 'season-cherry': '#E11D48',
 };
 const PALETTE: CellType[] = ['forest', 'early-cherry', 'season-cherry', 'late-cherry'];
+const SHORT: Record<CellType, string> = { neutral: 'Neutre', forest: 'Forêt', 'early-cherry': 'Précoce', 'season-cherry': 'Saison', 'late-cherry': 'Tardive' };
 
 const TOOLS: { id: Tool; label: string; icon: React.ElementType; key: string; hint: string }[] = [
   { id: 'brush', label: 'Pinceau', icon: Paintbrush, key: 'B', hint: 'Cliquer-glisser pour peindre' },
@@ -105,6 +106,54 @@ export function GridEditor({ compact = false, variant = 'panel' }: { compact?: b
     parcels.forEach(p => p.cells.forEach(c => (m[c] = p.id)));
     return m;
   }, [parcels]);
+
+  const [gridPx, setGridPx] = useState(500);
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(es => setGridPx(es[0].contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const labels = useMemo(() => {
+    const placed: { id: string; x: number; y: number; text: string; w: number; h: number }[] = [];
+    const cell = gridPx / GRID_N;
+    const sorted = [...parcels].filter(p => p.cells.length >= 4).sort((a, b) => b.cells.length - a.cells.length);
+    for (const p of sorted) {
+      const set = new Set(p.cells);
+      const xs = p.cells.map(c => c % GRID_N), ys = p.cells.map(c => (c / GRID_N) | 0);
+      const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
+      const textW = Math.min(p.name.length * 6 + 14, gridPx * 0.6);
+      let best: { x: number; y: number; score: number } | null = null;
+      for (const c of p.cells) {
+        const x = c % GRID_N, y = (c / GRID_N) | 0;
+        // distance au bord de la parcelle (Chebyshev, limitée à 3)
+        let d = 0;
+        outer: for (let r = 1; r <= 3; r++) {
+          for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+            const nx = x + dx, ny = y + dy;
+            if (nx < 0 || ny < 0 || nx >= GRID_N || ny >= GRID_N) continue;
+            if (!set.has(ny * GRID_N + nx)) break outer;
+          }
+          d = r;
+        }
+        // longueur du segment horizontal contenant la case
+        let l = x, r2 = x;
+        while (l > 0 && set.has(y * GRID_N + l - 1)) l--;
+        while (r2 < GRID_N - 1 && set.has(y * GRID_N + r2 + 1)) r2++;
+        const run = r2 - l + 1;
+        const fits = run * cell >= textW ? 6 : 0;
+        const score = d * 3 + Math.min(run, 12) * 0.6 + fits - Math.hypot(x - mx, y - my) * 0.15;
+        if (!best || score > best.score) best = { x: ((l + r2 + 1) / 2 / GRID_N) * 100, y: ((y + 0.5) / GRID_N) * 100, score };
+      }
+      if (!best) continue;
+      const w = (textW / gridPx) * 100, h = (20 / gridPx) * 100;
+      const hit = placed.some(q => Math.abs(q.x - best!.x) < (q.w + w) / 2 + 1 && Math.abs(q.y - best!.y) < (q.h + h) / 2 + 0.5);
+      if (!hit) placed.push({ id: p.id, x: Math.min(100 - w / 2, Math.max(w / 2, best.x)), y: best.y, text: p.name, w, h });
+    }
+    return placed;
+  }, [parcels, gridPx]);
 
   const cellFromEvent = useCallback((e: { clientX: number; clientY: number }) => {
     const r = gridRef.current?.getBoundingClientRect();
@@ -217,32 +266,23 @@ export function GridEditor({ compact = false, variant = 'panel' }: { compact?: b
   };
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Barre d'outils */}
-      <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm">
-        {TOOLS.map(t => (
-          <button key={t.id} onClick={() => setActiveTool(t.id)} title={`${t.hint} (${t.key})`}
-            className={cn('flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all',
-              activeTool === t.id ? 'bg-slate-900 text-white shadow' : 'text-slate-600 hover:bg-slate-100')}>
-            <t.icon className="h-3.5 w-3.5" /> {t.label}
-          </button>
-        ))}
-        {(activeTool === 'brush' || activeTool === 'eraser') && (
-          <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5" title="Taille du pinceau ([ / ])">
-            {([1, 2, 3] as const).map(n => (
-              <button key={n} onClick={() => setBrushSize(n)} className={cn('flex h-7 w-7 items-center justify-center rounded-md', brushSize === n ? 'bg-white shadow' : 'hover:bg-white/60')}>
-                <span className="rounded-full bg-slate-700" style={{ width: 3 + n * 3, height: 3 + n * 3 }} />
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="relative ml-auto flex items-center gap-1.5">
-          <button onClick={() => setEditorFullscreen(!full)} title={full ? 'Réduire (Échap)' : 'Agrandir l’éditeur en plein écran (Maj+F)'}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">
-            {full ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />} {full ? 'Réduire' : 'Agrandir'}
-          </button>
-          <button onClick={() => setShowTemplates(v => !v)} className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">
-            <LayoutTemplate className="h-3.5 w-3.5" /> Modèles
+    <div className="@container flex flex-col gap-3">
+      {/* Barre d'outils — rangée 1 : outils + actions */}
+      <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-0.5 rounded-2xl bg-slate-100 p-1" role="toolbar" aria-label="Outils de dessin">
+          {TOOLS.map(t => (
+            <button key={t.id} onClick={() => setActiveTool(t.id)} title={`${t.label} — ${t.hint} (${t.key})`} aria-pressed={activeTool === t.id}
+              className={cn('relative flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl px-1.5 py-2 text-xs font-bold transition-colors',
+                activeTool === t.id ? 'text-white' : 'text-slate-600 hover:text-slate-900')}>
+              {activeTool === t.id && <motion.span layoutId={`tool-${variant}`} className="absolute inset-0 rounded-xl bg-slate-900 shadow" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+              <t.icon className="relative h-4 w-4 shrink-0" /><span className="relative hidden truncate @2xl:inline">{t.label}</span>
+              <kbd className={cn('relative hidden rounded px-1 text-[9px] font-semibold @4xl:inline', activeTool === t.id ? 'bg-white/15 text-white/80' : 'bg-white text-slate-400')}>{t.key}</kbd>
+            </button>
+          ))}
+        </div>
+        <div className="relative shrink-0">
+          <button onClick={() => setShowTemplates(v => !v)} title="Modèles de verger" className="flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50">
+            <LayoutTemplate className="h-4 w-4" /><span className="hidden @3xl:inline">Modèles</span>
           </button>
           <AnimatePresence>
             {showTemplates && (
@@ -259,18 +299,40 @@ export function GridEditor({ compact = false, variant = 'panel' }: { compact?: b
             )}
           </AnimatePresence>
         </div>
+        <button onClick={() => setEditorFullscreen(!full)} title={full ? 'Réduire (Échap)' : 'Agrandir en plein écran (Maj+F)'}
+          className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-700 px-3 text-xs font-bold text-white shadow-sm hover:bg-emerald-800">
+          {full ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}<span className="hidden @3xl:inline">{full ? 'Réduire' : 'Agrandir'}</span>
+        </button>
       </div>
 
-      {/* Palette */}
-      <div className="grid grid-cols-4 gap-1.5">
-        {PALETTE.map((t, i) => (
-          <button key={t} onClick={() => setActiveCellType(t)}
-            className={cn('flex items-center gap-2 rounded-lg border-2 px-2 py-1.5 text-left transition-all',
-              activeCellType === t && activeTool !== 'eraser' ? 'border-slate-900 bg-white shadow-md' : 'border-transparent bg-slate-50 hover:border-slate-200')}>
-            <span className={cn('h-5 w-5 shrink-0 rounded-md', t === 'forest' && 'hatch')} style={{ backgroundColor: CELL_BG[t] }} />
-            <span className="text-[11px] font-semibold leading-tight text-slate-700">{TYPE_LABEL[t].replace('Cerise ', '')}<span className="hidden text-[9px] font-normal text-slate-400 md:block">touche {i + 1}</span></span>
-          </button>
-        ))}
+      {/* Rangée 2 : palette + taille du pinceau */}
+      <div className="flex items-stretch gap-2">
+        <div className="grid min-w-0 flex-1 grid-cols-4 gap-1.5">
+          {PALETTE.map((t, i) => {
+            const on = activeCellType === t && activeTool !== 'eraser';
+            return (
+              <button key={t} onClick={() => setActiveCellType(t)} title={`${TYPE_LABEL[t]} (touche ${i + 1})`}
+                className={cn('flex min-w-0 flex-col items-center gap-1 rounded-xl border px-1.5 py-1.5 text-center transition-all @xl:flex-row @xl:gap-2 @xl:px-2 @xl:text-left',
+                  on ? 'border-slate-900 bg-white shadow-md ring-1 ring-slate-900' : 'border-slate-200 bg-white hover:border-slate-300')}>
+                <span className={cn('h-6 w-6 shrink-0 rounded-lg shadow-inner', t === 'forest' && 'hatch')} style={{ backgroundColor: CELL_BG[t] }} />
+                <span className="min-w-0 leading-tight">
+                  <span className="block text-[11px] font-bold text-slate-800">{SHORT[t]}</span>
+                  <span className="hidden text-[9px] text-slate-400 @3xl:block">touche {i + 1}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {(activeTool === 'brush' || activeTool === 'eraser') && (
+          <div className="flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-slate-200 bg-white p-1 @xl:flex-row" title="Taille du pinceau ([ / ])">
+            {([1, 2, 3] as const).map(n => (
+              <button key={n} onClick={() => setBrushSize(n)} aria-label={`Pinceau ${n}×${n}`}
+                className={cn('flex h-6 w-7 items-center justify-center rounded-lg @xl:h-8 @xl:w-8', brushSize === n ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100')}>
+                <span className={cn('rounded-[3px]', brushSize === n ? 'bg-white' : 'bg-slate-500')} style={{ width: 4 + n * 3, height: 4 + n * 3 }} />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Grille */}
@@ -281,17 +343,12 @@ export function GridEditor({ compact = false, variant = 'panel' }: { compact?: b
           onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
           onPointerLeave={() => setHover(null)} onContextMenu={e => e.preventDefault()}>
           {cellLayer}
-          {/* étiquettes des parcelles */}
-          {parcels.map(p => {
-            const xs = p.cells.map(c => c % GRID_N), ys = p.cells.map(c => (c / GRID_N) | 0);
-            const cx = (Math.min(...xs) + Math.max(...xs) + 1) / 2 / GRID_N * 100, cy = (Math.min(...ys) + Math.max(...ys) + 1) / 2 / GRID_N * 100;
-            if (p.cells.length < 6) return null;
-            return (
-              <div key={p.id} className="pointer-events-none absolute max-w-[45%] -translate-x-1/2 -translate-y-1/2 truncate whitespace-nowrap rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-bold text-slate-800 shadow" style={{ left: `${cx}%`, top: `${cy}%` }}>
-                {p.name}
-              </div>
-            );
-          })}
+          {/* étiquettes des parcelles (placement intelligent, sans chevauchement) */}
+          {labels.map(l => (
+            <div key={l.id} className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-md bg-white/95 px-1.5 py-0.5 text-[10px] font-bold text-slate-800 shadow ring-1 ring-black/5" style={{ left: `${l.x}%`, top: `${l.y}%` }}>
+              {l.text}
+            </div>
+          ))}
           {hoverCells.map(c => (
             <div key={`h${c}`} className="pointer-events-none absolute ring-2 ring-inset ring-slate-900/80"
               style={{ left: `${(c % GRID_N) * 5}%`, top: `${((c / GRID_N) | 0) * 5}%`, width: '5%', height: '5%', backgroundColor: activeTool === 'eraser' ? 'rgba(255,255,255,.45)' : activeTool === 'brush' ? `${CELL_BG[activeCellType]}66` : undefined }} />
@@ -345,8 +402,8 @@ export function GridEditor({ compact = false, variant = 'panel' }: { compact?: b
             <span className={cn('h-2.5 w-2.5 rounded-sm', hoverInfo.type === 'forest' && 'hatch')} style={{ backgroundColor: CELL_BG[hoverInfo.type] }} />
             {hoverInfo.parcel ? <b className="truncate text-slate-700">{hoverInfo.parcel.name} · {(hoverInfo.parcel.area * haPerCell).toFixed(2)} ha</b> : 'Zone neutre'}
           </span>
-        ) : <span className="truncate">Clic-glisser pour peindre · <b>clic droit</b> = gomme · clic sur une case existante = éditer · <b>Ctrl+Z</b></span>}
-        <span className="shrink-0 font-mono">{grid.filter(c => c !== 'neutral').length} cases · {(grid.filter(c => c !== 'neutral').length * haPerCell).toFixed(2)} ha</span>
+        ) : <span className="truncate"><b>Glisser</b> pour peindre · <b>clic droit</b> pour gommer</span>}
+        <span className="shrink-0 rounded-md bg-white px-1.5 py-0.5 font-mono text-[10px] text-slate-600 ring-1 ring-slate-200">{(grid.filter(c => c !== 'neutral').length * haPerCell).toFixed(2)} ha</span>
       </div>
 
       {/* Liste des parcelles */}

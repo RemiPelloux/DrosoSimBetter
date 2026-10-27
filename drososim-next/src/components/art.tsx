@@ -58,15 +58,15 @@ export function RingGauge({ value, max = 100, size = 92, stroke = 9, color = '#1
 }
 
 /** Mini-courbe (sparkline) avec aire dégradée */
-export function Sparkline({ data, color = '#10B981', width = 140, height = 36, className }: { data: number[]; color?: string; width?: number; height?: number; className?: string }) {
+export function Sparkline({ data, color = '#10B981', width = 140, height = 36, className, max: fixedMax }: { data: number[]; color?: string; width?: number; height?: number; className?: string; max?: number }) {
   const id = useId().replace(/:/g, '');
   const { line, area } = useMemo(() => {
     if (!data.length) return { line: '', area: '' };
-    const max = Math.max(...data, 1);
+    const max = fixedMax ?? Math.max(...data, 1);
     const pts = data.map((v, i) => [(i / Math.max(1, data.length - 1)) * width, height - 2 - (v / max) * (height - 4)]);
     const l = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
     return { line: l, area: `${l} L${width} ${height} L0 ${height} Z` };
-  }, [data, width, height]);
+  }, [data, width, height, fixedMax]);
   return (
     <svg width={width} height={height} className={className} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
       <defs><linearGradient id={`s${id}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity={0.35} /><stop offset="100%" stopColor={color} stopOpacity={0} /></linearGradient></defs>

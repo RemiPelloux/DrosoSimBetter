@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
 import { useGridStore, buildTemplate } from '@/lib/store';
@@ -120,6 +121,9 @@ export default function LandingPage() {
           ))}
         </div>
       </section>
+
+      {/* ================================================================ PARTENAIRES */}
+      <Partners />
 
       {/* ================================================================ 3 GESTES */}
       <section id="fonctionnement" className="relative mx-auto max-w-7xl px-6 py-28">
@@ -246,10 +250,47 @@ export default function LandingPage() {
       <footer className="border-t border-slate-200 py-10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 text-sm text-slate-500 md:flex-row">
           <span className="flex items-center gap-2"><Logo size={24} animated={false} /> DrosoSim Next — outil pédagogique d&apos;aide à la décision</span>
+          <span className="flex items-center gap-4">
+            {PARTNERS.map(p => <a key={p.name} href={p.link} target="_blank" rel="noopener noreferrer" title={p.desc} className="opacity-60 grayscale transition hover:opacity-100 hover:grayscale-0"><Image src={p.logo} alt={p.name} width={p.w} height={p.h} className="h-6 w-auto object-contain" /></a>)}
+          </span>
           <span className="flex gap-5"><Link href="/docs/presentation" className="hover:text-slate-900">Documentation</Link><Link href="/docs/limites" className="hover:text-slate-900">Limites du modèle</Link><Link href="/simulator" className="hover:text-slate-900">Simulateur</Link></span>
         </div>
       </footer>
     </div>
+  );
+}
+
+// ======================================================================= Partenaires
+const PARTNERS = [
+  { name: 'République Française', desc: 'République Française', logo: '/partners/republique-francaise.png', link: 'https://www.info.gouv.fr/', w: 392, h: 342 },
+  { name: 'INRAE', desc: "Institut national de recherche pour l'agriculture, l'alimentation et l'environnement — équipe M2P2, Sophia Antipolis", logo: '/partners/INRAE.png', link: 'https://inrae.fr', w: 300, h: 79 },
+  { name: 'CTIFL', desc: 'Centre Technique Interprofessionnel des Fruits et Légumes', logo: '/partners/CTIFL.png', link: 'https://ctifl.fr', w: 470, h: 590 },
+  { name: "Univ Côte d'Azur", desc: "Université Côte d'Azur", logo: '/partners/univ-cote-azur.png', link: 'https://univ-cotedazur.fr/', w: 400, h: 340 },
+  { name: 'Ecophyto', desc: 'Plan Écophyto', logo: '/partners/Ecophyto.png', link: 'https://agriculture.gouv.fr/le-plan-ecophyto-quest-ce-que-cest', w: 960, h: 422 },
+  { name: 'OFB', desc: 'Office Français de la Biodiversité', logo: '/partners/OFB.png', link: 'https://ofb.gouv.fr/', w: 464, h: 615 },
+];
+
+function Partners() {
+  return (
+    <section className="relative overflow-hidden border-b border-slate-200/70 bg-[#F6F4EE] py-16">
+      <div className="mx-auto max-w-7xl px-6">
+        <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center">
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.3em] text-emerald-700">Partenaires</p>
+          <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">Issu de la recherche, <em className="text-emerald-700">pensé pour la filière</em></h2>
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-500">DrosoSim est porté par l&apos;équipe M2P2 de l&apos;INRAE Sophia Antipolis, avec le CTIFL, l&apos;Université Côte d&apos;Azur, le plan Écophyto et l&apos;OFB.</p>
+        </motion.div>
+        <div className="mt-10 grid grid-cols-2 items-center gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          {PARTNERS.map((p, i) => (
+            <motion.a key={p.name} href={p.link} target="_blank" rel="noopener noreferrer" title={p.desc}
+              initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }} whileHover={{ y: -4 }}
+              className="group flex h-32 flex-col items-center justify-center gap-2 rounded-3xl border border-white bg-white p-5 shadow-[0_20px_40px_-30px_rgba(2,44,34,.35)] transition-shadow hover:shadow-[0_24px_50px_-25px_rgba(2,44,34,.4)]">
+              <Image src={p.logo} alt={p.name} width={p.w} height={p.h} className="h-16 w-auto max-w-full object-contain opacity-80 grayscale transition duration-300 group-hover:opacity-100 group-hover:grayscale-0" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 transition-colors group-hover:text-emerald-700">{p.name}</span>
+            </motion.a>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

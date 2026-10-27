@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGridStore, useHistory } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/illustrations';
-import { Loader2, Undo2, Redo2, Upload, Download, Share2, FileText, BookOpen, Check, AlertCircle, RotateCcw, FileSpreadsheet } from 'lucide-react';
+import { exportProject, importFile, importText, type ExportFormat } from '@/lib/projectIO';
+import { ChevronDown, FileJson, Image as ImageIcon, Package, Link2, ClipboardPaste, UploadCloud, Loader2, Undo2, Redo2, Upload, Download, Share2, FileText, BookOpen, Check, AlertCircle, RotateCcw, FileSpreadsheet } from 'lucide-react';
 
 // ------------------------------------------------------------------ Toasts
 type Toast = { id: number; msg: string; kind: 'ok' | 'err' };
@@ -40,14 +41,126 @@ export function download(name: string, content: string, type: string) {
 }
 
 function saveJson() {
-  download(`drososim-${new Date().toISOString().slice(0, 10)}.json`, useGridStore.getState().saveProject(), 'application/json');
+  exportProject('json');
   toast('Projet sauvegardé (.json)');
+}
+
+export async function runImport(file: File) {
+  const r = await importFile(file);
+  toast(r.ok ? `${r.message} — « ${file.name} »` : r.message, r.ok ? 'ok' : 'err');
+  return r;
+}
+
+const EXPORTS: { f: ExportFormat; label: string; desc: string; icon: React.ElementType }[] = [
+  { f: 'json', label: 'Projet JSON', desc: 'Format complet et lisible (.json)', icon: FileJson },
+  { f: 'drososim', label: 'Fichier DrosoSim', desc: 'Compact et compressé (.drososim)', icon: Package },
+  { f: 'png', label: 'Image du verger', desc: 'PNG avec le projet intégré', icon: ImageIcon },
+  { f: 'csv', label: 'Tableur CSV', desc: 'Grille + leviers, ouvrable dans Excel', icon: FileSpreadsheet },
+  { f: 'txt', label: 'Lien de partage', desc: 'Fichier texte avec le lien (.txt)', icon: Link2 },
+];
+
+/** Menu « Exporter » : tous les formats sont rechargeables via « Importer » */
+function ExportMenu() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative" onMouseLeave={() => setOpen(false)}>
+      <HBtn outline onClick={() => setOpen(v => !v)} title="Exporter le projet (Ctrl+S = JSON)"><Download className="h-4 w-4" /><span className="hidden lg:inline">Exporter</span><ChevronDown className="h-3 w-3" /></HBtn>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+            className="absolute right-0 top-full z-50 w-72 pt-1">
+            <div className="rounded-2xl border border-slate-200 bg-white p-1.5 shadow-2xl">
+              <p className="px-2.5 pb-1 pt-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Tous les formats sont rechargeables</p>
+              {EXPORTS.map(e => (
+                <button key={e.f} onClick={async () => { await exportProject(e.f); toast(`Exporté : ${e.label}`); setOpen(false); }}
+                  className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left hover:bg-slate-50">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700"><e.icon className="h-4 w-4" /></span>
+                  <span><span className="block text-xs font-bold text-slate-800">{e.label}</span><span className="block text-[11px] text-slate-500">{e.desc}</span></span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/** Menu « Importer » : n'importe quel fichier, ou un lien / texte collé */
+function ImportMenu() {
+  const [open, setOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const paste = async () => {
+    setOpen(false);
+    let txt = '';
+    try { txt = await navigator.clipboard.readText(); } catch { /* permission refusée */ }
+    if (!txt || !/sim=|DROSOSIM|grid|^[A-Za-z0-9+\-$_]{40,}$/.test(txt.trim())) txt = window.prompt('Collez un lien de partage, un projet JSON ou une grille :', txt) ?? '';
+    if (!txt.trim()) return;
+    const r = importText(txt);
+    toast(r.message, r.ok ? 'ok' : 'err');
+  };
+  return (
+    <div className="relative" onMouseLeave={() => setOpen(false)}>
+      <input ref={fileRef} type="file" className="hidden" onChange={async e => { const f = e.target.files?.[0]; if (f) await runImport(f); e.target.value = ''; }} />
+      <HBtn outline onClick={() => setOpen(v => !v)} title="Importer un projet (tout format exporté)"><Upload className="h-4 w-4" /><span className="hidden lg:inline">Importer</span><ChevronDown className="h-3 w-3" /></HBtn>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="absolute right-0 top-full z-50 w-72 pt-1">
+            <div className="rounded-2xl border border-slate-200 bg-white p-1.5 shadow-2xl">
+              <button onClick={() => { setOpen(false); fileRef.current?.click(); }} className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left hover:bg-slate-50">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white"><UploadCloud className="h-4 w-4" /></span>
+                <span><span className="block text-xs font-bold text-slate-800">Ouvrir un fichier…</span><span className="block text-[11px] text-slate-500">JSON, .drososim, PNG, CSV, TXT, grille</span></span>
+              </button>
+              <button onClick={paste} className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left hover:bg-slate-50">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700"><ClipboardPaste className="h-4 w-4" /></span>
+                <span><span className="block text-xs font-bold text-slate-800">Coller un lien ou un texte</span><span className="block text-[11px] text-slate-500">Lien ?sim=…, JSON, grille copiée d’un tableur</span></span>
+              </button>
+              <p className="px-2.5 pb-1.5 pt-1 text-[11px] text-slate-400">Astuce : glissez-déposez un fichier n’importe où dans l’application.</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/** Zone de dépôt plein écran (montée une fois dans le layout) */
+export function GlobalDropZone() {
+  const [over, setOver] = useState(false);
+  useEffect(() => {
+    let depth = 0;
+    const hasFiles = (e: DragEvent) => !!e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files');
+    const enter = (e: DragEvent) => { if (!hasFiles(e)) return; depth++; setOver(true); };
+    const leave = (e: DragEvent) => { if (!hasFiles(e)) return; depth = Math.max(0, depth - 1); if (!depth) setOver(false); };
+    const overH = (e: DragEvent) => { if (hasFiles(e)) e.preventDefault(); };
+    const drop = async (e: DragEvent) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault(); depth = 0; setOver(false);
+      const f = e.dataTransfer?.files?.[0];
+      if (f) await runImport(f);
+    };
+    window.addEventListener('dragenter', enter); window.addEventListener('dragleave', leave);
+    window.addEventListener('dragover', overH); window.addEventListener('drop', drop);
+    return () => { window.removeEventListener('dragenter', enter); window.removeEventListener('dragleave', leave); window.removeEventListener('dragover', overH); window.removeEventListener('drop', drop); };
+  }, []);
+  return (
+    <AnimatePresence>
+      {over && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pointer-events-none fixed inset-0 z-[90] flex items-center justify-center bg-[#03241C]/70 p-8 backdrop-blur-sm">
+          <motion.div initial={{ scale: 0.92 }} animate={{ scale: 1 }} className="flex h-full max-h-96 w-full max-w-2xl flex-col items-center justify-center rounded-[36px] border-4 border-dashed border-emerald-300/70 bg-white/10 text-center text-white">
+            <UploadCloud className="h-14 w-14 text-emerald-300" />
+            <p className="font-display mt-4 text-3xl font-semibold">Déposez votre fichier</p>
+            <p className="mt-2 text-sm text-emerald-50/80">Projet JSON, .drososim, image PNG, CSV, lien .txt ou grille 20×20</p>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }
 
 // ------------------------------------------------------------------ Header
 export function AppHeader({ title, subtitle, step, right, onCsv }: { title: string; subtitle?: string; step?: 1 | 2; right?: React.ReactNode; onCsv?: () => void }) {
   const { canUndo, canRedo, undo, redo } = useHistory();
-  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -67,13 +180,6 @@ export function AppHeader({ title, subtitle, step, right, onCsv }: { title: stri
     const url = `${window.location.origin}${window.location.pathname}?sim=${s}`;
     try { await navigator.clipboard.writeText(url); toast(`Lien copié (${url.length} caractères)`); }
     catch { window.prompt('Copiez ce lien :', url); }
-  };
-  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const ok = useGridStore.getState().loadProject(await f.text());
-    toast(ok ? `Projet « ${f.name} » importé` : 'Fichier invalide', ok ? 'ok' : 'err');
-    e.target.value = '';
   };
 
   return (
@@ -100,10 +206,9 @@ export function AppHeader({ title, subtitle, step, right, onCsv }: { title: stri
             <HBtn onClick={redo} disabled={!canRedo} title="Rétablir (Ctrl+Y)"><Redo2 className="h-4 w-4" /><span className="hidden 2xl:inline">Rétablir</span></HBtn>
           </div>
           <Link href="/docs/presentation" title="Documentation" className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><BookOpen className="h-4 w-4" /><span className="hidden 2xl:inline">Docs</span></Link>
-          <input ref={fileRef} type="file" accept=".json,application/json" className="hidden" onChange={onFile} />
-          <HBtn outline onClick={() => fileRef.current?.click()} title="Importer un projet JSON"><Upload className="h-4 w-4" /><span className="hidden lg:inline">Importer</span></HBtn>
-          <HBtn outline onClick={saveJson} title="Sauvegarder en JSON (Ctrl+S)"><Download className="h-4 w-4" /><span className="hidden lg:inline">Sauvegarder</span></HBtn>
-          {onCsv && <HBtn outline onClick={onCsv} title="Exporter les séries temporelles en CSV"><FileSpreadsheet className="h-4 w-4" /><span className="hidden lg:inline">CSV</span></HBtn>}
+          <ImportMenu />
+          <ExportMenu />
+          {onCsv && <HBtn outline onClick={onCsv} title="Exporter les séries temporelles en CSV (projet inclus, rechargeable)"><FileSpreadsheet className="h-4 w-4" /><span className="hidden lg:inline">Séries CSV</span></HBtn>}
           <HBtn outline onClick={share} title="Copier un lien de partage"><Share2 className="h-4 w-4" /><span className="hidden lg:inline">Partager</span></HBtn>
           <HBtn outline onClick={() => { if (confirm('Réinitialiser tout le projet ?')) { useGridStore.getState().resetProject(); toast('Projet réinitialisé'); } }} title="Réinitialiser le projet"><RotateCcw className="h-4 w-4" /><span className="hidden 2xl:inline">Réinitialiser</span></HBtn>
           {right ?? (

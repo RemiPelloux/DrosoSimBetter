@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "@/components/AppHeader";
+import { Toaster, GlobalDropZone } from "@/components/AppHeader";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -35,6 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <TooltipProvider>
           {children}
           <Toaster />
+          <GlobalDropZone />
         </TooltipProvider>
       </body>
     </html>

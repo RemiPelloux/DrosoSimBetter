@@ -14,6 +14,7 @@ import { useGridStore, type Strategy } from '@/lib/store';
 import { useSimulation } from '@/lib/useSimulation';
 import { dayLabel, isCherry, PHENOLOGY, type StrategyResult } from '@/lib/engine';
 import { cn } from '@/lib/utils';
+import { projectPayload } from '@/lib/projectIO';
 import { BuzzingFly, FlyingFlies } from '@/components/illustrations';
 import { CountUp, RingGauge, Sparkline, Chapter, Grain, Contours, IsoOrchard, HillsBackdrop } from '@/components/art';
 import {
@@ -72,6 +73,7 @@ export default function ResultsPage() {
     });
     rows.push('', 'SYNTHESE;strategie;recolte_%;pic_femelles_ha;IFT;cout_eur;CA_eur;bilan_vs_temoin_eur;main_oeuvre_h');
     out.results.forEach(r => rows.push(['', r.name, r.globalHarvest, r.peakDensity, r.ift, r.totalCost, r.revenue, r.revenue - (base?.revenue ?? 0) - r.totalCost, r.laborHours].join(';')));
+    rows.push('', `DROSOSIM-PROJECT;${projectPayload()}`);
     download(`drososim-series-${new Date().toISOString().slice(0, 10)}.csv`, '\ufeff' + rows.join('\n'), 'text/csv;charset=utf-8');
     toast('Séries temporelles exportées (.csv)');
   };

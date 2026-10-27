@@ -88,14 +88,34 @@ Des **réglages rapides** (climat, durée, économie) sont disponibles directeme
 
 ## 6. Sauvegarde, partage, export
 
+**Tous les formats exportés contiennent le projet complet** (grille, noms des parcelles, stratégies, leviers, paramètres, hypothèses économiques) et **se rechargent** via *Importer* ou par glisser-déposer.
+
+| Format (menu *Exporter*) | Usage | Rechargeable |
+|---|---|---|
+| **Projet JSON** (`.json`, aussi `Ctrl+S`) | format complet et lisible | ✅ |
+| **Fichier DrosoSim** (`.drososim`) | format compact compressé (environ 3× plus léger) | ✅ |
+| **Image du verger** (`.png`) | plan du verger à envoyer ou imprimer ; le projet est caché dans l'image (bloc `tEXt`) | ✅ |
+| **Tableur CSV** (`.csv`) | grille 20×20 en lettres (F/P/S/T/.) et leviers, ouvrable dans Excel | ✅ |
+| **Lien de partage** (`.txt`) | lien `…?sim=…` à envoyer par e-mail ou messagerie | ✅ |
+| **Séries CSV** (page résultats) | séries temporelles et synthèse, projet inclus en dernière ligne | ✅ |
+| **Fiche Conseil PDF** | rapport A4 imprimable | ❌ (document de restitution) |
+
+**Importer** accepte, en détectant le format automatiquement :
+- tous les fichiers ci-dessus ;
+- un **lien de partage** ou un texte collé (*Importer → Coller un lien ou un texte*) ;
+- une **grille saisie à la main** dans un tableur : 20 lignes × 20 colonnes, séparateur `;`, `,`, tabulation ou espace. Les codes `F/P/S/T/.` ou les mots `forêt`, `précoce`, `saison`, `tardive`, `vide` sont acceptés, en français ou en anglais. Les stratégies existantes sont conservées.
+
+Les fichiers Excel natifs (`.xlsx`) ne sont pas lus directement : il faut d'abord les enregistrer en CSV.
+
+**Glisser-déposer** : déposez un fichier n'importe où dans l'application pour l'importer.
+
+Autres actions :
+
 | Action | Effet |
 |---|---|
-| Sauvegarde automatique | Tout le projet est conservé dans le navigateur (localStorage) |
-| **Sauvegarder** (`Ctrl+S`) | Télécharge un fichier `.json` complet (rechargeable via **Importer**) |
-| **Partager** | Copie un lien `…?sim=…` contenant tout le scénario compressé, sans compte ni serveur |
-| **CSV** | Séries temporelles (densités et % de fruits sains, par stratégie et par parcelle, tous les 3 jours) et tableau de synthèse. Séparateur `;`, encodage UTF-8 avec BOM (compatible Excel) |
-| **Fiche Conseil PDF** | Mise en page A4 imprimable (en-tête, plan du verger, tous les graphiques) via la boîte d'impression du navigateur |
-| **Réinitialiser** | Repart d'un projet vierge (après confirmation) |
+| Sauvegarde automatique | le projet est conservé dans le navigateur (localStorage) |
+| **Partager** | copie le lien `…?sim=…` dans le presse-papiers |
+| **Réinitialiser** | repart d'un projet vierge (après confirmation) |
 
 ## 7. Raccourcis clavier
 

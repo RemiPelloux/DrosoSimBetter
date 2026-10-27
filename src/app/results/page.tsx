@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { AppHeader, LiveBadge, download, toast, useShareHydration } from '@/components/AppHeader';
 import {
   PopulationChart, HarvestByParcelChart, OverlayChart, EconomicsChart, RadarScore, HealthyFruitChart, YearlyHarvestChart,
-  StrategyLegend, fmtEur, THRESHOLD, Empty,
+  StrategyLegend, fmtEur, THRESHOLD, Empty, useColorMap,
 } from '@/components/charts';
 import { MiniMap } from '@/components/GridEditor';
 import { LEVERS, SimulationSettings, EconomicsSettings } from '@/components/ControlPanel';
@@ -54,7 +54,8 @@ export default function ResultsPage() {
   const ranked = useMemo(() => (shown?.results ?? []).filter(r => !r.isBaseline).map(r => ({ r, net: r.revenue - (base?.revenue ?? 0) - r.totalCost })).sort((a, b) => b.net - a.net), [shown, base]);
   const best = ranked[0];
   const focus = shown?.results.find(r => r.id === (focusId ?? best?.r.id)) ?? shown?.results[0];
-  const color = (id: string) => strategies.find(s => s.id === id)?.color ?? '#64748B';
+  const colors = useColorMap(strategies);                                  // Map : pas de find() par carte, barre ou colonne
+  const color = (id: string) => colors.get(id) ?? '#64748B';
   const haPerCell = economics.cellAreaM2 / 10000;
   const cherryHa = parcels.filter(p => isCherry(p.type)).reduce((a, p) => a + p.area, 0) * haPerCell;
 
@@ -261,7 +262,7 @@ function Hero({ best, net, base, count, color, grid, chips, running, ms, source,
   chips: { icon: React.ElementType; label: string }[]; running: boolean; ms?: number; source?: { label: string; error?: string }; settingsOpen: boolean; onToggleSettings: () => void;
 }) {
   const [view, setView] = useState<'best' | 'base'>('best');
-  const max = Math.max(...Array.from(base.peakByCell), 1);
+  const max = useMemo(() => peakMax(base), [base]);
   const shownRes = view === 'best' && best ? best : base;
   const gainPts = best ? best.globalHarvest - base.globalHarvest : 0;
   return (
@@ -428,8 +429,15 @@ function FinalCta() {
   );
 }
 
+/** Pic maximal du témoin (échelle commune des cartes) — boucle simple, sans copie ni spread de 400 valeurs */
+function peakMax(r: StrategyResult) {
+  let m = 1;
+  for (let i = 0; i < r.peakByCell.length; i++) if (r.peakByCell[i] > m) m = r.peakByCell[i];
+  return m;
+}
+
 function HeatPanel({ focus, base, grid }: { focus: StrategyResult; base: StrategyResult; grid: import('@/lib/engine').CellType[] }) {
-  const max = Math.max(...Array.from(base.peakByCell), 1);
+  const max = useMemo(() => peakMax(base), [base]);
   return (
     <div className="grid items-center gap-4 md:grid-cols-[1fr_200px]">
       <div className="relative rounded-3xl bg-gradient-to-b from-sky-50 to-[#F3EEDF] p-2">
@@ -449,6 +457,8 @@ function HeatPanel({ focus, base, grid }: { focus: StrategyResult; base: Strateg
 }
 
 function LeverTable({ strategies, parcels, results, haPerCell }: { strategies: Strategy[]; parcels: import('@/lib/store').Parcel[]; results: StrategyResult[]; haPerCell: number }) {
+  // index stratégie → résultat : évite un results.find() dans la double boucle parcelles × stratégies
+  const resultById = useMemo(() => new Map(results.map(r => [r.id, r])), [results]);
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-xs">
@@ -466,7 +476,7 @@ function LeverTable({ strategies, parcels, results, haPerCell }: { strategies: S
               {strategies.map(s => {
                 const lv = s.leversByParcel[p.id];
                 const on = LEVERS.filter(l => lv?.[l.key] && l.targets(p.type));
-                const h = results.find(r => r.id === s.id)?.harvestByParcel[p.id];
+                const h = resultById.get(s.id)?.harvestByParcel[p.id];
                 return (
                   <td key={s.id} className="py-2 pr-3">
                     <div className="flex flex-wrap items-center gap-1">

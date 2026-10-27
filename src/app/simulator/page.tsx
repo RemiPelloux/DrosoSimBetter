@@ -40,6 +40,7 @@ export default function SimulatorPage() {
   const [mobileTab, setMobileTab] = useState<'map' | 'levers' | 'live'>('map');
 
   const active = out?.results.find(r => r.id === activeId);
+  const activeColor = strategies.find(s => s.id === activeId)?.color; // calculé une fois par rendu, hors JSX
   const base = out?.results.find(r => r.isBaseline);
   const haTotal = parcels.reduce((a, p) => a + p.area, 0) * useGridStore.getState().economics.cellAreaM2 / 10000;
 
@@ -98,7 +99,7 @@ export default function SimulatorPage() {
               ) : active && base ? (
                 <>
                   <div className="mb-3 flex items-center gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: strategies.find(s => s.id === active.id)?.color }} />
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: activeColor }} />
                     <b className="truncate text-slate-800">{active.isBaseline ? 'Témoin sans protection' : active.name}</b>
                   </div>
                   <div className="grid grid-cols-2 gap-2">

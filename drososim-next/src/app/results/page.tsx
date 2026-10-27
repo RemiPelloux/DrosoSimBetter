@@ -14,6 +14,7 @@ import { useGridStore, type Strategy } from '@/lib/store';
 import { useSimulation } from '@/lib/useSimulation';
 import { dayLabel, isCherry, PHENOLOGY, type StrategyResult } from '@/lib/engine';
 import { cn } from '@/lib/utils';
+import { BuzzingFly } from '@/components/illustrations';
 import {
   ArrowLeft, Trophy, TrendingUp, TrendingDown, Euro, Bug, Leaf, Activity, BarChart3, Layers, Columns3, Map as MapIcon,
   Lightbulb, AlertTriangle, CheckCircle2, Info, ChevronDown, Printer, Settings2, Clock, Users, Radar as RadarIcon,
@@ -79,7 +80,7 @@ export default function ResultsPage() {
       <div className="min-h-screen bg-slate-50">
         <AppHeader title="Résultats" step={2} />
         <div className="mx-auto mt-24 max-w-md text-center">
-          <BarChart3 className="mx-auto h-14 w-14 text-slate-300" />
+          <BuzzingFly size={72} />
           <h2 className="mt-4 text-xl font-extrabold text-slate-900">Aucun verger à analyser</h2>
           <p className="mt-2 text-sm text-slate-500">Dessinez d&apos;abord vos parcelles, ou chargez la démo.</p>
           <div className="mt-6 flex justify-center gap-2">
@@ -408,6 +409,7 @@ function Hypotheses() {
     <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
       <button onClick={() => setOpen(v => !v)} className="flex w-full items-center gap-2 p-4 text-left">
         <Info className="h-4 w-4 text-slate-500" /><span className="text-sm font-bold text-slate-800">Hypothèses du modèle (transparence pour chercheurs et conseillers)</span>
+        <Link href="/docs/modele" onClick={e => e.stopPropagation()} className="ml-3 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100">Documentation complète →</Link>
         <ChevronDown className={cn('ml-auto h-4 w-4 text-slate-400 transition-transform', open && 'rotate-180')} />
       </button>
       {open && (
@@ -485,5 +487,5 @@ function FocusPicker({ results, value, onChange, color }: { results: StrategyRes
   );
 }
 function SkeletonResults() {
-  return <div className="grid gap-4 md:grid-cols-3">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-44 animate-pulse rounded-2xl bg-slate-200/60" />)}</div>;
+  return <div className="grid gap-4 md:grid-cols-3"><div className="col-span-full flex items-center justify-center gap-3 py-6 text-sm font-semibold text-slate-500"><BuzzingFly size={40} /> Simulation des stratégies en cours…</div>{Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-44 animate-pulse rounded-2xl bg-slate-200/60" />)}</div>;
 }

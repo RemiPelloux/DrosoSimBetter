@@ -8,6 +8,7 @@ import { GridEditor } from '@/components/GridEditor';
 import { SimulationSettings, StrategyBar, LeverMatrix, EconomicsSettings } from '@/components/ControlPanel';
 import { PopulationChart, HarvestByParcelChart, fmtEur, THRESHOLD } from '@/components/charts';
 import { useGridStore } from '@/lib/store';
+import { FlyingFlies, Drosophila } from '@/components/illustrations';
 import { useSimulation } from '@/lib/useSimulation';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Zap, Minimize2, PanelLeft, Columns3, PanelRight, GripVertical, ChevronDown, Euro, Map, SlidersHorizontal, Activity, X, Paintbrush, Wand2, BarChart3 } from 'lucide-react';
@@ -92,7 +93,7 @@ export default function SimulatorPage() {
             <Panel title="Aperçu temps réel" icon={Activity} right={<LiveBadge running={running} ms={out?.computeMs} />}>
               {!out || parcels.length === 0 ? (
                 <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-xs text-slate-400">
-                  <BarChart3 className="h-10 w-10 text-slate-200" />Dessinez un verger (ou choisissez un modèle) : les résultats apparaissent instantanément ici.
+                  <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 2, repeat: Infinity }}><Drosophila size={56} /></motion.div>Dessinez un verger (ou choisissez un modèle) : les résultats apparaissent instantanément ici.
                 </div>
               ) : active && base ? (
                 <>
@@ -202,6 +203,7 @@ function Onboarding() {
         <button onClick={finish} className="absolute right-4 top-4 z-10 rounded-full p-1.5 text-slate-400 hover:bg-slate-100"><X className="h-4 w-4" /></button>
         <div className="relative h-36 overflow-hidden bg-gradient-to-br from-emerald-600 to-emerald-900">
           <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 20% 30%, #fbbf24 0 8px, transparent 9px), radial-gradient(circle at 70% 60%, #f43f5e 0 10px, transparent 11px), radial-gradient(circle at 45% 80%, #fff 0 4px, transparent 5px)' }} />
+          <FlyingFlies count={3} />
           <AnimatePresence mode="wait">
             <motion.div key={i} initial={{ scale: 0.5, opacity: 0, rotate: -15 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} exit={{ scale: 0.5, opacity: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 18 }}
               className="absolute inset-0 flex items-center justify-center">

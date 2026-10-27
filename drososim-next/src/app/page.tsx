@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useGridStore, buildTemplate } from '@/lib/store';
 import { CELL_BG } from '@/components/GridEditor';
+import { Logo, FlyingFlies, Drosophila, CherryArt, LifeCycleDiagram } from '@/components/illustrations';
+import Link from 'next/link';
 import {
-  ArrowRight, Leaf, PlayCircle, Paintbrush, SlidersHorizontal, BarChart3, Share2, Zap, ShieldCheck,
+  ArrowRight, PlayCircle, Paintbrush, SlidersHorizontal, BarChart3, Share2, Zap, ShieldCheck,
   Tractor, Users, FlaskConical, Check, X, Sparkles, MousePointerClick, Timer,
 } from 'lucide-react';
 
@@ -33,12 +35,13 @@ export default function WelcomePage() {
 
       <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
         <div className="flex items-center gap-2">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-lg shadow-emerald-900/20"><Leaf className="h-6 w-6" /></span>
+          <Logo size={40} />
           <span className="text-xl font-extrabold tracking-tight">DrosoSim<span className="text-emerald-700">Next</span></span>
         </div>
         <div className="flex items-center gap-2">
           <a href="#fonctionnement" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-white sm:block">Fonctionnement</a>
           <a href="#pourquoi" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-white sm:block">Pourquoi</a>
+          <Link href="/docs/presentation" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-white sm:block">Documentation</Link>
           <button onClick={() => router.push('/simulator')} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">Ouvrir le simulateur</button>
         </div>
       </nav>
@@ -74,6 +77,7 @@ export default function WelcomePage() {
 
         <motion.div style={{ y }} className="relative">
           <HeroOrchard />
+          <FlyingFlies count={5} />
         </motion.div>
       </section>
 
@@ -94,6 +98,26 @@ export default function WelcomePage() {
               <p className="relative mt-2 text-sm leading-relaxed text-slate-600">{s.d}</p>
             </motion.div>
           ))}
+        </div>
+      </section>
+
+      {/* Le modèle */}
+      <section className="relative z-10 mx-auto max-w-7xl px-6 py-16">
+        <div className="grid items-center gap-10 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm lg:grid-cols-2 md:p-12">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-700">Sous le capot</p>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight">Un modèle biologique transparent</h2>
+            <p className="mt-4 text-slate-600">Chaque jour, sur 400 cases : température, ponte selon la maturité des fruits, développement en degrés-jours, mortalité, dispersion vers les vergers attractifs. Chaque stratégie est simulée intégralement — les leviers changent vraiment la dynamique.</p>
+            <ul className="mt-5 space-y-2 text-sm text-slate-700">
+              {['Équations et paramètres documentés', 'Effet mathématique de chaque levier', 'Calcul économique détaillé, coûts éditables', 'Limites et démarche de calibration'].map(t => <li key={t} className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" />{t}</li>)}
+            </ul>
+            <div className="mt-6 flex items-center gap-4">
+              <Link href="/docs/modele" className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Lire la documentation du modèle <ArrowRight className="h-4 w-4" /></Link>
+              <CherryArt size={44} />
+              <motion.div animate={{ x: [0, 10, -6, 0], y: [0, -6, 4, 0] }} transition={{ duration: 3, repeat: Infinity }}><Drosophila size={44} /></motion.div>
+            </div>
+          </div>
+          <div className="rounded-2xl bg-slate-50 p-4"><LifeCycleDiagram /></div>
         </div>
       </section>
 
@@ -156,7 +180,7 @@ export default function WelcomePage() {
       </section>
 
       <footer className="relative z-10 border-t border-slate-200 py-8 text-center text-xs text-slate-500">
-        DrosoSim Next — outil pédagogique d&apos;aide à la décision. Les résultats sont des ordres de grandeur issus d&apos;un modèle simplifié.
+        DrosoSim Next — outil pédagogique d&apos;aide à la décision. Les résultats sont des ordres de grandeur issus d&apos;un modèle simplifié. · <Link href="/docs/limites" className="underline hover:text-slate-800">Limites du modèle</Link>
       </footer>
     </div>
   );

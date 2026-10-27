@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGridStore, useHistory } from '@/lib/store';
 import { cn } from '@/lib/utils';
-import { Loader2, Undo2, Redo2, Upload, Download, Share2, FileText, Leaf, Check, AlertCircle, RotateCcw, FileSpreadsheet } from 'lucide-react';
+import { Logo } from '@/components/illustrations';
+import { Loader2, Undo2, Redo2, Upload, Download, Share2, FileText, BookOpen, Check, AlertCircle, RotateCcw, FileSpreadsheet } from 'lucide-react';
 
 // ------------------------------------------------------------------ Toasts
 type Toast = { id: number; msg: string; kind: 'ok' | 'err' };
@@ -79,7 +80,7 @@ export function AppHeader({ title, subtitle, step, right, onCsv }: { title: stri
     <header className="no-print sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-[1920px] items-center gap-3 px-4">
         <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-lg shadow-emerald-900/20"><Leaf className="h-5 w-5" /></span>
+          <Logo size={36} />
           <span className="hidden text-base font-extrabold tracking-tight text-slate-900 xl:block">DrosoSim<span className="text-emerald-700">Next</span></span>
         </Link>
         <div className="h-8 w-px bg-slate-200" />
@@ -98,6 +99,7 @@ export function AppHeader({ title, subtitle, step, right, onCsv }: { title: stri
             <HBtn onClick={undo} disabled={!canUndo} title="Annuler (Ctrl+Z)"><Undo2 className="h-4 w-4" /><span className="hidden 2xl:inline">Annuler</span></HBtn>
             <HBtn onClick={redo} disabled={!canRedo} title="Rétablir (Ctrl+Y)"><Redo2 className="h-4 w-4" /><span className="hidden 2xl:inline">Rétablir</span></HBtn>
           </div>
+          <Link href="/docs/presentation" title="Documentation" className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><BookOpen className="h-4 w-4" /><span className="hidden 2xl:inline">Docs</span></Link>
           <input ref={fileRef} type="file" accept=".json,application/json" className="hidden" onChange={onFile} />
           <HBtn outline onClick={() => fileRef.current?.click()} title="Importer un projet JSON"><Upload className="h-4 w-4" /><span className="hidden lg:inline">Importer</span></HBtn>
           <HBtn outline onClick={saveJson} title="Sauvegarder en JSON (Ctrl+S)"><Download className="h-4 w-4" /><span className="hidden lg:inline">Sauvegarder</span></HBtn>

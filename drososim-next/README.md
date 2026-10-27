@@ -29,3 +29,8 @@ npm run test:e2e     # parcours navigateur (serveur sur :3100, chromium requis)
 Raccourcis : `B R F E V` outils, `1-4` types, `[ ]` taille du pinceau, `Maj+F` éditeur plein écran, `Ctrl+Z/Y`, `Ctrl+S`, `Échap`. Colonnes redimensionnables (poignées, double-clic = réinitialiser, préréglages « Disposition »).
 
 > Modèle pédagogique non calibré sur données terrain : comparer des ordres de grandeur.
+
+## Documentation
+Documentation complète en français (modèle, équations, leviers, économie, architecture, limites) :
+- dans l'application : **`/docs`** (formules KaTeX, schémas SVG animés) ;
+- sources Markdown : [`docs/`](docs/).

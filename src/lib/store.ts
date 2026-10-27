@@ -110,6 +110,8 @@ export function buildTemplate(t: TemplateId): CellType[] {
   return g;
 }
 
+const serverStorage: Storage = { length: 0, clear: () => {}, getItem: () => null, key: () => null, removeItem: () => {}, setItem: () => {} };
+
 const uid = () => `strategy-${Math.random().toString(36).slice(2, 8)}`;
 
 // ---------------------------------------------------------------- Encodage grille (RLE)
@@ -280,7 +282,8 @@ export const useGridStore = create<GridState>()(
     ),
     {
       name: 'drososim-next-v2',
-      storage: createJSONStorage(() => localStorage),
+      // navigateur uniquement : pendant le pré-rendu serveur, stockage neutre (évite l'accès au localStorage de Node)
+      storage: createJSONStorage(() => (typeof window !== 'undefined' ? window.localStorage : serverStorage)),
       partialize: (s) => ({ grid: s.grid, parcelNames: s.parcelNames, strategies: s.strategies, activeStrategyId: s.activeStrategyId, simParams: s.simParams, economics: s.economics, onboardingDone: s.onboardingDone, layout: s.layout, brushSize: s.brushSize }),
     },
   ),

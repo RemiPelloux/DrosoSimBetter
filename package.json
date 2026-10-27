@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint src",
-    "test:engine": "node scripts/engine-check.ts",
-    "test:e2e": "node scripts/e2e.mjs"
+    "test:engine": "node scripts/test-engine.ts",
+    "test:e2e": "node scripts/with-server.mjs scripts/test-e2e.mjs",
+    "docs:media": "node scripts/with-server.mjs scripts/docs-media.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

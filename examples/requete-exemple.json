@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "gridSize": 20,
+  "grid": [
+    "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest",
+    "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest",
+    "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest", "forest",
+    "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral",
+    "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral",
+    "neutral", "neutral", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "neutral", "neutral", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "neutral", "neutral",
+    "neutral", "neutral", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "neutral", "neutral", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "neutral", "neutral",
+    "neutral", "neutral", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "neutral", "neutral", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "neutral", "neutral",
+    "neutral", "neutral", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "neutral", "neutral", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "neutral", "neutral",
+    "neutral", "neutral", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "neutral", "neutral", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "neutral", "neutral",
+    "neutral", "neutral", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "neutral", "neutral", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "neutral", "neutral",
+    "neutral", "neutral", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "neutral", "neutral", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "neutral", "neutral",
+    "neutral", "neutral", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "early-cherry", "neutral", "neutral", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "late-cherry", "neutral", "neutral",
+    "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral",
+    "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral",
+    "neutral", "neutral", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "neutral", "neutral",
+    "neutral", "neutral", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "neutral", "neutral",
+    "neutral", "neutral", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "season-cherry", "neutral", "neutral",
+    "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral",
+    "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral"
+  ],
+  "parcels": [
+    {
+      "id": "forest-1",
+      "name": "Espace Naturel-1",
+      "type": "forest",
+      "cells": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]
+    },
+    {
+      "id": "early-cherry-1",
+      "name": "Cerise Précoce-1",
+      "type": "early-cherry",
+      "cells": [102, 103, 104, 105, 106, 107, 108, 122, 123, 124, 125, 126, 127, 128, 142, 143, 144, 145, 146, 147, 148, 162, 163, 164, 165, 166, 167, 168, 182, 183, 184, 185, 186, 187, 188, 202, 203, 204, 205, 206, 207, 208, 222, 223, 224, 225, 226, 227, 228, 242, 243, 244, 245, 246, 247, 248]
+    },
+    {
+      "id": "late-cherry-1",
+      "name": "Cerise Tardive-1",
+      "type": "late-cherry",
+      "cells": [111, 112, 113, 114, 115, 116, 117, 131, 132, 133, 134, 135, 136, 137, 151, 152, 153, 154, 155, 156, 157, 171, 172, 173, 174, 175, 176, 177, 191, 192, 193, 194, 195, 196, 197, 211, 212, 213, 214, 215, 216, 217, 231, 232, 233, 234, 235, 236, 237, 251, 252, 253, 254, 255, 256, 257]
+    },
+    {
+      "id": "season-cherry-1",
+      "name": "Cerise de Saison-1",
+      "type": "season-cherry",
+      "cells": [302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 313, 314, 315, 316, 317, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 342, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 357]
+    }
+  ],
+  "strategies": [
+    {
+      "id": "baseline",
+      "name": "Témoin sans protection",
+      "isBaseline": true,
+      "leversByParcel": {}
+    },
+    {
+      "id": "pbi",
+      "name": "Protection intégrée",
+      "isBaseline": false,
+      "leversByParcel": {
+        "forest-1": {
+          "prophylaxis": false,
+          "harvestRate": 98,
+          "groundFruitDestruction": true,
+          "netting": false,
+          "netType": "monorang",
+          "netDeploy": "bloom",
+          "treatment": false,
+          "treatmentMode": "conventional",
+          "treatmentPasses": 2,
+          "treatmentTrigger": "calendar",
+          "parasitoids": true,
+          "parasitoidSeason": "spring",
+          "parasitoidDose": "standard",
+          "tis": false,
+          "tisRatio": 10
+        },
+        "early-cherry-1": {
+          "prophylaxis": true,
+          "harvestRate": 98,
+          "groundFruitDestruction": true,
+          "netting": false,
+          "netType": "monorang",
+          "netDeploy": "bloom",
+          "treatment": false,
+          "treatmentMode": "conventional",
+          "treatmentPasses": 2,
+          "treatmentTrigger": "calendar",
+          "parasitoids": false,
+          "parasitoidSeason": "spring",
+          "parasitoidDose": "standard",
+          "tis": false,
+          "tisRatio": 10
+        },
+        "late-cherry-1": {
+          "prophylaxis": true,
+          "harvestRate": 98,
+          "groundFruitDestruction": true,
+          "netting": true,
+          "netType": "monorang",
+          "netDeploy": "bloom",
+          "treatment": false,
+          "treatmentMode": "conventional",
+          "treatmentPasses": 2,
+          "treatmentTrigger": "calendar",
+          "parasitoids": false,
+          "parasitoidSeason": "spring",
+          "parasitoidDose": "standard",
+          "tis": false,
+          "tisRatio": 10
+        },
+        "season-cherry-1": {
+          "prophylaxis": true,
+          "harvestRate": 98,
+          "groundFruitDestruction": true,
+          "netting": false,
+          "netType": "monorang",
+          "netDeploy": "bloom",
+          "treatment": false,
+          "treatmentMode": "conventional",
+          "treatmentPasses": 2,
+          "treatmentTrigger": "calendar",
+          "parasitoids": false,
+          "parasitoidSeason": "spring",
+          "parasitoidDose": "standard",
+          "tis": false,
+          "tisRatio": 10
+        }
+      }
+    }
+  ],
+  "params": {
+    "startSeason": "spring",
+    "durationYears": 2,
+    "climateProfile": "mild-winter"
+  },
+  "eco": {
+    "yieldTPerHa": 10,
+    "pricePerKg": 3.5,
+    "cellAreaM2": 100
+  }
+}

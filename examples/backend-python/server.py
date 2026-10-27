@@ -130,11 +130,11 @@ class Handler(BaseHTTPRequestHandler):
         self._send(204)
 
     def do_GET(self) -> None:  # noqa: N802
-        self._send(200, {"status": "ok"} if self.path == "/health" else {"error": "not found"})
+        self._send(200, {"status": "ok", "contract": 1} if self.path == "/health" else {"error": "introuvable"})
 
     def do_POST(self) -> None:  # noqa: N802
         if not self.path.startswith("/simulate"):
-            return self._send(404, {"error": "not found"})
+            return self._send(404, {"error": "introuvable"})
         try:
             req = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
             if req.get("version") != 1:

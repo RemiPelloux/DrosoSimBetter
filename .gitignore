@@ -40,3 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .e2e-shots
+
+# python (exemples de backend)
+__pycache__/
+*.py[cod]
+.venv/

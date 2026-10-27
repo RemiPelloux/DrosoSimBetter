@@ -1,0 +1,3 @@
+# Uniquement pour app_fastapi.py — server.py n'a besoin d'aucune dépendance.
+fastapi>=0.110
+uvicorn[standard]>=0.29

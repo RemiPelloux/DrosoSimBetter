@@ -20,6 +20,11 @@ export const LEVERS: { key: LeverKey; label: string; short: string; icon: React.
   { key: 'tis', label: 'TIS (mâles stériles)', short: 'TIS', icon: Dna, color: '#DB2777', targets: isCherry, cost: 'Technologie de pointe · zéro résidu', note: 'Réduit la fécondité fertile de mars à sept.' },
 ];
 
+/** Index précalculés : levier par clé et nombre de leviers applicables par type de case. */
+const LEVER_BY_KEY = Object.fromEntries(LEVERS.map(l => [l.key, l])) as Record<LeverKey, (typeof LEVERS)[number]>;
+const TARGET_COUNT: Partial<Record<CellType, number>> = {};
+for (const t of ['forest', 'early-cherry', 'season-cherry', 'late-cherry'] as CellType[]) TARGET_COUNT[t] = LEVERS.filter(l => l.targets(t)).length;
+
 const CLIMATES = [
   { id: 'mild-winter', label: 'Hiver doux', icon: Sun, desc: 'Forte survie hivernale' },
   { id: 'harsh-winter', label: 'Hiver rigoureux', icon: Snowflake, desc: 'Mortalité hivernale élevée' },
@@ -155,7 +160,7 @@ export function LeverMatrix() {
   }
   if (parcels.length === 0) return <p className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-xs italic text-slate-400">Dessinez des parcelles pour configurer les leviers.</p>;
 
-  const allOn = (k: LeverKey) => parcels.filter(p => LEVERS.find(l => l.key === k)!.targets(p.type)).every(p => active.leversByParcel[p.id]?.[k]);
+  const allOn = (k: LeverKey) => { const lever = LEVER_BY_KEY[k]; return parcels.filter(p => lever.targets(p.type)).every(p => active.leversByParcel[p.id]?.[k]); };
 
   return (
     <div className="space-y-3">
@@ -189,7 +194,7 @@ export function LeverMatrix() {
               <div className="flex gap-0.5">
                 {LEVERS.map(l => lv[l.key] ? <span key={l.key} title={l.short} className="flex h-5 w-5 items-center justify-center rounded-md text-white" style={{ backgroundColor: l.color }}><l.icon className="h-3 w-3" /></span> : null)}
               </div>
-              <span className="text-[10px] text-slate-400">{n}/{LEVERS.filter(l => l.targets(p.type)).length}</span>
+              <span className="text-[10px] text-slate-400">{n}/{TARGET_COUNT[p.type] ?? 0}</span>
               <ChevronDown className={cn('h-4 w-4 text-slate-400 transition-transform', expanded && 'rotate-180')} />
             </button>
             <div className="grid grid-cols-5 gap-1 border-t border-slate-100 px-2 py-2">

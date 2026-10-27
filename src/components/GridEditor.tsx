@@ -101,6 +101,9 @@ export function GridEditor({ compact = false, variant = 'panel' }: { compact?: b
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
 
+  // index O(1) : parcelle par identifiant (survol, menu d'édition) et nombre de cases peintes
+  const parcelById = useMemo(() => new Map(parcels.map(p => [p.id, p])), [parcels]);
+  const paintedCells = useMemo(() => grid.reduce((n, c) => n + (c !== 'neutral' ? 1 : 0), 0), [grid]);
   const cellParcel = useMemo(() => {
     const m = new Array<string | null>(NC).fill(null);
     parcels.forEach(p => p.cells.forEach(c => (m[c] = p.id)));
@@ -253,10 +256,10 @@ export function GridEditor({ compact = false, variant = 'panel' }: { compact?: b
   const haPerCell = economics.cellAreaM2 / 10000;
   // Aperçu du pinceau sous le curseur + infos de survol
   const hoverCells = hover !== null && !stroke && (activeTool === 'brush' || activeTool === 'eraser') ? stamp(hover, brushSize) : hover !== null ? [hover] : [];
-  const hoverInfo = hover !== null ? { x: hover % GRID_N + 1, y: ((hover / GRID_N) | 0) + 1, type: grid[hover], parcel: parcels.find(p => p.id === cellParcel[hover]) } : null;
+  const hoverInfo = hover !== null ? { x: hover % GRID_N + 1, y: ((hover / GRID_N) | 0) + 1, type: grid[hover], parcel: cellParcel[hover] ? parcelById.get(cellParcel[hover]!) : undefined } : null;
   const rectInfo = stroke && activeTool === 'rectangle' && stroke.rectEnd !== undefined && stroke.type !== 'neutral'
     ? { w: Math.abs(stroke.rectEnd % GRID_N - stroke.start % GRID_N) + 1, h: Math.abs(((stroke.rectEnd / GRID_N) | 0) - ((stroke.start / GRID_N) | 0)) + 1 } : null;
-  const menuParcel = menu ? parcels.find(p => p.id === cellParcel[menu.cell]) : null;
+  const menuParcel = menu && cellParcel[menu.cell] ? parcelById.get(cellParcel[menu.cell]!) ?? null : null;
 
   const split = (dir: 'h' | 'v') => {
     if (!menu || !menuParcel) return;
@@ -403,7 +406,7 @@ export function GridEditor({ compact = false, variant = 'panel' }: { compact?: b
             {hoverInfo.parcel ? <b className="truncate text-slate-700">{hoverInfo.parcel.name} · {(hoverInfo.parcel.area * haPerCell).toFixed(2)} ha</b> : 'Zone neutre'}
           </span>
         ) : <span className="truncate"><b>Glisser</b> pour peindre · <b>clic droit</b> pour gommer</span>}
-        <span className="shrink-0 rounded-md bg-white px-1.5 py-0.5 font-mono text-[10px] text-slate-600 ring-1 ring-slate-200">{(grid.filter(c => c !== 'neutral').length * haPerCell).toFixed(2)} ha</span>
+        <span className="shrink-0 rounded-md bg-white px-1.5 py-0.5 font-mono text-[10px] text-slate-600 ring-1 ring-slate-200">{(paintedCells * haPerCell).toFixed(2)} ha</span>
       </div>
 
       {/* Liste des parcelles */}

@@ -162,11 +162,12 @@ export function normalizeOutput(raw: unknown, req: SimRequest, elapsedMs: number
   const totalDays = o.totalDays ?? req.params.durationYears * 365 + (req.params.startSeason === 'autumn' ? 92 : 0);
   const haPerCell = req.eco.cellAreaM2 / 10000;
   const cherry = req.parcels.filter(p => isCherry(p.type));
+  const area = cherry.reduce((a, p) => a + p.cells.length, 0);          // calculé une fois, pas par stratégie
+  const strategyById = new Map(req.strategies.map(s => [s.id, s]));     // évite un find() par résultat
 
   const results: StrategyResult[] = o.results.map((r, i) => {
-    const s = req.strategies.find(x => x.id === r.id) ?? req.strategies[i];
+    const s = (r.id ? strategyById.get(r.id) : undefined) ?? req.strategies[i];
     const hbp = r.harvestByParcel ?? {};
-    const area = cherry.reduce((a, p) => a + p.cells.length, 0);
     const globalHarvest = r.globalHarvest ?? (area ? cherry.reduce((a, p) => a + (hbp[p.id] ?? 100) * p.cells.length, 0) / area : 100);
     const revenue = r.revenue ?? cherry.reduce((a, p) => a + p.cells.length * haPerCell * req.eco.yieldTPerHa * 1000 * req.eco.pricePerKg * ((hbp[p.id] ?? 100) / 100), 0);
     const rc: Partial<StrategyResult['costs']> = r.costs ?? {};

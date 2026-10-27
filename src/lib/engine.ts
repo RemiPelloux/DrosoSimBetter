@@ -420,17 +420,16 @@ export function simulate(
         const yr = Math.floor((startDoy + day) / DAYS) + 1;
         const pt: SeriesPoint = { day, label: `${label} A${yr}` };
         const dp: SeriesPoint = { day, label: `${label} A${yr}` };
-        let fs = 0, fn = 0;
-        parcels.forEach(p => {
+        // une seule passe par parcelle : densité, fruits sains et agrégats forêt / cerisiers
+        let fs = 0, fn = 0, cs = 0, cn = 0;
+        for (const p of parcels) {
           let s = 0, h = 0;
           for (const c of p.cells) { s += A[c]; h += healthy[c]; }
           pt[p.id] = Math.round((s / p.cells.length) * toHa);
-          if (isCherry(p.type)) dp[p.id] = Math.round((h / p.cells.length) * 1000) / 10;
-          if (p.type === 'forest') { fs += s; fn += p.cells.length; }
-        });
+          if (isCherry(p.type)) { dp[p.id] = Math.round((h / p.cells.length) * 1000) / 10; cs += s; cn += p.cells.length; }
+          else if (p.type === 'forest') { fs += s; fn += p.cells.length; }
+        }
         pt.forest_all = fn ? Math.round((fs / fn) * toHa) : 0;
-        let cs = 0, cn = 0;
-        parcels.forEach(p => { if (isCherry(p.type)) for (const c of p.cells) { cs += A[c]; cn++; } });
         pt.cherry_all = cn ? Math.round((cs / cn) * toHa) : 0;
         series.push(pt);
         damageSeries.push(dp);
@@ -508,7 +507,23 @@ export const TYPE_EMOJI: Record<CellType, string> = {
   neutral: '⬜', forest: '🌲', 'early-cherry': '🍒', 'late-cherry': '🍒', 'season-cherry': '🍒',
 };
 
+/**
+ * Détection des parcelles (composantes 4-connexes de même type).
+ * Mise en cache par référence de grille : la grille est immuable dans le store
+ * (chaque modification crée un nouveau tableau), donc plusieurs consommateurs
+ * (store, simulation, éditeur, leviers) partagent un seul calcul par modification.
+ * Le résultat est partagé : ne pas le muter.
+ */
+const parcelCache = new WeakMap<CellType[], ParcelInfo[]>();
 export function detectParcels(grid: CellType[]): ParcelInfo[] {
+  const hit = parcelCache.get(grid);
+  if (hit) return hit;
+  const res = computeParcels(grid);
+  parcelCache.set(grid, res);
+  return res;
+}
+
+function computeParcels(grid: CellType[]): ParcelInfo[] {
   const seen = new Uint8Array(NC);
   const counter: Record<string, number> = {};
   const out: ParcelInfo[] = [];

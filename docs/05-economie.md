@@ -27,7 +27,7 @@ Le CA de la stratégie est la somme sur les parcelles : $CA = \sum_p CA_p$. Un f
 ## 2. CA sauvé
 
 $$
-\text{CA sauvé} = CA_{stratégie} - CA_{témoin}
+\text{CA sauvé} = CA_{\text{stratégie}} - CA_{\text{témoin}}
 $$
 
 C'est la valeur de la récolte que la stratégie a protégée par rapport au fait de ne rien faire.
@@ -67,7 +67,7 @@ La **meilleure stratégie** mise en avant (bandeau *Verdict*, badge 🏆) est ce
 L'**Indice de Fréquence de Traitement** comptabilise les passages conventionnels, pondérés par la surface traitée et ramenés à la surface totale de cerisiers et à l'année :
 
 $$
-IFT = \frac{\sum_{\text{passages conv.}} S_{traitée}}{S_{cerisiers} \times N_{ans}}
+IFT = \frac{\sum_{\text{passages conv.}} S_{\text{traitée}}}{S_{\text{cerisiers}} \times N_{\text{ans}}}
 $$
 
 Le **biocontrôle n'est pas compté** dans l'IFT chimique, conformément à l'usage.

@@ -53,7 +53,7 @@
 
 ## 🚀 Démarrage rapide
 
-**Prérequis** : [Node.js](https://nodejs.org) ≥ 20 (22+ recommandé) et npm.
+**Prérequis** : [Node.js](https://nodejs.org) ≥ 22 (`nvm use` lit le fichier `.nvmrc`) et npm.
 
 ```bash
 # 1. Installer
@@ -74,14 +74,16 @@ Cliquez sur **« Voir la démo »** pour charger un verger d'exemple avec trois 
 | Commande | Rôle |
 |---|---|
 | `npm run dev` | serveur de développement sur le port 3000 |
-| `npm run build` | build de production |
-| `npm start` | sert le build de production |
-| `npm run lint` | ESLint |
-| `npx tsc --noEmit` | vérification des types |
-| `npm run test:engine` | contrôle du moteur (48 scénarios) |
-| `npm run test:e2e` | parcours navigateur Playwright (nécessite `npm start -- -p 3100` et Chromium) |
-| `node examples/backend-node/server.ts` | backend de référence sur le port 8787 |
-| `python3 examples/backend-python/server.py` | squelette de backend Python sur le port 8788 |
+| `npm run build` / `npm start` | build de production / serveur de production |
+| `npm run check` | lint + typage + tests du moteur, à lancer avant chaque commit |
+| `npm test` | tests du moteur + parcours navigateur |
+| `npm run lint` / `npm run typecheck` | ESLint / TypeScript |
+| `npm run test:engine` | tests du moteur (12 vérifications, sans navigateur) |
+| `npm run test:e2e` | parcours navigateur (16 vérifications ; serveur démarré automatiquement, build et Chromium requis) |
+| `npm run docs:media` | régénère captures, démo GIF et MP4 de ce README |
+| `npm run backend:node` / `backend:python` | backends d'exemple sur les ports 8787 / 8788 |
+
+Détails : [`scripts/README.md`](scripts/README.md) · configuration d'un backend : copier [`.env.example`](.env.example) en `.env.local`.
 
 </details>
 
@@ -129,9 +131,9 @@ L'interface est **découplée du calcul**. Par défaut, le moteur TypeScript tou
 **1. Lancer un backend d'exemple**
 
 ```bash
-python3 examples/backend-python/server.py     # squelette à compléter (aucune dépendance)
+npm run backend:python     # squelette à compléter (aucune dépendance)
 # ou
-node examples/backend-node/server.ts          # le moteur de l'application derrière HTTP
+npm run backend:node       # le moteur de l'application derrière HTTP
 ```
 
 **2. Le brancher**, à chaud :
@@ -140,7 +142,7 @@ node examples/backend-node/server.ts          # le moteur de l'application derri
 http://localhost:3000/simulator?backend=http://localhost:8788/simulate
 ```
 
-ou de façon permanente, dans `.env.local` :
+ou de façon permanente, en copiant `.env.example` en `.env.local` :
 
 ```bash
 NEXT_PUBLIC_SIM_BACKEND=http                 # local | http | ws
@@ -172,7 +174,8 @@ DrosoSimBetter/
 │   │   ├── simulator/          cockpit : éditeur, leviers, aperçu temps réel
 │   │   ├── results/            résultats, comparateur, Fiche Conseil
 │   │   ├── docs/               documentation intégrée (/docs)
-│   │   └── docs-assets/        médias de docs/assets servis à l'application
+│   │   ├── docs-assets/        médias de docs/assets servis à l'application
+│   │   └── icon.svg            icône d'onglet
 │   ├── components/             éditeur, leviers, graphiques, illustrations SVG
 │   └── lib/
 │       ├── engine.ts           ⭐ modèle biologique, leviers, économie (pur, sans dépendance)
@@ -180,16 +183,17 @@ DrosoSimBetter/
 │       ├── store.ts            état, historique, persistance, partage
 │       ├── projectIO.ts        import / export universel
 │       └── useSimulation.ts    calcul temps réel
-├── docs/                       documentation en Markdown (rendue sur /docs)
+├── docs/                       documentation (index : docs/README.md, rendue sur /docs)
 │   └── assets/                 bannière, schémas animés, démo GIF/MP4, captures
-├── examples/
-│   ├── backend-node/           backend de référence (moteur derrière HTTP)
-│   └── backend-python/         squelette Python sans dépendance
+├── examples/                   backends d'exemple (index : examples/README.md)
+│   ├── backend-node/           référence : le moteur derrière HTTP
+│   ├── backend-python/         squelette sans dépendance + version FastAPI
+│   └── requete-exemple.json    requête réelle pour tester un backend
+├── scripts/                    tests et médias (index : scripts/README.md)
 ├── public/partners/            logos des partenaires
-├── scripts/                    tests du moteur et parcours navigateur
+├── .env.example                configuration du backend de simulation
 ├── package.json                dépendances et commandes npm
-├── next.config.ts · tsconfig.json · eslint.config.mjs
-└── README.md
+└── next.config.ts · tsconfig.json · eslint.config.mjs · .editorconfig · .nvmrc
 ```
 
 Recettes pas à pas dans **[docs/10-developpement.md](docs/10-developpement.md)** :

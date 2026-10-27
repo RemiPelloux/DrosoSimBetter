@@ -13,16 +13,22 @@ npm install
 npm run dev          # http://localhost:3000, rechargement à chaud
 ```
 
-Prérequis : **Node.js ≥ 20** (22+ recommandé, nécessaire pour exécuter les scripts `.ts` sans compilation) et npm.
+Prérequis : **Node.js ≥ 22** (fichier `.nvmrc` fourni : `nvm use`) et npm. Copiez `.env.example` en `.env.local` pour configurer un backend de simulation.
 
 | Commande | Rôle |
 |---|---|
-| `npm run dev` | serveur de développement |
+| `npm run dev` | serveur de développement (rechargement à chaud) |
 | `npm run build` puis `npm start` | build de production puis serveur (port 3000) |
-| `npm run lint` | ESLint |
-| `npx tsc --noEmit` | vérification des types |
-| `npm run test:engine` | contrôle du moteur (48 scénarios : NaN, saisons, climats, durées) |
-| `npm run test:e2e` | parcours navigateur Playwright (serveur sur `:3100` et Chromium requis) |
+| `npm run lint` | ESLint sur tout le dépôt |
+| `npm run typecheck` | types de routes (`next typegen`) puis vérification TypeScript |
+| `npm run check` | lint + typage + tests du moteur : **à lancer avant chaque commit** |
+| `npm run test:engine` | tests du moteur (12 vérifications, sans navigateur) |
+| `npm run test:e2e` | parcours navigateur (16 vérifications ; build et Chromium requis) |
+| `npm test` | tous les tests |
+| `npm run docs:media` | régénère captures, démo GIF et MP4 du README (ffmpeg et ImageMagick requis) |
+| `npm run backend:node` / `backend:python` | backends d'exemple sur les ports 8787 / 8788 |
+
+Détails et variables d'environnement des scripts : [`scripts/README.md`](../scripts/README.md).
 
 ## 2. Carte du code
 
@@ -40,7 +46,9 @@ Prérequis : **Node.js ≥ 20** (22+ recommandé, nécessaire pour exécuter les
 | `src/app/page.tsx` | landing page | contenu marketing |
 | `src/app/simulator/page.tsx` | cockpit de simulation | disposition, onboarding |
 | `src/app/results/page.tsx` | page de résultats | sections, indicateurs |
-| `docs/*.md` | cette documentation (rendue sur `/docs`) | documenter vos changements |
+| `docs/*.md` | cette documentation (rendue sur `/docs` ; seuls les fichiers numérotés sont des chapitres) | documenter vos changements |
+| `scripts/` | tests et génération des médias | ajouter une vérification |
+| `examples/` | backends d'exemple et requête de test | partir d'un squelette de backend |
 
 ## 3. Recettes courantes
 
@@ -56,7 +64,7 @@ const D = T > 10 ? 0.12 : 0.03;               // fraction dispersée par jour
 healthy[c] *= Math.exp(-eggs / 3500);         // constante de dégâts
 ```
 
-Après modification, lancez `npm run test:engine` et comparez les sorties. Pensez à mettre à jour `docs/03-modele.md`.
+Après modification, lancez `npm run test:engine` : les vérifications de cohérence agronomique signalent une régression. Pensez à mettre à jour `docs/03-modele.md`.
 
 ### Changer les dates de maturité
 

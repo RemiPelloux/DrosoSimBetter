@@ -15,6 +15,8 @@ import type { Doc, DocMeta } from '@/lib/docs';
 import { cn } from '@/lib/utils';
 import { BookOpen, Compass, Bug, ShieldCheck, Euro, Cpu, AlertTriangle, ScanSearch, Plug, Code2, ChevronLeft, ChevronRight, Search, Menu, X, ArrowUpRight, ListTree } from 'lucide-react';
 
+const REPO_URL = 'https://github.com/RemiPelloux/DrosoSimBetter';
+
 const ICONS: Record<string, React.ElementType> = { book: BookOpen, compass: Compass, bug: Bug, shield: ShieldCheck, euro: Euro, cpu: Cpu, alert: AlertTriangle, search: ScanSearch, plug: Plug, code: Code2 };
 
 export function DocsShell({ doc, nav }: { doc: Doc; nav: DocMeta[] }) {
@@ -124,6 +126,15 @@ export function DocsShell({ doc, nav }: { doc: Doc; nav: DocMeta[] }) {
                   return <pre {...props}>{children}</pre>;
                 },
                 table({ children }) { return <div className="overflow-x-auto"><table>{children}</table></div>; },
+                a({ href, children }) {
+                  // liens relatifs : chapitre → /docs/<slug>, fichier du dépôt → GitHub, ancre ou URL → inchangé
+                  let url = href ?? '';
+                  const chapter = /^(?:\.\/)?\d+-([a-z0-9-]+)\.md(#.*)?$/.exec(url);
+                  if (chapter) url = `/docs/${chapter[1]}${chapter[2] ?? ''}`;
+                  else if (!/^(https?:|mailto:|#|\/)/.test(url)) url = `${REPO_URL}/blob/main/${url.replace(/^(\.\.\/)+/, '').replace(/^\.\//, 'docs/')}`;
+                  const external = /^https?:/.test(url);
+                  return <a href={url} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{children}</a>;
+                },
                 img({ src, alt }) {
                   const u = typeof src === 'string' ? src.replace(/^(\.\/)?assets\//, '/docs-assets/') : '';
                   // eslint-disable-next-line @next/next/no-img-element

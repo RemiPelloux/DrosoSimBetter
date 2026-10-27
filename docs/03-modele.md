@@ -132,7 +132,7 @@ Chaque jour, dans cet ordre :
 ### 6.1 Ponte
 
 $$
-E_c = A_c \times \underbrace{6}_{\text{œufs/♀/j max}} \times \varphi(T) \times \rho_c \times (1-\eta_c) \times \tau_c \times \left(1 - \frac{A_c}{K_c}\right)^{\!+} \times h_{hum}
+E_c = A_c \times \underbrace{6}_{\text{œufs / femelle / jour (max.)}} \times \varphi(T) \times \rho_c \times (1-\eta_c) \times \tau_c \times \left(1 - \frac{A_c}{K_c}\right)^{\!+} \times h_{hum}
 $$
 
 - $\eta_c$ : efficacité du filet actif (0 si aucun filet) ;
@@ -182,7 +182,7 @@ Une mortalité de base de 2,8 % par jour correspond à une **espérance de vie a
 Chaque jour, une fraction $D$ des femelles quitte sa case :
 
 $$
-D = \begin{cases} 0{,}12 & T > 10\,°C \\ 0{,}03 & \text{sinon} \end{cases}
+D = \begin{cases} 0{,}12 & T > 10\,^\circ\text{C} \\ 0{,}03 & \text{sinon} \end{cases}
 $$
 
 Les émigrantes se répartissent entre les **8 voisines** (voisinage de Moore) au prorata de leur attractivité. La part refoulée par un filet revient dans la case de départ :

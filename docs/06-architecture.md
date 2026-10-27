@@ -42,9 +42,9 @@ src/
 │   ├── sim.worker.ts        Enveloppe Web Worker
 │   ├── useSimulation.ts     Hook temps réel
 │   └── store.ts             État global, historique, persistance, partage
-docs/                        Sources Markdown de la documentation (+ assets/)
-examples/                    backend-node (référence), backend-python (squelette)
-scripts/                     engine-check.ts, e2e.mjs
+docs/                        Sources Markdown de la documentation (+ assets/ : médias du README)
+examples/                    backend-node (référence), backend-python (squelette + FastAPI), requete-exemple.json
+scripts/                     test-engine.ts, test-e2e.mjs, docs-media.mjs, with-server.mjs, lib/harness.mjs
 ```
 
 ## 3. Le moteur (`engine.ts`)
@@ -94,10 +94,14 @@ Les leviers incomplets (anciennes versions) sont complétés avec les valeurs pa
 
 | Commande | Vérifie |
 |---|---|
-| `npm run lint` | ESLint (règles React 19 / Next) |
-| `npx tsc --noEmit` | typage strict |
-| `npm run test:engine` | 48 combinaisons (grilles vide / forêt / mixte × saisons × climats × durées) : absence de NaN, nombre de récoltes, temps de calcul |
-| `npm run test:e2e` | parcours navigateur (Playwright) : dessin, annuler un trait entier, gomme au clic droit, menu d'édition, leviers, lien de partage rejoué dans un navigateur vierge, démo → résultats, zéro erreur console |
+| `npm run lint` | ESLint sur tout le dépôt (règles React 19 / Next) |
+| `npm run typecheck` | génération des types de routes (`next typegen`) puis typage strict |
+| `npm run test:engine` | 12 vérifications : 48 scénarios sans NaN (grilles vide / forêt / mixte × saisons × climats × durées), une récolte par an, bornes, déterminisme, cohérence agronomique, budget de temps |
+| `npm run test:e2e` | 16 vérifications dans Chromium : accueil, visite guidée, dessin interpolé, annulation d'un trait entier, gomme, menu d'édition, leviers, lien de partage rejoué dans un navigateur vierge, résultats, mobile, zéro erreur console. Le serveur de production est démarré puis arrêté automatiquement. |
+| `npm run check` | lint + typage + tests du moteur (rapide, sans navigateur) |
+| `npm test` | tests du moteur + parcours navigateur |
+
+Tous les tests sortent avec le code 1 en cas d'échec ; voir [`scripts/README.md`](../scripts/README.md).
 
 ## 8. Déploiement
 

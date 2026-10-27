@@ -17,5 +17,6 @@ function parse(file: string): Doc {
 }
 
 export function getDocs(): Doc[] {
-  return fs.readdirSync(DIR).filter(f => f.endsWith('.md')).sort().map(parse);
+  // seuls les fichiers numérotés (« 01-presentation.md ») sont des chapitres ; README.md sert d'index sur GitHub
+  return fs.readdirSync(DIR).filter(f => /^\d+-.+\.md$/.test(f)).sort().map(parse);
 }

@@ -28,7 +28,7 @@ DrosoSim Next calcule par défaut **dans le navigateur** avec son moteur TypeScr
 
 ### Par variables d'environnement (déploiement)
 
-Créez un fichier `.env.local` à la racine du projet :
+Copiez `.env.example` en `.env.local` à la racine du projet, puis adaptez :
 
 ```bash
 NEXT_PUBLIC_SIM_BACKEND=http                               # local | http | ws
@@ -129,7 +129,9 @@ La connexion est réutilisée, et plusieurs requêtes peuvent être en vol (corr
 ### Backend de référence Node (le moteur de l'application derrière HTTP)
 
 ```bash
-node examples/backend-node/server.ts           # → http://localhost:8787/simulate
+npm run backend:node                           # → http://localhost:8787/simulate
+# test sans interface, avec une requête réelle :
+curl -s -X POST localhost:8787/simulate -H 'Content-Type: application/json' --data @examples/requete-exemple.json
 ```
 
 Ouvrez ensuite `http://localhost:3000/results?backend=http://localhost:8787/simulate` : les résultats doivent être identiques au moteur local. Ce backend sert de **test de conformité** du contrat.
@@ -137,7 +139,7 @@ Ouvrez ensuite `http://localhost:3000/results?backend=http://localhost:8787/simu
 ### Squelette Python (sans dépendance)
 
 ```bash
-python3 examples/backend-python/server.py      # → http://localhost:8788/simulate
+npm run backend:python                         # → http://localhost:8788/simulate
 ```
 
 Le fichier `examples/backend-python/server.py` contient :
@@ -146,6 +148,15 @@ Le fichier `examples/backend-python/server.py` contient :
 3. un **serveur HTTP** avec CORS ouvert, prêt pour le développement.
 
 ### Version FastAPI (production)
+
+Le fichier [`examples/backend-python/app_fastapi.py`](../examples/backend-python/app_fastapi.py) est prêt à l'emploi :
+
+```bash
+pip install -r examples/backend-python/requirements.txt
+uvicorn app_fastapi:app --app-dir examples/backend-python --host 0.0.0.0 --port 8788
+```
+
+Son principe, en résumé :
 
 ```python
 # pip install fastapi uvicorn
@@ -169,10 +180,6 @@ async def simulate_ws(ws: WebSocket):
             await ws.send_json({"id": msg["id"], "out": run_model(msg)})
         except Exception as e:
             await ws.send_json({"id": msg["id"], "error": str(e)})
-```
-
-```bash
-uvicorn app:app --host 0.0.0.0 --port 8788
 ```
 
 ## 5. Recommandations pour un backend de recherche

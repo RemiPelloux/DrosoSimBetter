@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="drososim-next/docs/assets/banner.svg" alt="DrosoSim Next — Le verger, simulé. La décision, éclairée." width="100%">
+  <img src="docs/assets/banner.svg" alt="DrosoSim Next — Le verger, simulé. La décision, éclairée." width="100%">
 </p>
 
 <p align="center">
@@ -17,8 +17,8 @@
 </p>
 
 <p align="center">
-  <img src="drososim-next/docs/assets/demo.gif" alt="Démonstration : accueil, dessin du verger, leviers, résultats" width="88%">
-  <br><sub>Parcours complet en 25 secondes · <a href="drososim-next/docs/assets/demo.mp4">version vidéo MP4</a></sub>
+  <img src="docs/assets/demo.gif" alt="Démonstration : accueil, dessin du verger, leviers, résultats" width="88%">
+  <br><sub>Parcours complet en 25 secondes · <a href="docs/assets/demo.mp4">version vidéo MP4</a></sub>
 </p>
 
 ---
@@ -57,8 +57,8 @@
 
 ```bash
 # 1. Installer
-git clone <url-du-dépôt>
-cd <dépôt>/drososim-next
+git clone https://github.com/RemiPelloux/DrosoSimBetter.git
+cd DrosoSimBetter
 npm install
 
 # 2. Lancer en développement (rechargement à chaud)
@@ -93,16 +93,16 @@ Cliquez sur **« Voir la démo »** pour charger un verger d'exemple avec trois 
 
 <table>
   <tr>
-    <td width="50%"><img src="drososim-next/docs/assets/ecran-accueil.jpg" alt="Page d'accueil"><br><sub><b>Accueil</b> : verger isométrique calculé en direct par le moteur</sub></td>
-    <td width="50%"><img src="drososim-next/docs/assets/ecran-simulateur.jpg" alt="Simulateur"><br><sub><b>Simulateur</b> : éditeur, paramètres, leviers et aperçu temps réel</sub></td>
+    <td width="50%"><img src="docs/assets/ecran-accueil.jpg" alt="Page d'accueil"><br><sub><b>Accueil</b> : verger isométrique calculé en direct par le moteur</sub></td>
+    <td width="50%"><img src="docs/assets/ecran-simulateur.jpg" alt="Simulateur"><br><sub><b>Simulateur</b> : éditeur, paramètres, leviers et aperçu temps réel</sub></td>
   </tr>
   <tr>
-    <td><img src="drososim-next/docs/assets/ecran-resultats.jpg" alt="Résultats"><br><sub><b>Résultats</b> : verdict, chiffres clés, bascule témoin / gagnante</sub></td>
-    <td><img src="drososim-next/docs/assets/ecran-synthese.jpg" alt="Synthèse"><br><sub><b>Synthèse</b> : podium par bilan net et cartes de stratégie</sub></td>
+    <td><img src="docs/assets/ecran-resultats.jpg" alt="Résultats"><br><sub><b>Résultats</b> : verdict, chiffres clés, bascule témoin / gagnante</sub></td>
+    <td><img src="docs/assets/ecran-synthese.jpg" alt="Synthèse"><br><sub><b>Synthèse</b> : podium par bilan net et cartes de stratégie</sub></td>
   </tr>
   <tr>
-    <td><img src="drososim-next/docs/assets/ecran-territoire.jpg" alt="Territoire"><br><sub><b>Territoire</b> : carte de pression et fruits sains</sub></td>
-    <td><img src="drososim-next/docs/assets/ecran-docs.jpg" alt="Documentation"><br><sub><b>Documentation</b> : équations rendues et schémas animés</sub></td>
+    <td><img src="docs/assets/ecran-territoire.jpg" alt="Territoire"><br><sub><b>Territoire</b> : carte de pression et fruits sains</sub></td>
+    <td><img src="docs/assets/ecran-docs.jpg" alt="Documentation"><br><sub><b>Documentation</b> : équations rendues et schémas animés</sub></td>
   </tr>
 </table>
 
@@ -124,7 +124,7 @@ Chaque format exporté contient **le projet complet** et se recharge via **Impor
 
 L'interface est **découplée du calcul**. Par défaut, le moteur TypeScript tourne dans un Web Worker, mais une équipe de recherche peut brancher **son propre modèle** sans toucher à l'interface.
 
-<p align="center"><img src="drososim-next/docs/assets/architecture.svg" alt="Architecture : un moteur interchangeable" width="92%"></p>
+<p align="center"><img src="docs/assets/architecture.svg" alt="Architecture : un moteur interchangeable" width="92%"></p>
 
 **1. Lancer un backend d'exemple**
 
@@ -158,25 +158,41 @@ NEXT_PUBLIC_SIM_BACKEND_URL=https://api.mon-labo.fr/simulate
 
 L'application complète le reste (récolte globale, chiffre d'affaires, phénologie). Si le backend tombe, elle **bascule automatiquement sur le moteur local** et le signale par un badge orange.
 
-➡️ Contrat complet, protocole WebSocket, version FastAPI et adaptateur pour un modèle de type DrosoSim INRAE : **[docs/09-backend.md](drososim-next/docs/09-backend.md)**
+➡️ Contrat complet, protocole WebSocket, version FastAPI et adaptateur pour un modèle de type DrosoSim INRAE : **[docs/09-backend.md](docs/09-backend.md)**
 
 ## 🛠️ Modifier le code
 
+Structure du dépôt — tout est à la racine :
+
 ```
-src/
-├── app/                 pages : accueil, simulateur, résultats, documentation
-├── components/          éditeur, leviers, graphiques, illustrations SVG
-└── lib/
-    ├── engine.ts        ⭐ modèle biologique, leviers, économie (pur, sans dépendance)
-    ├── backend.ts       contrat et backends (local, HTTP, WebSocket)
-    ├── store.ts         état, historique, persistance, partage
-    ├── projectIO.ts     import / export universel
-    └── useSimulation.ts calcul temps réel
-docs/                    documentation (rendue sur /docs) et médias du README
-examples/                backends Node et Python
+DrosoSimBetter/
+├── src/
+│   ├── app/                    pages Next.js
+│   │   ├── page.tsx            accueil (landing)
+│   │   ├── simulator/          cockpit : éditeur, leviers, aperçu temps réel
+│   │   ├── results/            résultats, comparateur, Fiche Conseil
+│   │   ├── docs/               documentation intégrée (/docs)
+│   │   └── docs-assets/        médias de docs/assets servis à l'application
+│   ├── components/             éditeur, leviers, graphiques, illustrations SVG
+│   └── lib/
+│       ├── engine.ts           ⭐ modèle biologique, leviers, économie (pur, sans dépendance)
+│       ├── backend.ts          contrat et backends (local, HTTP, WebSocket)
+│       ├── store.ts            état, historique, persistance, partage
+│       ├── projectIO.ts        import / export universel
+│       └── useSimulation.ts    calcul temps réel
+├── docs/                       documentation en Markdown (rendue sur /docs)
+│   └── assets/                 bannière, schémas animés, démo GIF/MP4, captures
+├── examples/
+│   ├── backend-node/           backend de référence (moteur derrière HTTP)
+│   └── backend-python/         squelette Python sans dépendance
+├── public/partners/            logos des partenaires
+├── scripts/                    tests du moteur et parcours navigateur
+├── package.json                dépendances et commandes npm
+├── next.config.ts · tsconfig.json · eslint.config.mjs
+└── README.md
 ```
 
-Recettes pas à pas dans **[docs/10-developpement.md](drososim-next/docs/10-developpement.md)** :
+Recettes pas à pas dans **[docs/10-developpement.md](docs/10-developpement.md)** :
 - changer un paramètre biologique ou les dates de maturité ;
 - ajouter un levier, un type de case, un graphique, un modèle de verger ou un format d'export ;
 - conventions de code et déploiement.
@@ -187,16 +203,16 @@ Disponible dans l'application sur **`/docs`** (formules KaTeX, schémas animés)
 
 | # | Chapitre | |
 |---|---|---|
-| 1 | [Présentation](drososim-next/docs/01-presentation.md) | objectifs, personas |
-| 2 | [Guide d'utilisation](drososim-next/docs/02-guide.md) | outils, résultats, exports, raccourcis |
-| 3 | [Le modèle biologique](drososim-next/docs/03-modele.md) | variables, équations, paramètres |
-| 4 | [Les leviers de lutte](drososim-next/docs/04-leviers.md) | formalisation de chaque levier |
-| 5 | [Économie & indicateurs](drososim-next/docs/05-economie.md) | CA, coûts, bilan, IFT, radar |
-| 6 | [Architecture technique](drososim-next/docs/06-architecture.md) | pile, moteur, état, formats |
-| 7 | [Limites & calibration](drososim-next/docs/07-limites.md) | hypothèses, démarche de calibration |
-| 8 | [Analyse du DrosoSim institutionnel](drososim-next/docs/08-drososim-institutionnel.md) | modèle de drososim.fr |
-| 9 | [Brancher son backend](drososim-next/docs/09-backend.md) | contrat, HTTP, WebSocket, exemples |
-| 10 | [Modifier le code](drososim-next/docs/10-developpement.md) | recettes, conventions, déploiement |
+| 1 | [Présentation](docs/01-presentation.md) | objectifs, personas |
+| 2 | [Guide d'utilisation](docs/02-guide.md) | outils, résultats, exports, raccourcis |
+| 3 | [Le modèle biologique](docs/03-modele.md) | variables, équations, paramètres |
+| 4 | [Les leviers de lutte](docs/04-leviers.md) | formalisation de chaque levier |
+| 5 | [Économie & indicateurs](docs/05-economie.md) | CA, coûts, bilan, IFT, radar |
+| 6 | [Architecture technique](docs/06-architecture.md) | pile, moteur, état, formats |
+| 7 | [Limites & calibration](docs/07-limites.md) | hypothèses, démarche de calibration |
+| 8 | [Analyse du DrosoSim institutionnel](docs/08-drososim-institutionnel.md) | modèle de drososim.fr |
+| 9 | [Brancher son backend](docs/09-backend.md) | contrat, HTTP, WebSocket, exemples |
+| 10 | [Modifier le code](docs/10-developpement.md) | recettes, conventions, déploiement |
 
 ## ☁️ Déployer
 
@@ -204,25 +220,25 @@ Disponible dans l'application sur **`/docs`** (formules KaTeX, schémas animés)
 npm ci && npm run build && npm start          # Node, port 3000
 ```
 
-- **Vercel / Netlify** : répertoire racine `drososim-next`, aucune configuration particulière.
-- **VPS** : derrière Caddy ou Nginx (HTTPS, HTTP/3, compression) ; voir [docs/10-developpement.md](drososim-next/docs/10-developpement.md#5-déployer).
+- **Vercel / Netlify** : importer le dépôt tel quel, aucune configuration particulière.
+- **VPS** : derrière Caddy ou Nginx (HTTPS, HTTP/3, compression) ; voir [docs/10-developpement.md](docs/10-developpement.md#5-déployer).
 - Aucune base de données : les projets restent dans le navigateur ou dans les fichiers exportés.
 
 ## 🔬 Le modèle et ses limites
 
 Le moteur intégré est un **modèle spatio-temporel journalier** sur une grille de 400 cases : température, ponte selon la maturité des fruits, développement en degrés-jours, mortalité, dispersion vers les vergers attractifs. Chaque stratégie est simulée intégralement.
 
-> ⚠️ **Modèle pédagogique, non calibré sur des données de terrain.** Il sert à **comparer des stratégies** et à comprendre les mécanismes, pas à prédire un rendement. Les équipes de recherche peuvent y substituer leur modèle validé via le [backend](#-brancher-son-backend-de-simulation). Voir [Limites & calibration](drososim-next/docs/07-limites.md).
+> ⚠️ **Modèle pédagogique, non calibré sur des données de terrain.** Il sert à **comparer des stratégies** et à comprendre les mécanismes, pas à prédire un rendement. Les équipes de recherche peuvent y substituer leur modèle validé via le [backend](#-brancher-son-backend-de-simulation). Voir [Limites & calibration](docs/07-limites.md).
 
 ## 🤝 Partenaires
 
 <p align="center">
-  <img src="drososim-next/public/partners/republique-francaise.png" alt="République Française" height="56">&nbsp;&nbsp;&nbsp;
-  <img src="drososim-next/public/partners/INRAE.png" alt="INRAE" height="40">&nbsp;&nbsp;&nbsp;
-  <img src="drososim-next/public/partners/CTIFL.png" alt="CTIFL" height="56">&nbsp;&nbsp;&nbsp;
-  <img src="drososim-next/public/partners/univ-cote-azur.png" alt="Université Côte d'Azur" height="56">&nbsp;&nbsp;&nbsp;
-  <img src="drososim-next/public/partners/Ecophyto.png" alt="Écophyto" height="44">&nbsp;&nbsp;&nbsp;
-  <img src="drososim-next/public/partners/OFB.png" alt="OFB" height="56">
+  <img src="public/partners/republique-francaise.png" alt="République Française" height="56">&nbsp;&nbsp;&nbsp;
+  <img src="public/partners/INRAE.png" alt="INRAE" height="40">&nbsp;&nbsp;&nbsp;
+  <img src="public/partners/CTIFL.png" alt="CTIFL" height="56">&nbsp;&nbsp;&nbsp;
+  <img src="public/partners/univ-cote-azur.png" alt="Université Côte d'Azur" height="56">&nbsp;&nbsp;&nbsp;
+  <img src="public/partners/Ecophyto.png" alt="Écophyto" height="44">&nbsp;&nbsp;&nbsp;
+  <img src="public/partners/OFB.png" alt="OFB" height="56">
 </p>
 
 <p align="center"><sub>DrosoSim est porté par l'équipe M2P2 de l'INRAE Sophia Antipolis, avec le CTIFL, l'Université Côte d'Azur, le plan Écophyto et l'OFB.<br>Les logos sont la propriété de leurs institutions respectives.</sub></p>

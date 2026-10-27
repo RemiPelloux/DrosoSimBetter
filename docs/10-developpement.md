@@ -8,7 +8,7 @@ icon: code
 ## 1. Démarrer
 
 ```bash
-git clone <dépôt> && cd drososim-next
+git clone https://github.com/RemiPelloux/DrosoSimBetter.git && cd DrosoSimBetter
 npm install
 npm run dev          # http://localhost:3000, rechargement à chaud
 ```
@@ -119,7 +119,7 @@ Dans `projectIO.ts` : ajoutez un `case` à `exportProject()` qui embarque `proje
 
 ### Vercel / Netlify
 
-Importez le dépôt, puis indiquez le répertoire `drososim-next` comme racine du projet. Ajoutez au besoin les variables `NEXT_PUBLIC_SIM_BACKEND` et `NEXT_PUBLIC_SIM_BACKEND_URL`.
+Importez le dépôt tel quel (le projet est à la racine). Ajoutez au besoin les variables `NEXT_PUBLIC_SIM_BACKEND` et `NEXT_PUBLIC_SIM_BACKEND_URL`.
 
 ### VPS avec Caddy
 

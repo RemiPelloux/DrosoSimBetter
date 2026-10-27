@@ -52,7 +52,7 @@ export default function WelcomePage() {
           <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-sm">
             <Sparkles className="h-3.5 w-3.5" /> Protection intégrée des vergers contre <em className="font-extrabold">Drosophila suzukii</em>
           </motion.span>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-5 text-5xl font-extrabold leading-[1.05] tracking-tight md:text-6xl">
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="font-display mt-5 text-5xl font-semibold leading-[1.02] tracking-tight md:text-7xl">
             Simulez votre verger.<br />
             <span className="bg-gradient-to-r from-emerald-700 via-emerald-600 to-amber-600 bg-clip-text text-transparent">Décidez en temps réel.</span>
           </motion.h1>
@@ -106,7 +106,7 @@ export default function WelcomePage() {
         <div className="grid items-center gap-10 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm lg:grid-cols-2 md:p-12">
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-700">Sous le capot</p>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight">Un modèle biologique transparent</h2>
+            <h2 className="font-display mt-2 text-4xl font-semibold tracking-tight">Un modèle biologique <em className="text-emerald-700">transparent</em></h2>
             <p className="mt-4 text-slate-600">Chaque jour, sur 400 cases : température, ponte selon la maturité des fruits, développement en degrés-jours, mortalité, dispersion vers les vergers attractifs. Chaque stratégie est simulée intégralement — les leviers changent vraiment la dynamique.</p>
             <ul className="mt-5 space-y-2 text-sm text-slate-700">
               {['Équations et paramètres documentés', 'Effet mathématique de chaque levier', 'Calcul économique détaillé, coûts éditables', 'Limites et démarche de calibration'].map(t => <li key={t} className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" />{t}</li>)}
@@ -168,7 +168,7 @@ export default function WelcomePage() {
           <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-amber-400/20 blur-3xl" />
           <div className="relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
             <div>
-              <h2 className="text-3xl font-extrabold md:text-4xl">Prêt à protéger votre récolte ?</h2>
+              <h2 className="font-display text-4xl font-semibold md:text-5xl">Prêt à protéger votre <em className="text-amber-200">récolte</em> ?</h2>
               <p className="mt-2 max-w-xl text-emerald-100">Gratuit, sans inscription, vos données restent dans votre navigateur.</p>
             </div>
             <div className="flex gap-3">
@@ -190,7 +190,7 @@ function SectionTitle({ kicker, title }: { kicker: string; title: string }) {
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center">
       <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-700">{kicker}</p>
-      <h2 className="mt-2 text-3xl font-extrabold tracking-tight md:text-4xl">{title}</h2>
+      <h2 className="font-display mt-2 text-3xl font-semibold tracking-tight md:text-5xl">{title}</h2>
     </motion.div>
   );
 }

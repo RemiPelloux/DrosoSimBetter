@@ -8,15 +8,16 @@ import {
   PopulationChart, HarvestByParcelChart, OverlayChart, EconomicsChart, RadarScore, HealthyFruitChart, YearlyHarvestChart,
   StrategyLegend, fmtEur, THRESHOLD, Empty,
 } from '@/components/charts';
-import { MiniMap, heat } from '@/components/GridEditor';
+import { MiniMap } from '@/components/GridEditor';
 import { LEVERS, SimulationSettings, EconomicsSettings } from '@/components/ControlPanel';
 import { useGridStore, type Strategy } from '@/lib/store';
 import { useSimulation } from '@/lib/useSimulation';
 import { dayLabel, isCherry, PHENOLOGY, type StrategyResult } from '@/lib/engine';
 import { cn } from '@/lib/utils';
-import { BuzzingFly } from '@/components/illustrations';
+import { BuzzingFly, FlyingFlies } from '@/components/illustrations';
+import { CountUp, RingGauge, Sparkline, Chapter, Grain, Contours, IsoOrchard, HillsBackdrop } from '@/components/art';
 import {
-  ArrowLeft, Trophy, TrendingUp, TrendingDown, Euro, Bug, Leaf, Activity, BarChart3, Layers, Columns3, Map as MapIcon,
+  ArrowLeft, Trophy, TrendingUp, Euro, Bug, Leaf, Activity, BarChart3, Layers, Columns3, Map as MapIcon,
   Lightbulb, AlertTriangle, CheckCircle2, Info, ChevronDown, Printer, Settings2, Clock, Users, Radar as RadarIcon,
 } from 'lucide-react';
 
@@ -92,154 +93,262 @@ export default function ResultsPage() {
     );
   }
 
+  const climateLabel = ({ 'mild-winter': 'Hiver doux', 'harsh-winter': 'Hiver rigoureux', 'humid-spring': 'Printemps humide', 'dry-summer': 'Été caniculaire' } as const)[simParams.climateProfile];
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F6F4EE]">
       <AppHeader title="Résultats & comparateur" subtitle="Bilan technico-économique multi-stratégies" step={2} onCsv={exportCsv}
         right={<button onClick={() => window.print()} className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white hover:bg-slate-800"><Printer className="h-4 w-4" /> <span className="hidden sm:inline">Fiche Conseil PDF</span></button>} />
 
-      <main className="mx-auto max-w-[1600px] space-y-5 p-4 md:p-6">
-        {/* En-tête impression */}
-        <div className="hidden print:block">
-          <div className="flex items-start justify-between border-b-2 border-emerald-700 pb-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Fiche Conseil — Drosophila suzukii</p>
-              <h1 className="text-2xl font-extrabold text-slate-900">Comparatif de stratégies de protection</h1>
-              <p className="text-xs text-slate-500">Édité le {new Date().toLocaleDateString('fr-FR')} · DrosoSim Next</p>
-            </div>
-            <MiniMap grid={grid} size={110} />
+      {/* En-tête impression */}
+      <div className="hidden px-6 pt-4 print:block">
+        <div className="flex items-start justify-between border-b-2 border-emerald-700 pb-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Fiche Conseil — Drosophila suzukii</p>
+            <h1 className="text-2xl font-extrabold text-slate-900">Comparatif de stratégies de protection</h1>
+            <p className="text-xs text-slate-500">Édité le {new Date().toLocaleDateString('fr-FR')} · DrosoSim Next · {parcels.length} parcelles · {cherryHa.toFixed(2)} ha de cerisiers · {simParams.durationYears} an(s) · {climateLabel}</p>
           </div>
+          <MiniMap grid={grid} size={110} />
         </div>
+      </div>
 
-        {/* Bandeau scénario */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="no-print flex flex-wrap items-center gap-2">
-          <Link href="/simulator" className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50"><ArrowLeft className="h-3.5 w-3.5" /> Modifier le verger</Link>
-          <Chip icon={MapIcon}>{parcels.length} parcelles · {cherryHa.toFixed(2)} ha de cerisiers</Chip>
-          <Chip icon={Clock}>{simParams.durationYears} an{simParams.durationYears > 1 ? 's' : ''} · départ {simParams.startSeason === 'spring' ? 'printemps' : 'automne'}</Chip>
-          <Chip icon={Leaf}>{({ 'mild-winter': 'Hiver doux', 'harsh-winter': 'Hiver rigoureux', 'humid-spring': 'Printemps humide', 'dry-summer': 'Été caniculaire' })[simParams.climateProfile]}</Chip>
-          <Chip icon={Euro}>{economics.yieldTPerHa} t/ha · {economics.pricePerKg.toFixed(2)} €/kg</Chip>
-          <button onClick={() => setShowSettings(v => !v)} className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white">
-            <Settings2 className="h-3.5 w-3.5" /> Réglages rapides <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', showSettings && 'rotate-180')} />
-          </button>
-          <span className="ml-auto"><LiveBadge running={running} ms={out?.computeMs} /></span>
-        </motion.div>
-        {showSettings && (
-          <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="no-print grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2">
-            <SimulationSettings />
-            <div><p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">Hypothèses économiques</p><EconomicsSettings /><p className="mt-2 text-[11px] text-slate-500">Toute modification relance instantanément la simulation des {strategies.length} stratégies.</p></div>
-          </motion.div>
-        )}
+      {!shown || !base ? <main className="mx-auto max-w-[1500px] p-6"><SkeletonResults /></main> : (
+        <>
+          <Hero best={best?.r} net={best?.net ?? 0} base={base} count={ranked.length} color={best ? color(best.r.id) : '#10B981'} grid={grid}
+            running={running} ms={out?.computeMs}
+            chips={[
+              { icon: MapIcon, label: `${parcels.length} parcelles · ${cherryHa.toFixed(2)} ha de cerisiers` },
+              { icon: Clock, label: `${simParams.durationYears} an${simParams.durationYears > 1 ? 's' : ''} · départ ${simParams.startSeason === 'spring' ? 'printemps' : 'automne'}` },
+              { icon: Leaf, label: climateLabel },
+              { icon: Euro, label: `${economics.yieldTPerHa} t/ha · ${economics.pricePerKg.toFixed(2)} €/kg` },
+            ]}
+            settingsOpen={showSettings} onToggleSettings={() => setShowSettings(v => !v)} />
 
-        {!shown || !base ? <SkeletonResults /> : (
-          <>
-            {/* Verdict */}
-            {best && <Verdict best={best.r} net={best.net} base={base} color={color(best.r.id)} count={ranked.length} />}
+          {showSettings && (
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="no-print relative z-20 mx-auto -mt-6 grid max-w-[1400px] gap-6 rounded-[28px] border border-white bg-white/95 p-6 shadow-2xl shadow-emerald-950/10 backdrop-blur md:grid-cols-2">
+              <SimulationSettings />
+              <div><p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">Hypothèses économiques</p><EconomicsSettings /><p className="mt-2 text-[11px] text-slate-500">Toute modification relance instantanément la simulation des {strategies.length} stratégies.</p></div>
+            </motion.div>
+          )}
 
-            {/* Sélection & mode */}
-            <div className="no-print flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm">
-              <span className="px-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">Stratégies comparées</span>
-              {out!.results.map(r => (
-                <button key={r.id} disabled={r.isBaseline} onClick={() => setExcluded(e => ({ ...e, [r.id]: !e[r.id] }))}
-                  className={cn('flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-all', excluded[r.id] ? 'border-dashed border-slate-300 text-slate-400 line-through' : 'border-slate-200 bg-slate-50 text-slate-800', r.isBaseline && 'cursor-default')}>
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color(r.id) }} />{r.isBaseline ? 'Témoin (toujours affiché)' : r.name}
-                </button>
-              ))}
-              <div className="ml-auto flex rounded-lg bg-slate-100 p-0.5">
-                <ModeBtn active={mode === 'columns'} onClick={() => setMode('columns')} icon={Columns3}>Côte à côte</ModeBtn>
-                <ModeBtn active={mode === 'overlay'} onClick={() => setMode('overlay')} icon={Layers}>Superposition</ModeBtn>
+          <ChapterNav />
+
+          <main className="relative mx-auto max-w-[1500px] space-y-24 px-4 pb-24 pt-12 md:px-8">
+            <Chapter id="synthese" n="01" kicker="Synthèse" title={<>Le classement des <em className="text-emerald-700">stratégies</em></>}>
+              <div className="no-print mb-5 flex flex-wrap items-center gap-2">
+                <span className="mr-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">Comparer</span>
+                {out!.results.map(r => (
+                  <button key={r.id} disabled={r.isBaseline} onClick={() => setExcluded(e => ({ ...e, [r.id]: !e[r.id] }))}
+                    className={cn('flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all', excluded[r.id] ? 'border-dashed border-slate-300 bg-transparent text-slate-400 line-through' : 'border-white bg-white text-slate-800 shadow-sm hover:shadow', r.isBaseline && 'cursor-default')}>
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color(r.id) }} />{r.isBaseline ? 'Témoin' : r.name}
+                  </button>
+                ))}
+                <div className="ml-auto flex rounded-full bg-white p-1 shadow-sm">
+                  <ModeBtn active={mode === 'columns'} onClick={() => setMode('columns')} icon={Columns3}>Côte à côte</ModeBtn>
+                  <ModeBtn active={mode === 'overlay'} onClick={() => setMode('overlay')} icon={Layers}>Superposition</ModeBtn>
+                </div>
               </div>
-            </div>
+              {ranked.length > 1 && <Podium ranked={ranked} color={color} base={base} />}
+              <div className="mt-6 grid gap-5" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(${shown.results.length > 3 ? 270 : 300}px, 1fr))` }}>
+                {shown.results.map((r, i) => <StrategyCard key={r.id} r={r} base={base} color={color(r.id)} best={best?.r.id === r.id} delay={i * 0.07} onFocus={() => setFocusId(r.id)} focused={focus?.id === r.id} />)}
+              </div>
+            </Chapter>
 
-            {/* KPIs côte à côte */}
-            <section className="grid gap-3" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(${shown.results.length > 3 ? 240 : 280}px, 1fr))` }}>
-              {shown.results.map((r, i) => <StrategyCard key={r.id} r={r} base={base} color={color(r.id)} best={best?.r.id === r.id} delay={i * 0.05} onFocus={() => setFocusId(r.id)} focused={focus?.id === r.id} />)}
-            </section>
+            <Chapter id="recolte" n="02" kicker="Récolte" title={<>Ce que chaque levier <em className="text-emerald-700">sauve</em></>}>
+              <div className="grid gap-6 xl:grid-cols-3">
+                <Card className="xl:col-span-2" title="Récolte saine par parcelle" icon={BarChart3} subtitle="Valeur exacte au sommet de chaque barre · barre hachurée = témoin sans levier">
+                  <HarvestByParcelChart out={shown} parcels={parcels} strategies={strategies} height={320} />
+                </Card>
+                <Card title="Année après année" icon={TrendingUp} subtitle={focus ? `Stratégie : ${focus.isBaseline ? 'Témoin' : focus.name}` : ''} right={<FocusPicker results={shown.results} value={focus?.id} onChange={setFocusId} color={color} />}>
+                  {focus && <YearlyHarvestChart result={focus} parcels={parcels} height={320} />}
+                </Card>
+              </div>
+            </Chapter>
 
-            {/* Graphique 1 + rendement annuel */}
-            <div className="grid gap-5 xl:grid-cols-3">
-              <Card className="xl:col-span-2" title="Récolte saine par parcelle" icon={BarChart3} subtitle="Valeur exacte au sommet de chaque barre · barre hachurée = témoin sans levier">
-                <HarvestByParcelChart out={shown} parcels={parcels} strategies={strategies} height={300} />
+            <Chapter id="dynamique" n="03" kicker="Dynamique" title={<>La vie de la <em className="text-emerald-700">population</em></>}>
+              <Card title={mode === 'overlay' ? 'Pression moyenne sur les cerisiers — toutes stratégies' : 'Femelles adultes par parcelle'} icon={Activity}
+                subtitle={mode === 'overlay' ? 'Bandes rouges = périodes de sensibilité des fruits' : 'Légende cliquable · bandes = maturité des fruits · 🚜 traitement 🛡️ filet 🧺 récolte 🐝 parasitoïdes 🧬 TIS'}
+                right={mode === 'columns' ? <FocusPicker results={shown.results} value={focus?.id} onChange={setFocusId} color={color} /> : undefined}>
+                {mode === 'overlay'
+                  ? <><OverlayChart out={shown} strategies={strategies} height={400} /><StrategyLegend results={shown.results} strategies={strategies} /></>
+                  : focus && <PopulationChart out={shown} result={focus} parcels={parcels} height={420} />}
+                <PhenologyNote />
               </Card>
-              <Card title="Récolte année par année" icon={TrendingUp} subtitle={focus ? `Stratégie : ${focus.isBaseline ? 'Témoin' : focus.name}` : ''} right={<FocusPicker results={shown.results} value={focus?.id} onChange={setFocusId} color={color} />}>
-                {focus && <YearlyHarvestChart result={focus} parcels={parcels} height={300} />}
-              </Card>
-            </div>
+            </Chapter>
 
-            {/* Graphique 2 : dynamique */}
-            <Card title={mode === 'overlay' ? 'Pression moyenne sur les cerisiers — superposition des stratégies' : 'Dynamique des populations de femelles'} icon={Activity}
-              subtitle={mode === 'overlay' ? 'Bandes rouges = périodes de sensibilité des fruits' : 'Légende cliquable · bandes = maturité des fruits · 🚜 traitement 🛡️ filet 🧺 récolte 🐝 parasitoïdes 🧬 TIS'}
-              right={mode === 'columns' ? <FocusPicker results={shown.results} value={focus?.id} onChange={setFocusId} color={color} /> : undefined}>
-              {mode === 'overlay'
-                ? <><OverlayChart out={shown} strategies={strategies} height={360} /><StrategyLegend results={shown.results} strategies={strategies} /></>
-                : focus && <PopulationChart out={shown} result={focus} parcels={parcels} height={380} />}
-              <PhenologyNote />
-            </Card>
+            <Chapter id="economie" n="04" kicker="Économie" title={<>Le bilan, <em className="text-emerald-700">euro par euro</em></>} className="print-break">
+              <div className="grid gap-6 lg:grid-cols-2">
+                <Card title="Bilan économique annuel" icon={Euro} subtitle="CA sauvé vs témoin (vert) face aux coûts des leviers · ● bilan net">
+                  <EconomicsChart out={shown} strategies={strategies} height={340} />
+                </Card>
+                <Card title="Profil multicritère" icon={RadarIcon} subtitle="0-100 : plus la surface est grande, meilleure est la stratégie">
+                  <RadarScore out={shown} strategies={strategies} height={320} />
+                  <StrategyLegend results={shown.results} strategies={strategies} />
+                </Card>
+              </div>
+            </Chapter>
 
-            {/* Économie + radar */}
-            <div className="grid gap-5 lg:grid-cols-2 print-break">
-              <Card title="Bilan économique annuel" icon={Euro} subtitle="CA sauvé vs témoin (vert) face aux coûts des leviers · ● bilan net">
-                <EconomicsChart out={shown} strategies={strategies} height={320} />
-              </Card>
-              <Card title="Profil multicritère" icon={RadarIcon} subtitle="0-100 : plus la surface est grande, meilleure est la stratégie">
-                <RadarScore out={shown} strategies={strategies} height={300} />
-                <StrategyLegend results={shown.results} strategies={strategies} />
-              </Card>
-            </div>
+            <Chapter id="territoire" n="05" kicker="Territoire" title={<>Où la mouche <em className="text-emerald-700">frappe</em></>}>
+              <div className="grid gap-6 lg:grid-cols-5">
+                <Card className="lg:col-span-3" title="Carte de pression maximale" icon={MapIcon} subtitle="Pic de femelles/ha par case, échelle commune au témoin — les drosophiles survolent les zones les plus touchées" right={<FocusPicker results={shown.results} value={focus?.id} onChange={setFocusId} color={color} />}>
+                  {focus && <HeatPanel focus={focus} base={base} grid={grid} />}
+                </Card>
+                <Card className="lg:col-span-2" title="Fruits sains au fil du temps" icon={Leaf} subtitle="% de fruits indemnes (cerisiers), pondéré par la surface">
+                  <HealthyFruitChart out={shown} parcels={parcels} strategies={strategies} height={340} />
+                  <StrategyLegend results={shown.results} strategies={strategies} />
+                </Card>
+              </div>
+            </Chapter>
 
-            {/* Fruits sains + carte de chaleur */}
-            <div className="grid gap-5 lg:grid-cols-3">
-              <Card className="lg:col-span-2" title="Évolution des fruits sains (cerisiers)" icon={Leaf} subtitle="% de fruits indemnes, pondéré par la surface — chute pendant la fenêtre de sensibilité">
-                <HealthyFruitChart out={shown} parcels={parcels} strategies={strategies} height={300} />
-                <StrategyLegend results={shown.results} strategies={strategies} />
-              </Card>
-              <Card title="Carte de pression maximale" icon={MapIcon} subtitle="Pic de femelles/ha atteint dans chaque case" right={<FocusPicker results={shown.results} value={focus?.id} onChange={setFocusId} color={color} />}>
-                {focus && <HeatPanel focus={focus} base={base} grid={grid} />}
-              </Card>
-            </div>
+            <Chapter id="leviers" n="06" kicker="Décision" title={<>Leviers, coûts & <em className="text-emerald-700">conseils</em></>}>
+              <div className="space-y-6">
+                <Card title="Leviers retenus par stratégie" icon={Layers} subtitle="Récapitulatif complet — rien n'est tronqué">
+                  <LeverTable strategies={strategies.filter(s => shown.results.some(r => r.id === s.id))} parcels={parcels} results={shown.results} haPerCell={haPerCell} />
+                </Card>
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <Recommendations results={shown.results} base={base} parcels={parcels} />
+                  <Card title="Détail des coûts & contraintes" icon={Users} subtitle="Par an, sur l'ensemble de l'exploitation">
+                    <CostTable results={shown.results.filter(r => !r.isBaseline)} base={base} color={color} />
+                  </Card>
+                </div>
+                <Hypotheses />
+              </div>
+            </Chapter>
+          </main>
 
-            {/* Matrice des leviers */}
-            <Card title="Leviers retenus par stratégie" icon={Layers} subtitle="Récapitulatif complet — rien n'est tronqué">
-              <LeverTable strategies={strategies.filter(s => shown.results.some(r => r.id === s.id))} parcels={parcels} results={shown.results} haPerCell={haPerCell} />
-            </Card>
-
-            {/* Recommandations + coûts */}
-            <div className="grid gap-5 lg:grid-cols-2">
-              <Recommendations results={shown.results} base={base} parcels={parcels} />
-              <Card title="Détail des coûts & contraintes" icon={Users} subtitle="Par an, sur l'ensemble de l'exploitation">
-                <CostTable results={shown.results.filter(r => !r.isBaseline)} base={base} color={color} />
-              </Card>
-            </div>
-
-            <Hypotheses />
-          </>
-        )}
-      </main>
+          <FinalCta />
+        </>
+      )}
     </div>
   );
 }
 
 // ======================================================================= Blocs
-function Verdict({ best, net, base, color, count }: { best: StrategyResult; net: number; base: StrategyResult; color: string; count: number }) {
-  const gainPts = best.globalHarvest - base.globalHarvest;
+const CHAPTERS = [
+  { id: 'synthese', n: '01', label: 'Synthèse' }, { id: 'recolte', n: '02', label: 'Récolte' }, { id: 'dynamique', n: '03', label: 'Dynamique' },
+  { id: 'economie', n: '04', label: 'Économie' }, { id: 'territoire', n: '05', label: 'Territoire' }, { id: 'leviers', n: '06', label: 'Décision' },
+];
+
+function ChapterNav() {
+  const [active, setActive] = useState('synthese');
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const els = CHAPTERS.map(c => document.getElementById(c.id)).filter(Boolean) as HTMLElement[];
+    const obs = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) setActive(e.target.id); }); }, { rootMargin: '-35% 0px -60% 0px' });
+    els.forEach(e => obs.observe(e));
+    const onScroll = () => { const h = document.documentElement; setProgress(h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight)); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => { obs.disconnect(); window.removeEventListener('scroll', onScroll); };
+  }, []);
   return (
-    <motion.section initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}
-      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950 p-6 text-white shadow-xl">
-      <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full blur-3xl" style={{ backgroundColor: `${color}55` }} />
-      <div className="relative flex flex-col gap-6 md:flex-row md:items-center">
-        <div className="flex-1">
-          <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-emerald-300"><Trophy className="h-4 w-4" /> {count > 1 ? `Meilleure stratégie sur ${count}` : 'Stratégie évaluée'}</p>
-          <h2 className="mt-1 text-2xl font-extrabold md:text-3xl">{best.name}</h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-300">
-            Préserve <b className="text-white">{best.globalHarvest.toFixed(0)} %</b> de la récolte ({gainPts >= 0 ? '+' : ''}{gainPts.toFixed(0)} pts vs témoin) pour un bilan net de{' '}
-            <b className={net >= 0 ? 'text-emerald-300' : 'text-red-300'}>{fmtEur(net)}</b> par an, avec un IFT chimique de <b className="text-white">{best.ift.toFixed(1)}</b>.
-          </p>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          <BigStat label="Récolte" value={`${best.globalHarvest.toFixed(0)}%`} sub={`témoin ${base.globalHarvest.toFixed(0)}%`} />
-          <BigStat label="Bilan net / an" value={`${net >= 0 ? '+' : ''}${(net / 1000).toFixed(1)}k€`} sub={`coût ${fmtEur(best.totalCost)}`} />
-          <BigStat label="Pic mouches" value={`${(best.peakDensity / 1000).toFixed(1)}k`} sub={`témoin ${(base.peakDensity / 1000).toFixed(0)}k /ha`} />
-        </div>
+    <nav className="no-print sticky top-16 z-30 border-b border-slate-200/70 bg-[#F6F4EE]/85 backdrop-blur-md">
+      <div className="mx-auto flex max-w-[1500px] items-center gap-1 overflow-x-auto px-4 py-2 md:px-8">
+        {CHAPTERS.map(c => (
+          <a key={c.id} href={`#${c.id}`} className={cn('group flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold transition-all', active === c.id ? 'bg-slate-900 text-white shadow' : 'text-slate-500 hover:bg-white hover:text-slate-900')}>
+            <span className={cn('font-display text-[13px] italic', active === c.id ? 'text-emerald-300' : 'text-slate-400')}>{c.n}</span>{c.label}
+          </a>
+        ))}
       </div>
-    </motion.section>
+      <motion.div className="h-0.5 origin-left bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500" style={{ scaleX: progress }} />
+    </nav>
+  );
+}
+
+function Hero({ best, net, base, count, color, grid, chips, running, ms, settingsOpen, onToggleSettings }: {
+  best?: StrategyResult; net: number; base: StrategyResult; count: number; color: string; grid: import('@/lib/engine').CellType[];
+  chips: { icon: React.ElementType; label: string }[]; running: boolean; ms?: number; settingsOpen: boolean; onToggleSettings: () => void;
+}) {
+  const [view, setView] = useState<'best' | 'base'>('best');
+  const max = Math.max(...Array.from(base.peakByCell), 1);
+  const shownRes = view === 'best' && best ? best : base;
+  const gainPts = best ? best.globalHarvest - base.globalHarvest : 0;
+  return (
+    <section className="no-print relative overflow-hidden bg-[#03241C] text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(16,185,129,.35),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(244,63,94,.18),transparent_50%)]" />
+      <Contours className="absolute inset-0 h-full w-full" color="#6EE7B7" />
+      <Grain opacity={0.12} />
+      <HillsBackdrop className="absolute inset-x-0 bottom-0 h-40 w-full" />
+      <FlyingFlies count={4} className="opacity-70" />
+
+      <div className="relative mx-auto grid max-w-[1500px] items-center gap-10 px-4 pb-24 pt-10 md:px-8 lg:grid-cols-[1.05fr_1fr] lg:pt-14">
+        <div>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-center gap-2">
+            <Link href="/simulator" className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold ring-1 ring-white/20 backdrop-blur hover:bg-white/20"><ArrowLeft className="h-3.5 w-3.5" /> Modifier le verger</Link>
+            <LiveBadge running={running} ms={ms} />
+          </motion.div>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="mt-8 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.3em] text-emerald-300">
+            <Trophy className="h-4 w-4" /> {best ? (count > 1 ? `Verdict · meilleure stratégie sur ${count}` : 'Verdict de la simulation') : 'Témoin seul'}
+          </motion.p>
+          <motion.h2 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="font-display mt-3 text-5xl font-semibold leading-[1.02] tracking-tight md:text-7xl">
+            {best ? <em className="bg-gradient-to-r from-white via-emerald-200 to-amber-200 bg-clip-text not-italic text-transparent">{best.name}</em> : 'Ajoutez une stratégie'}
+          </motion.h2>
+          {best && (
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="mt-5 max-w-xl text-lg leading-relaxed text-emerald-50/80">
+              préserve <b className="text-white">{best.globalHarvest.toFixed(0)} %</b> de la récolte, soit <b className="text-white">{gainPts >= 0 ? '+' : ''}{gainPts.toFixed(0)} points</b> de plus que sans protection, pour un bilan net de <b className={net >= 0 ? 'text-emerald-300' : 'text-rose-300'}>{fmtEur(net)}</b> par an.
+            </motion.p>
+          )}
+          <div className="mt-8 grid grid-cols-3 gap-3">
+            <HeroStat label="Récolte préservée" delay={0.4}><CountUp value={best?.globalHarvest ?? base.globalHarvest} suffix=" %" /><span className="mt-1 block text-[11px] font-medium text-emerald-100/60">témoin {base.globalHarvest.toFixed(0)} %</span></HeroStat>
+            <HeroStat label="Bilan net / an" delay={0.5}><CountUp value={best ? net : 0} suffix=" €" signed /><span className="mt-1 block text-[11px] font-medium text-emerald-100/60">coût {fmtEur(best?.totalCost ?? 0)}</span></HeroStat>
+            <HeroStat label="Pic de femelles" delay={0.6}><CountUp value={(best ?? base).peakDensity / 1000} decimals={1} suffix=" k" /><span className="mt-1 block text-[11px] font-medium text-emerald-100/60">témoin {(base.peakDensity / 1000).toFixed(0)} k /ha</span></HeroStat>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {chips.map(c => <span key={c.label} className="flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-emerald-50/80 ring-1 ring-white/10"><c.icon className="h-3.5 w-3.5 text-emerald-300" />{c.label}</span>)}
+            <button onClick={onToggleSettings} className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[11px] font-bold text-slate-900 hover:bg-emerald-50">
+              <Settings2 className="h-3.5 w-3.5" /> Réglages rapides <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', settingsOpen && 'rotate-180')} />
+            </button>
+          </div>
+        </div>
+
+        <motion.div initial={{ opacity: 0, scale: 0.94, rotateX: 18 }} animate={{ opacity: 1, scale: 1, rotateX: 0 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }} className="relative">
+          <div className="absolute inset-x-10 bottom-6 h-16 rounded-full bg-black/40 blur-2xl" />
+          <IsoOrchard grid={grid} heat={shownRes.peakByCell} max={max} className="relative w-full drop-shadow-2xl" />
+          <div className="absolute left-1/2 top-0 flex -translate-x-1/2 rounded-full bg-black/30 p-1 ring-1 ring-white/15 backdrop-blur">
+            <button onClick={() => setView('base')} className={cn('rounded-full px-3 py-1 text-[11px] font-bold transition-all', view === 'base' ? 'bg-white text-slate-900' : 'text-white/70 hover:text-white')}>Sans protection</button>
+            {best && <button onClick={() => setView('best')} className={cn('rounded-full px-3 py-1 text-[11px] font-bold transition-all', view === 'best' ? 'text-slate-900' : 'text-white/70 hover:text-white')} style={view === 'best' ? { backgroundColor: '#fff', boxShadow: `0 0 0 2px ${color}` } : undefined}>{best.name}</button>}
+          </div>
+          <div className="absolute bottom-2 right-2 flex items-center gap-2 rounded-xl bg-black/30 px-3 py-2 text-[10px] font-semibold text-white/80 ring-1 ring-white/10 backdrop-blur">
+            Pression maximale
+            <span className="h-2 w-24 rounded-full" style={{ background: 'linear-gradient(90deg,#FEF08A,#F97316,#BE123C)' }} />
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function HeroStat({ label, children, delay }: { label: string; children: React.ReactNode; delay: number }) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
+      className="rounded-2xl bg-white/[.07] p-4 ring-1 ring-white/15 backdrop-blur-md">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-200/70">{label}</p>
+      <p className="font-display mt-1 text-3xl font-semibold md:text-4xl">{children}</p>
+    </motion.div>
+  );
+}
+
+function Podium({ ranked, color, base }: { ranked: { r: StrategyResult; net: number }[]; color: (id: string) => string; base: StrategyResult }) {
+  const maxAbs = Math.max(1, ...ranked.map(x => Math.abs(x.net)));
+  return (
+    <div className="rounded-[28px] border border-white bg-white/80 p-5 shadow-[0_30px_60px_-30px_rgba(2,44,34,.25)] backdrop-blur">
+      <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Classement par bilan net annuel</p>
+      <ol className="space-y-3">
+        {ranked.map(({ r, net }, i) => (
+          <motion.li key={r.id} initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }} className="grid grid-cols-[48px_1fr_auto] items-center gap-4">
+            <span className={cn('font-display text-4xl font-black italic leading-none', i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-orange-700/70' : 'text-slate-300')}>{i + 1}</span>
+            <div>
+              <div className="mb-1 flex items-center justify-between text-sm"><span className="font-bold text-slate-800">{r.name}</span><span className="text-[11px] text-slate-500">{r.globalHarvest.toFixed(0)} % récolte · {(r.globalHarvest - base.globalHarvest).toFixed(0)} pts vs témoin</span></div>
+              <div className="relative h-3 overflow-hidden rounded-full bg-slate-100">
+                <motion.div className="absolute inset-y-0 left-0 rounded-full" style={{ background: `linear-gradient(90deg, ${color(r.id)}88, ${color(r.id)})` }}
+                  initial={{ width: 0 }} whileInView={{ width: `${Math.max(3, (Math.abs(net) / maxAbs) * 100)}%` }} viewport={{ once: true }} transition={{ duration: 1, delay: 0.1 + i * 0.08, ease: [0.16, 1, 0.3, 1] }} />
+              </div>
+            </div>
+            <span className={cn('font-display text-xl font-semibold tabular-nums', net >= 0 ? 'text-emerald-700' : 'text-rose-600')}><CountUp value={net} suffix=" €" signed /></span>
+          </motion.li>
+        ))}
+      </ol>
+    </div>
   );
 }
 
@@ -247,49 +356,91 @@ function StrategyCard({ r, base, color, best, delay, onFocus, focused }: { r: St
   const d = r.globalHarvest - base.globalHarvest;
   const saved = r.revenue - base.revenue;
   const net = saved - r.totalCost;
-  const iftTone = r.ift === 0 ? 'bg-emerald-500' : r.ift <= 2 ? 'bg-amber-500' : 'bg-red-500';
+  const peakDelta = Math.round((r.peakDensity / Math.max(1, base.peakDensity) - 1) * 100);
+  const spark = useMemo(() => r.series.filter((_, i) => i % 3 === 0).map(p => Number(p.cherry_all) || 0), [r.series]);
+  const c = r.isBaseline ? '#94A3B8' : color;
   return (
-    <motion.button initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }} onClick={onFocus}
-      className={cn('relative overflow-hidden rounded-2xl border bg-white p-4 text-left shadow-sm transition-all hover:shadow-md', focused ? 'ring-2 ring-offset-2' : 'border-slate-200')}
-      style={focused ? { ['--tw-ring-color' as string]: color } : undefined}>
-      <div className="absolute inset-x-0 top-0 h-1.5" style={{ background: r.isBaseline ? 'repeating-linear-gradient(45deg,#CBD5E1 0 6px,#94A3B8 6px 12px)' : color }} />
-      <div className="mb-3 flex items-center gap-2">
-        <span className="truncate text-sm font-extrabold text-slate-900">{r.isBaseline ? 'Témoin sans protection' : r.name}</span>
-        {best && <span className="ml-auto flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800"><Trophy className="h-3 w-3" /> Meilleur bilan</span>}
+    <motion.button initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay, duration: 0.5 }} onClick={onFocus}
+      whileHover={{ y: -4 }}
+      className={cn('group relative overflow-hidden rounded-[28px] border bg-white p-5 text-left shadow-[0_24px_50px_-30px_rgba(15,23,42,.35)] transition-shadow', focused ? 'border-transparent ring-2' : 'border-white')}
+      style={focused ? { ['--tw-ring-color' as string]: c } : undefined}>
+      <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full opacity-25 blur-2xl transition-opacity group-hover:opacity-40" style={{ backgroundColor: c }} />
+      {r.isBaseline && <div className="absolute inset-x-0 top-0 h-1.5 bg-[repeating-linear-gradient(45deg,#CBD5E1_0_6px,#94A3B8_6px_12px)]" />}
+      <div className="relative mb-4 flex items-start gap-2">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: c }}>{r.isBaseline ? 'Référence' : 'Stratégie'}</p>
+          <p className="font-display truncate text-xl font-semibold text-slate-900">{r.isBaseline ? 'Témoin sans protection' : r.name}</p>
+        </div>
+        {best && <span className="ml-auto flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 px-2.5 py-1 text-[10px] font-black text-amber-950 shadow"><Trophy className="h-3 w-3" /> N°1</span>}
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Kpi icon={TrendingUp} label="Récolte préservée" value={`${r.globalHarvest.toFixed(1)} %`}
-          badge={r.isBaseline ? 'référence' : `${d >= 0 ? '+' : ''}${d.toFixed(1)} pts vs témoin`} tone={r.isBaseline ? 'neutral' : d > 0.5 ? 'good' : d < -0.5 ? 'bad' : 'neutral'} />
-        <Kpi icon={Euro} label="Bilan net / an" value={r.isBaseline ? '—' : fmtEur(net)}
-          badge={r.isBaseline ? `CA ${fmtEur(r.revenue)}` : `CA sauvé ${fmtEur(saved)} · coût ${fmtEur(r.totalCost)}`} tone={r.isBaseline ? 'neutral' : net >= 0 ? 'good' : 'bad'} />
-        <Kpi icon={Bug} label="Pic femelles/ha" value={`${r.peakDensity.toLocaleString('fr-FR')}`}
-          badge={r.isBaseline ? (r.peakDensity > THRESHOLD ? 'au-dessus du seuil' : 'sous le seuil') : `${Math.round((r.peakDensity / Math.max(1, base.peakDensity) - 1) * 100)} % vs témoin`}
-          tone={r.isBaseline ? 'neutral' : r.peakDensity < base.peakDensity * 0.9 ? 'good' : r.peakDensity > THRESHOLD ? 'bad' : 'neutral'} />
-        <div>
-          <p className="flex items-center gap-1 text-[10px] font-semibold text-slate-500"><Leaf className="h-3 w-3" /> IFT chimique</p>
-          <p className="text-lg font-extrabold text-slate-900">{r.ift.toFixed(1)}</p>
-          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-gradient-to-r from-emerald-200 via-amber-200 to-red-200">
-            <div className={cn('h-full rounded-full', iftTone)} style={{ width: `${Math.max(4, Math.min(100, (r.ift / 5) * 100))}%` }} />
-          </div>
-          <p className="mt-0.5 text-[10px] text-slate-400">{r.laborHours} h main-d&apos;œuvre</p>
+      <div className="relative flex items-center gap-4">
+        <RingGauge value={r.globalHarvest} color={c} size={96}>
+          <span className="font-display text-2xl font-semibold text-slate-900"><CountUp value={r.globalHarvest} /></span>
+          <span className="-mt-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">% récolte</span>
+        </RingGauge>
+        <div className="min-w-0 flex-1 space-y-2">
+          <Metric label="Bilan net / an" tone={r.isBaseline ? 'neutral' : net >= 0 ? 'good' : 'bad'}>{r.isBaseline ? `CA ${fmtEur(r.revenue)}` : <CountUp value={net} suffix=" €" signed />}</Metric>
+          <Metric label="vs témoin" tone={r.isBaseline ? 'neutral' : d > 0.5 ? 'good' : d < -0.5 ? 'bad' : 'neutral'}>{r.isBaseline ? '—' : `${d >= 0 ? '+' : ''}${d.toFixed(1)} pts`}</Metric>
+          <Metric label="IFT chimique" tone={r.ift === 0 ? 'good' : r.ift <= 2 ? 'neutral' : 'bad'}>{r.ift.toFixed(1)}</Metric>
         </div>
       </div>
+      <div className="relative mt-4 rounded-2xl bg-slate-50 p-3">
+        <div className="mb-1 flex items-center justify-between text-[10px] font-semibold text-slate-500">
+          <span className="flex items-center gap-1"><Bug className="h-3 w-3" /> Pression sur cerisiers</span>
+          <span>pic <b className="text-slate-800">{(r.peakDensity / 1000).toFixed(1)}k</b>/ha{!r.isBaseline && <b className={cn('ml-1', peakDelta < 0 ? 'text-emerald-600' : 'text-rose-600')}>{peakDelta > 0 ? '+' : ''}{peakDelta} %</b>}</span>
+        </div>
+        <Sparkline data={spark} color={c} width={300} height={38} className="w-full" />
+        <div className="mt-1 flex justify-between text-[10px] text-slate-400"><span>{fmtEur(r.totalCost)} de leviers</span><span>{r.laborHours} h de travail</span></div>
+      </div>
     </motion.button>
+  );
+}
+
+function Metric({ label, children, tone }: { label: string; children: React.ReactNode; tone: 'good' | 'bad' | 'neutral' }) {
+  return (
+    <div className="flex items-baseline justify-between gap-2 border-b border-dashed border-slate-200 pb-1.5 last:border-0">
+      <span className="text-[11px] text-slate-500">{label}</span>
+      <span className={cn('font-display text-base font-semibold tabular-nums', tone === 'good' ? 'text-emerald-700' : tone === 'bad' ? 'text-rose-600' : 'text-slate-800')}>{children}</span>
+    </div>
+  );
+}
+
+function FinalCta() {
+  return (
+    <section className="no-print relative overflow-hidden bg-[#03241C] py-20 text-white">
+      <Contours className="absolute inset-0 h-full w-full" color="#6EE7B7" />
+      <Grain opacity={0.12} />
+      <div className="relative mx-auto flex max-w-[1200px] flex-col items-start gap-6 px-6 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[0.3em] text-emerald-300">Et maintenant ?</p>
+          <h3 className="font-display mt-2 text-4xl font-semibold md:text-5xl">Affinez, comparez, <em className="text-amber-200">partagez.</em></h3>
+          <p className="mt-3 max-w-lg text-emerald-50/70">Ajustez un levier dans l&apos;éditeur : tous les résultats se recalculent instantanément. Exportez une Fiche Conseil pour votre prochain tour de plaine.</p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/simulator" className="rounded-2xl bg-white px-6 py-4 font-bold text-slate-900 hover:bg-emerald-50">Retour à l&apos;éditeur</Link>
+          <button onClick={() => window.print()} className="flex items-center gap-2 rounded-2xl border border-white/30 px-6 py-4 font-bold hover:bg-white/10"><Printer className="h-5 w-5" /> Fiche Conseil PDF</button>
+          <Link href="/docs/modele" className="rounded-2xl border border-white/30 px-6 py-4 font-bold hover:bg-white/10">Comprendre le modèle</Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
 function HeatPanel({ focus, base, grid }: { focus: StrategyResult; base: StrategyResult; grid: import('@/lib/engine').CellType[] }) {
   const max = Math.max(...Array.from(base.peakByCell), 1);
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="flex gap-3">
-        <div className="text-center"><MiniMap grid={grid} values={focus.peakByCell} max={max} size={180} /><p className="mt-1 text-[11px] font-bold text-slate-700">{focus.isBaseline ? 'Témoin' : focus.name}</p></div>
-        <div className="hidden text-center sm:block"><MiniMap grid={grid} size={110} /><p className="mt-1 text-[11px] text-slate-500">Plan du verger</p></div>
+    <div className="grid items-center gap-4 md:grid-cols-[1fr_200px]">
+      <div className="relative rounded-3xl bg-gradient-to-b from-sky-50 to-[#F3EEDF] p-2">
+        <IsoOrchard grid={grid} heat={focus.peakByCell} max={max} className="w-full" />
+        <span className="absolute left-4 top-3 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold text-slate-800 shadow">{focus.isBaseline ? 'Témoin' : focus.name}</span>
       </div>
-      <div className="w-full">
-        <div className="h-2 rounded-full" style={{ background: `linear-gradient(90deg, ${[0, 0.33, 0.66, 1].map(heat).join(',')})` }} />
-        <div className="mt-1 flex justify-between text-[10px] text-slate-500"><span>0</span><span>{Math.round(max / 2).toLocaleString('fr-FR')}</span><span>{Math.round(max).toLocaleString('fr-FR')} /ha</span></div>
-        <p className="mt-2 text-[11px] text-slate-500">Échelle commune au témoin : les zones claires montrent l&apos;effet protecteur. Le réservoir sauvage alimente les bordures.</p>
+      <div className="space-y-3">
+        <div className="rounded-2xl bg-slate-50 p-3 text-center"><MiniMap grid={grid} values={focus.peakByCell} max={max} size={168} /><p className="mt-1 text-[10px] text-slate-500">Vue de dessus</p></div>
+        <div>
+          <div className="h-2 rounded-full" style={{ background: 'linear-gradient(90deg,#FEF08A,#F97316,#BE123C)' }} />
+          <div className="mt-1 flex justify-between text-[10px] text-slate-500"><span>0</span><span>{Math.round(max).toLocaleString('fr-FR')} /ha</span></div>
+          <p className="mt-2 text-[11px] leading-relaxed text-slate-500">Les zones claires montrent l&apos;effet protecteur ; le réservoir sauvage alimente les bordures.</p>
+        </div>
       </div>
     </div>
   );
@@ -450,34 +601,18 @@ function PhenologyNote() {
 function Card({ title, icon: Icon, subtitle, children, right, className }: { title: string; icon: React.ElementType; subtitle?: string; children: React.ReactNode; right?: React.ReactNode; className?: string }) {
   return (
     <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-      className={cn('break-inside-avoid rounded-2xl border border-slate-200 bg-white p-4 shadow-sm', className)}>
-      <div className="mb-3 flex items-start gap-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700"><Icon className="h-4 w-4" /></span>
-        <div className="min-w-0 flex-1"><h3 className="text-sm font-extrabold text-slate-900">{title}</h3>{subtitle && <p className="text-[11px] text-slate-500">{subtitle}</p>}</div>
+      className={cn('break-inside-avoid rounded-[28px] border border-white bg-white/90 p-5 shadow-[0_30px_60px_-35px_rgba(2,44,34,.3)] backdrop-blur md:p-6', className)}>
+      <div className="mb-4 flex items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-800 ring-1 ring-emerald-200/60"><Icon className="h-5 w-5" /></span>
+        <div className="min-w-0 flex-1"><h3 className="font-display text-lg font-semibold text-slate-900">{title}</h3>{subtitle && <p className="text-[11px] text-slate-500">{subtitle}</p>}</div>
         {right && <div className="no-print">{right}</div>}
       </div>
       {children}
     </motion.section>
   );
 }
-function Kpi({ icon: Icon, label, value, badge, tone }: { icon: React.ElementType; label: string; value: string; badge?: string; tone: 'good' | 'bad' | 'neutral' }) {
-  return (
-    <div>
-      <p className="flex items-center gap-1 text-[10px] font-semibold text-slate-500"><Icon className="h-3 w-3" /> {label}</p>
-      <p className="text-lg font-extrabold text-slate-900">{value}</p>
-      {badge && <p className={cn('mt-0.5 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold', tone === 'good' ? 'bg-emerald-50 text-emerald-700' : tone === 'bad' ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-slate-600')}>
-        {tone === 'good' ? <TrendingUp className="h-3 w-3" /> : tone === 'bad' ? <TrendingDown className="h-3 w-3" /> : null}{badge}</p>}
-    </div>
-  );
-}
-function BigStat({ label, value, sub }: { label: string; value: string; sub: string }) {
-  return <div className="rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/15 backdrop-blur"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-300">{label}</p><p className="text-2xl font-extrabold">{value}</p><p className="text-[10px] text-slate-400">{sub}</p></div>;
-}
-function Chip({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
-  return <span className="flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200"><Icon className="h-3.5 w-3.5 text-slate-400" />{children}</span>;
-}
 function ModeBtn({ active, onClick, icon: Icon, children }: { active: boolean; onClick: () => void; icon: React.ElementType; children: React.ReactNode }) {
-  return <button onClick={onClick} className={cn('flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold', active ? 'bg-white text-slate-900 shadow' : 'text-slate-500')}><Icon className="h-3.5 w-3.5" />{children}</button>;
+  return <button onClick={onClick} className={cn('flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-all', active ? 'bg-slate-900 text-white shadow' : 'text-slate-500 hover:text-slate-900')}><Icon className="h-3.5 w-3.5" />{children}</button>;
 }
 function FocusPicker({ results, value, onChange, color }: { results: StrategyResult[]; value?: string; onChange: (id: string) => void; color: (id: string) => string }) {
   return (

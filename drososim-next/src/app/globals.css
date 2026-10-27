@@ -155,4 +155,9 @@
   .print-break { break-before: page; }
   .no-print { display: none !important; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  [style*="opacity"] { opacity: 1 !important; transform: none !important; }
+  .scroll-mt-32 { break-inside: auto; }
 }
+
+.font-display { font-family: var(--font-display), Georgia, serif; font-variation-settings: 'SOFT' 50; }
+html { scroll-behavior: smooth; }

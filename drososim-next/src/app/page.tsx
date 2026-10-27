@@ -96,6 +96,18 @@ export default function LandingPage() {
               <span className="flex items-center gap-2"><MousePointerClick className="h-4 w-4 text-emerald-300" />Sans compte</span>
               <span className="flex items-center gap-2"><Share2 className="h-4 w-4 text-emerald-300" />Partage par lien</span>
             </motion.div>
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.15 }} className="mt-8">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.3em] text-emerald-200/60">Avec la recherche et la filière</p>
+              <div className="mt-3 flex flex-wrap items-center gap-1.5 lg:flex-nowrap">
+                {PARTNERS.map((p, i) => (
+                  <motion.a key={p.name} href={p.link} target="_blank" rel="noopener noreferrer" title={p.desc}
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2 + i * 0.06 }} whileHover={{ y: -3 }}
+                    className="flex h-12 w-[74px] items-center justify-center rounded-xl bg-white/95 px-2 py-1.5 shadow-lg shadow-black/20 ring-1 ring-white/20 transition-colors hover:bg-white">
+                    <Image src={p.logo} alt={p.name} width={p.w} height={p.h} className="max-h-9 w-auto max-w-full object-contain" />
+                  </motion.a>
+                ))}
+              </div>
+            </motion.div>
           </div>
 
           <HeroOrchard run={demoRun} />
@@ -121,9 +133,6 @@ export default function LandingPage() {
           ))}
         </div>
       </section>
-
-      {/* ================================================================ PARTENAIRES */}
-      <Partners />
 
       {/* ================================================================ 3 GESTES */}
       <section id="fonctionnement" className="relative mx-auto max-w-7xl px-6 py-28">
@@ -269,30 +278,6 @@ const PARTNERS = [
   { name: 'Ecophyto', desc: 'Plan Écophyto', logo: '/partners/Ecophyto.png', link: 'https://agriculture.gouv.fr/le-plan-ecophyto-quest-ce-que-cest', w: 960, h: 422 },
   { name: 'OFB', desc: 'Office Français de la Biodiversité', logo: '/partners/OFB.png', link: 'https://ofb.gouv.fr/', w: 464, h: 615 },
 ];
-
-function Partners() {
-  return (
-    <section className="relative overflow-hidden border-b border-slate-200/70 bg-[#F6F4EE] py-16">
-      <div className="mx-auto max-w-7xl px-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center">
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.3em] text-emerald-700">Partenaires</p>
-          <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">Issu de la recherche, <em className="text-emerald-700">pensé pour la filière</em></h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-500">DrosoSim est porté par l&apos;équipe M2P2 de l&apos;INRAE Sophia Antipolis, avec le CTIFL, l&apos;Université Côte d&apos;Azur, le plan Écophyto et l&apos;OFB.</p>
-        </motion.div>
-        <div className="mt-10 grid grid-cols-2 items-center gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {PARTNERS.map((p, i) => (
-            <motion.a key={p.name} href={p.link} target="_blank" rel="noopener noreferrer" title={p.desc}
-              initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }} whileHover={{ y: -4 }}
-              className="group flex h-32 flex-col items-center justify-center gap-2 rounded-3xl border border-white bg-white p-5 shadow-[0_20px_40px_-30px_rgba(2,44,34,.35)] transition-shadow hover:shadow-[0_24px_50px_-25px_rgba(2,44,34,.4)]">
-              <Image src={p.logo} alt={p.name} width={p.w} height={p.h} className="h-16 w-auto max-w-full object-contain opacity-80 grayscale transition duration-300 group-hover:opacity-100 group-hover:grayscale-0" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 transition-colors group-hover:text-emerald-700">{p.name}</span>
-            </motion.a>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 // ======================================================================= Composants
 type Run = ReturnType<typeof useDemoRun>;

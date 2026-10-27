@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, ComposedChart, LineChart, Line, Area, Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip,
   ReferenceArea, ReferenceLine, LabelList, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend,
 } from 'recharts';
-import { dayLabel, isCherry, PHENOLOGY, TYPE_LABEL, type SimOutput, type StrategyResult, type EventType } from '@/lib/engine';
+import { dayLabel, isCherry, PHENOLOGY, TYPE_LABEL, type SimOutput, type StrategyResult, type EventType, type SimEvent, type SeriesPoint } from '@/lib/engine';
 import type { Parcel, Strategy } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
@@ -21,6 +21,15 @@ const EVENT_META: Record<EventType, { icon: string; label: string; color: string
 
 const fmt = (n: number) => Math.round(n).toLocaleString('fr-FR');
 export const fmtEur = (n: number) => `${Math.round(n).toLocaleString('fr-FR')} €`;
+
+// Index O(1) — évitent un find() par série, par barre et à chaque survol de souris
+const FALLBACK = '#64748B';
+export function useColorMap(strategies: Strategy[]) {
+  return useMemo(() => new Map(strategies.map(s => [s.id, s.color])), [strategies]);
+}
+function useNameMap(results: StrategyResult[]) {
+  return useMemo(() => new Map(results.map(r => [r.id, r.name])), [results]);
+}
 
 function phenoBands(out: SimOutput) {
   const bands: { x1: number; x2: number; type: string; label: string }[] = [];
@@ -53,6 +62,16 @@ export function PopulationChart({ out, result, parcels, height = 340, showEvents
     return result.events.filter(e => { const k = `${e.day}-${e.type}`; if (seen.has(k)) return false; seen.add(k); return true; });
   }, [result.events]);
   const bandColor: Record<string, string> = { 'early-cherry': '#FDE68A', 'season-cherry': '#FECDD3', 'late-cherry': '#FCA5A5' };
+  // index pour l'infobulle : recherche O(1) au survol au lieu de parcourir les séries et les événements
+  const tipIndex = useMemo(() => {
+    const damageByDay = new Map(result.damageSeries.map(d => [d.day, d]));
+    const eventsByDay = new Map<number, SimEvent[]>();
+    for (const e of result.events) for (const d of [e.day - 1, e.day, e.day + 1]) {
+      const list = eventsByDay.get(d); if (list) list.push(e); else eventsByDay.set(d, [e]);
+    }
+    const parcelName = new Map(parcels.map(p => [p.id, p.name]));
+    return { damageByDay, eventsByDay, parcelName };
+  }, [result, parcels]);
 
   return (
     <div>
@@ -71,7 +90,7 @@ export function PopulationChart({ out, result, parcels, height = 340, showEvents
               tickFormatter={d => { const l = dayLabel(d, out.startDayOfYear); return l.month + (l.doy < 31 || d === 0 ? ` A${l.year}` : ''); }} />
             <YAxis tick={{ fontSize: 10, fill: '#64748B' }} tickFormatter={v => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} width={40}
               label={compact ? undefined : { value: 'Femelles / ha', angle: -90, position: 'insideLeft', fontSize: 10, fill: '#64748B' }} />
-            <Tooltip content={<PopTooltip parcels={lines} result={result} out={out} />} />
+            <Tooltip content={<PopTooltip parcels={lines} index={tipIndex} out={out} />} />
             {!hidden.threshold && <ReferenceLine y={THRESHOLD} stroke="#DC2626" strokeDasharray="6 4" label={{ value: '⚠️ Seuil de risque', position: 'insideTopRight', fontSize: 10, fill: '#DC2626' }} />}
             {showEvents && !hidden.events && events.map((e, i) => (
               <ReferenceLine key={i} x={e.day} stroke={EVENT_META[e.type].color} strokeOpacity={0.5} strokeDasharray="2 3"
@@ -101,16 +120,18 @@ export function PopulationChart({ out, result, parcels, height = 340, showEvents
   );
 }
 
-function PopTooltip({ active, payload, label, parcels, result, out }: { active?: boolean; payload?: { dataKey: string; value: number; color: string }[]; label?: number; parcels: Parcel[]; result: StrategyResult; out: SimOutput }) {
+type TipIndex = { damageByDay: Map<number, SeriesPoint>; eventsByDay: Map<number, SimEvent[]>; parcelName: Map<string, string> };
+function PopTooltip({ active, payload, label, parcels, index, out }: { active?: boolean; payload?: { dataKey: string; value: number; color: string }[]; label?: number; parcels: Parcel[]; index: TipIndex; out: SimOutput }) {
   if (!active || !payload?.length || label === undefined) return null;
   const dl = dayLabel(label, out.startDayOfYear);
-  const dmg = result.damageSeries.find(d => d.day === label);
-  const ev = result.events.filter(e => Math.abs(e.day - label) <= 1);
+  const dmg = index.damageByDay.get(label);
+  const ev = index.eventsByDay.get(label) ?? [];
+  const valueByKey = new Map(payload.map(x => [x.dataKey, x]));
   return (
     <div className="min-w-56 rounded-xl border border-slate-200 bg-white/95 p-3 text-xs shadow-xl backdrop-blur">
       <p className="mb-2 font-bold text-slate-900">{dl.label} — Année {dl.year}</p>
       {parcels.map(p => {
-        const v = payload.find(x => x.dataKey === p.id);
+        const v = valueByKey.get(p.id);
         if (!v) return null;
         const h = dmg?.[p.id] as number | undefined;
         return (
@@ -120,7 +141,7 @@ function PopTooltip({ active, payload, label, parcels, result, out }: { active?:
           </div>
         );
       })}
-      {ev.length > 0 && <div className="mt-2 border-t border-slate-100 pt-1.5 text-[11px] text-slate-600">{ev.map((e, i) => <div key={i}>{EVENT_META[e.type].icon} {EVENT_META[e.type].label} — {parcels.find(p => p.id === e.parcelId)?.name}</div>)}</div>}
+      {ev.length > 0 && <div className="mt-2 border-t border-slate-100 pt-1.5 text-[11px] text-slate-600">{ev.map((e, i) => <div key={i}>{EVENT_META[e.type].icon} {EVENT_META[e.type].label} — {index.parcelName.get(e.parcelId)}</div>)}</div>}
     </div>
   );
 }
@@ -142,7 +163,9 @@ export function HarvestByParcelChart({ out, parcels, strategies, height = 300 }:
     results.forEach(r => (row[r.id] = r.harvestByParcel[p.id] ?? 0));
     return row;
   });
-  const color = (id: string) => strategies.find(s => s.id === id)?.color ?? '#64748B';
+  const colors = useColorMap(strategies);
+  const names = useNameMap(results);
+  const color = (id: string) => colors.get(id) ?? FALLBACK;
   if (!cherry.length) return <Empty>Aucune parcelle de cerisiers.</Empty>;
   return (
     <div>
@@ -157,7 +180,7 @@ export function HarvestByParcelChart({ out, parcels, strategies, height = 300 }:
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
             <XAxis dataKey="name" interval={0} height={cherry.length > 2 ? 44 : 30} tick={<WrapTick />} />
             <YAxis domain={[0, 100]} unit="%" tick={{ fontSize: 10, fill: '#64748B' }} width={44} />
-            <Tooltip formatter={(v, n) => [`${Number(v).toFixed(1)} %`, results.find(r => r.id === n)?.name ?? String(n)]} contentStyle={{ borderRadius: 12, fontSize: 12 }} cursor={{ fill: '#F1F5F9' }} />
+            <Tooltip formatter={(v, n) => [`${Number(v).toFixed(1)} %`, names.get(String(n)) ?? String(n)]} contentStyle={{ borderRadius: 12, fontSize: 12 }} cursor={{ fill: '#F1F5F9' }} />
             {results.map(r => (
               <Bar key={r.id} dataKey={r.id} name={r.id} fill={r.isBaseline ? 'url(#hatchBase)' : color(r.id)} radius={[4, 4, 0, 0]} isAnimationActive={false}>
                 <LabelList dataKey={r.id} position="top" formatter={(v: unknown) => `${Math.round(Number(v))}%`} style={{ fontSize: 10, fontWeight: 700, fill: r.isBaseline ? '#64748B' : color(r.id) }} />
@@ -185,11 +208,12 @@ function WrapTick({ x, y, payload }: { x?: number; y?: number; payload?: { value
 }
 
 export function StrategyLegend({ results, strategies }: { results: StrategyResult[]; strategies: Strategy[] }) {
+  const colors = useColorMap(strategies);
   return (
     <div className="mt-2 flex flex-wrap justify-center gap-3">
       {results.map(r => (
         <span key={r.id} className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700">
-          <span className={cn('h-3 w-3 rounded-sm', r.isBaseline && 'bg-[repeating-linear-gradient(45deg,#CBD5E1_0_2px,#94A3B8_2px_4px)]')} style={r.isBaseline ? undefined : { backgroundColor: strategies.find(s => s.id === r.id)?.color }} />
+          <span className={cn('h-3 w-3 rounded-sm', r.isBaseline && 'bg-[repeating-linear-gradient(45deg,#CBD5E1_0_2px,#94A3B8_2px_4px)]')} style={r.isBaseline ? undefined : { backgroundColor: colors.get(r.id) }} />
           {r.isBaseline ? 'Témoin sans levier' : r.name}
         </span>
       ))}
@@ -206,6 +230,8 @@ export function OverlayChart({ out, strategies, height = 280 }: { out: SimOutput
     out.results.forEach(r => (row[r.id] = r.series[i]?.cherry_all as number));
     return row;
   }) ?? [], [out]);
+  const colors = useColorMap(strategies);
+  const names = useNameMap(out.results);
   return (
     <div style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -216,10 +242,10 @@ export function OverlayChart({ out, strategies, height = 280 }: { out: SimOutput
           <YAxis tick={{ fontSize: 10, fill: '#64748B' }} tickFormatter={v => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} width={40} />
           <ReferenceLine y={THRESHOLD} stroke="#DC2626" strokeDasharray="6 4" />
           <Tooltip labelFormatter={d => { const l = dayLabel(Number(d), out.startDayOfYear); return `${l.label} — Année ${l.year}`; }}
-            formatter={(v, n) => [`${fmt(Number(v))} femelles/ha`, out.results.find(r => r.id === n)?.name ?? String(n)]} contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+            formatter={(v, n) => [`${fmt(Number(v))} femelles/ha`, names.get(String(n)) ?? String(n)]} contentStyle={{ borderRadius: 12, fontSize: 12 }} />
           {out.results.map(r => (
             <Line key={r.id} dataKey={r.id} type="monotone" dot={false} isAnimationActive={false}
-              stroke={strategies.find(s => s.id === r.id)?.color} strokeWidth={r.isBaseline ? 2 : 2.5} strokeDasharray={r.isBaseline ? '5 4' : undefined} />
+              stroke={colors.get(r.id)} strokeWidth={r.isBaseline ? 2 : 2.5} strokeDasharray={r.isBaseline ? '5 4' : undefined} />
           ))}
         </LineChart>
       </ResponsiveContainer>
@@ -262,12 +288,19 @@ export function EconomicsChart({ out, strategies, height = 280 }: { out: SimOutp
 }
 
 // ============================================================ Radar multicritère
-export function scoreStrategy(r: StrategyResult, base: StrategyResult | undefined, all: StrategyResult[]) {
-  const maxCost = Math.max(1, ...all.map(x => x.totalCost));
-  const maxLabor = Math.max(1, ...all.map(x => x.laborHours));
-  const maxPeak = Math.max(1, ...all.map(x => x.peakDensity));
-  const gain = r.revenue - (base?.revenue ?? 0) - r.totalCost;
-  const maxGain = Math.max(1, ...all.map(x => Math.abs(x.revenue - (base?.revenue ?? 0) - x.totalCost)));
+/** Scores 0-100 de toutes les stratégies : les maxima sont calculés une seule fois (O(n) au lieu de O(n²)). */
+export function scoreStrategies(all: StrategyResult[], base: StrategyResult | undefined) {
+  const net = (x: StrategyResult) => x.revenue - (base?.revenue ?? 0) - x.totalCost;
+  const ctx = {
+    maxCost: Math.max(1, ...all.map(x => x.totalCost)),
+    maxLabor: Math.max(1, ...all.map(x => x.laborHours)),
+    maxPeak: Math.max(1, ...all.map(x => x.peakDensity)),
+    maxGain: Math.max(1, ...all.map(x => Math.abs(net(x)))),
+  };
+  return all.map(r => ({ id: r.id, s: scoreOne(r, net(r), ctx) }));
+}
+
+function scoreOne(r: StrategyResult, gain: number, { maxCost, maxLabor, maxPeak, maxGain }: { maxCost: number; maxLabor: number; maxPeak: number; maxGain: number }) {
   return {
     'Récolte': Math.round(r.globalHarvest),
     'Rentabilité': Math.round(50 + (gain / maxGain) * 50),
@@ -280,7 +313,8 @@ export function scoreStrategy(r: StrategyResult, base: StrategyResult | undefine
 
 export function RadarScore({ out, strategies, height = 300 }: { out: SimOutput; strategies: Strategy[]; height?: number }) {
   const base = out.results.find(r => r.isBaseline);
-  const scores = out.results.map(r => ({ id: r.id, s: scoreStrategy(r, base, out.results) }));
+  const scores = useMemo(() => scoreStrategies(out.results, base), [out.results, base]);
+  const colors = useColorMap(strategies);
   const axes = Object.keys(scores[0]?.s ?? {});
   const data = axes.map(a => { const row: Record<string, string | number> = { axis: a }; scores.forEach(x => (row[x.id] = (x.s as Record<string, number>)[a])); return row; });
   return (
@@ -291,7 +325,7 @@ export function RadarScore({ out, strategies, height = 300 }: { out: SimOutput; 
           <PolarAngleAxis dataKey="axis" tick={{ fontSize: 10, fill: '#334155', fontWeight: 600 }} />
           <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
           {out.results.map(r => {
-            const c = strategies.find(s => s.id === r.id)?.color ?? '#64748B';
+            const c = colors.get(r.id) ?? FALLBACK;
             return <Radar key={r.id} dataKey={r.id} name={r.isBaseline ? 'Témoin' : r.name} stroke={c} fill={c} fillOpacity={r.isBaseline ? 0.05 : 0.15} strokeWidth={2} isAnimationActive={false} />;
           })}
           <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
@@ -304,7 +338,8 @@ export function RadarScore({ out, strategies, height = 300 }: { out: SimOutput; 
 // ============================================================ Évolution des fruits sains
 export function HealthyFruitChart({ out, parcels, strategies, height = 260 }: { out: SimOutput; parcels: Parcel[]; strategies: Strategy[]; height?: number }) {
   const ticks = useMemo(() => monthTicks(out), [out]);
-  const cherry = parcels.filter(p => isCherry(p.type));
+  // dépendance stable : avant, `cherry` était recréé à chaque rendu et invalidait le useMemo
+  const cherry = useMemo(() => parcels.filter(p => isCherry(p.type)), [parcels]);
   const data = useMemo(() => out.results[0]?.damageSeries.map((p, i) => {
     const row: Record<string, number> = { day: p.day };
     out.results.forEach(r => {
@@ -314,6 +349,8 @@ export function HealthyFruitChart({ out, parcels, strategies, height = 260 }: { 
     });
     return row;
   }) ?? [], [out, cherry]);
+  const colors = useColorMap(strategies);
+  const names = useNameMap(out.results);
   return (
     <div style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -322,8 +359,8 @@ export function HealthyFruitChart({ out, parcels, strategies, height = 260 }: { 
           <XAxis dataKey="day" type="number" domain={[0, out.totalDays]} ticks={ticks} tick={{ fontSize: 10, fill: '#64748B' }} tickFormatter={d => dayLabel(d, out.startDayOfYear).month} />
           <YAxis domain={[0, 100]} unit="%" tick={{ fontSize: 10, fill: '#64748B' }} />
           <Tooltip labelFormatter={d => { const l = dayLabel(Number(d), out.startDayOfYear); return `${l.label} — Année ${l.year}`; }}
-            formatter={(v, n) => [`${Number(v).toFixed(1)} % de fruits sains`, out.results.find(r => r.id === n)?.name ?? String(n)]} contentStyle={{ borderRadius: 12, fontSize: 12 }} />
-          {out.results.map(r => <Line key={r.id} dataKey={r.id} type="stepAfter" dot={false} isAnimationActive={false} stroke={strategies.find(s => s.id === r.id)?.color} strokeWidth={2} strokeDasharray={r.isBaseline ? '5 4' : undefined} />)}
+            formatter={(v, n) => [`${Number(v).toFixed(1)} % de fruits sains`, names.get(String(n)) ?? String(n)]} contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+          {out.results.map(r => <Line key={r.id} dataKey={r.id} type="stepAfter" dot={false} isAnimationActive={false} stroke={colors.get(r.id)} strokeWidth={2} strokeDasharray={r.isBaseline ? '5 4' : undefined} />)}
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -332,7 +369,8 @@ export function HealthyFruitChart({ out, parcels, strategies, height = 260 }: { 
 
 // ============================================================ Récolte par année
 export function YearlyHarvestChart({ result, parcels, height = 220 }: { result: StrategyResult; parcels: Parcel[]; height?: number }) {
-  const cherry = parcels.filter(p => isCherry(p.type));
+  const cherry = useMemo(() => parcels.filter(p => isCherry(p.type)), [parcels]);
+  const cherryName = useMemo(() => new Map(cherry.map(c => [c.id, c.name])), [cherry]);
   const years = Math.max(0, ...cherry.map(p => result.harvestByParcelYear[p.id]?.length ?? 0));
   const data = Array.from({ length: years }, (_, y) => {
     const row: Record<string, string | number> = { year: `Année ${y + 1}` };
@@ -347,7 +385,7 @@ export function YearlyHarvestChart({ result, parcels, height = 220 }: { result: 
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
           <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#334155' }} />
           <YAxis domain={[0, 100]} unit="%" tick={{ fontSize: 10, fill: '#64748B' }} />
-          <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} formatter={(v, n) => [`${v} %`, cherry.find(c => c.id === n)?.name ?? String(n)]} />
+          <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} formatter={(v, n) => [`${v} %`, cherryName.get(String(n)) ?? String(n)]} />
           {cherry.map(p => (
             <Bar key={p.id} dataKey={p.id} fill={p.color} radius={[3, 3, 0, 0]} isAnimationActive={false}>
               <LabelList dataKey={p.id} position="top" style={{ fontSize: 9, fill: '#334155', fontWeight: 700 }} formatter={(v: unknown) => `${v}%`} />

@@ -44,3 +44,5 @@ L'outil institutionnel de référence souffrait de plusieurs freins à l'usage s
 | **Architecture technique** | Moteur, Web Worker, état, persistance, partage, performances |
 | **Limites & calibration** | Hypothèses, ordres de grandeur, comment calibrer, tests |
 | **Analyse du DrosoSim institutionnel** | Ce que l’on sait du modèle de drososim.fr (code client + publications) |
+| **Brancher son backend** | Contrat d'échange, backends HTTP / WebSocket, exemples Node et Python |
+| **Modifier le code** | Carte du code, recettes (levier, type de case, graphique, format), déploiement |

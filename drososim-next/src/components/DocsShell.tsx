@@ -13,9 +13,9 @@ import GithubSlugger from 'github-slugger';
 import { DIAGRAMS, Logo, Drosophila } from '@/components/illustrations';
 import type { Doc, DocMeta } from '@/lib/docs';
 import { cn } from '@/lib/utils';
-import { BookOpen, Compass, Bug, ShieldCheck, Euro, Cpu, AlertTriangle, ScanSearch, ChevronLeft, ChevronRight, Search, Menu, X, ArrowUpRight, ListTree } from 'lucide-react';
+import { BookOpen, Compass, Bug, ShieldCheck, Euro, Cpu, AlertTriangle, ScanSearch, Plug, Code2, ChevronLeft, ChevronRight, Search, Menu, X, ArrowUpRight, ListTree } from 'lucide-react';
 
-const ICONS: Record<string, React.ElementType> = { book: BookOpen, compass: Compass, bug: Bug, shield: ShieldCheck, euro: Euro, cpu: Cpu, alert: AlertTriangle, search: ScanSearch };
+const ICONS: Record<string, React.ElementType> = { book: BookOpen, compass: Compass, bug: Bug, shield: ShieldCheck, euro: Euro, cpu: Cpu, alert: AlertTriangle, search: ScanSearch, plug: Plug, code: Code2 };
 
 export function DocsShell({ doc, nav }: { doc: Doc; nav: DocMeta[] }) {
   const [q, setQ] = useState('');
@@ -124,6 +124,11 @@ export function DocsShell({ doc, nav }: { doc: Doc; nav: DocMeta[] }) {
                   return <pre {...props}>{children}</pre>;
                 },
                 table({ children }) { return <div className="overflow-x-auto"><table>{children}</table></div>; },
+                img({ src, alt }) {
+                  const u = typeof src === 'string' ? src.replace(/^(\.\/)?assets\//, '/docs-assets/') : '';
+                  // eslint-disable-next-line @next/next/no-img-element
+                  return <img src={u} alt={alt ?? ''} className="mx-auto my-6 rounded-2xl" />;
+                },
               }}>
               {doc.body}
             </ReactMarkdown>

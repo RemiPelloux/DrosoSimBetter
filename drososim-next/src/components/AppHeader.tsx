@@ -245,11 +245,16 @@ export function useShareHydration() {
   }, []);
 }
 
-export function LiveBadge({ running, ms }: { running: boolean; ms?: number }) {
+export function LiveBadge({ running, ms, source }: { running: boolean; ms?: number; source?: { label: string; error?: string } }) {
+  const remote = source && !source.label.startsWith('Moteur local');
+  const fallback = !!source?.error;
+  const tone = running ? 'bg-amber-50 text-amber-700' : fallback ? 'bg-orange-100 text-orange-800' : remote ? 'bg-sky-50 text-sky-800' : 'bg-emerald-50 text-emerald-700';
+  const dot = fallback ? 'bg-orange-500' : remote ? 'bg-sky-500' : 'bg-emerald-500';
+  const label = fallback ? 'Secours local' : remote ? source!.label.split(' · ')[0] : 'Temps réel';
   return (
-    <span className={cn('flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold', running ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700')}>
-      {running ? <Loader2 className="h-3 w-3 animate-spin" /> : <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />}
-      {running ? 'Calcul…' : `Temps réel${ms !== undefined ? ` · ${ms.toFixed(0)} ms` : ''}`}
+    <span title={source?.error ?? source?.label} className={cn('flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold', tone)}>
+      {running ? <Loader2 className="h-3 w-3 animate-spin" /> : <span className={cn('h-1.5 w-1.5 animate-pulse rounded-full', dot)} />}
+      {running ? 'Calcul…' : `${label}${ms !== undefined ? ` · ${ms.toFixed(0)} ms` : ''}`}
     </span>
   );
 }

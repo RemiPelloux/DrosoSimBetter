@@ -35,7 +35,7 @@ export default function SimulatorPage() {
     document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none';
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
   };
-  const { out, running, parcels } = useSimulation();
+  const { out, running, parcels, source } = useSimulation();
   const [showEco, setShowEco] = useState(false);
   const [mobileTab, setMobileTab] = useState<'map' | 'levers' | 'live'>('map');
 
@@ -71,7 +71,7 @@ export default function SimulatorPage() {
 
         {/* Colonne centrale : contrôles en haut, leviers en bas */}
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className={cn('min-w-0 space-y-3 lg:w-[var(--c)] lg:shrink-0', mobileTab !== 'levers' && 'hidden lg:block')}>
-          <Panel title="Simulation" icon={Zap} right={<LiveBadge running={running} ms={out?.computeMs} />}>
+          <Panel title="Simulation" icon={Zap} right={<LiveBadge running={running} ms={out?.computeMs} source={source} />}>
             <SimulationSettings />
             <button onClick={() => setShowEco(v => !v)} className="mt-3 flex w-full items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-600 hover:bg-slate-100">
               <span className="flex items-center gap-1.5"><Euro className="h-3.5 w-3.5" /> Hypothèses économiques</span>
@@ -90,7 +90,7 @@ export default function SimulatorPage() {
         {/* Colonne droite : aperçu temps réel */}
         <motion.section initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className={cn('min-w-0 flex-1 space-y-3', mobileTab !== 'live' && 'hidden lg:block')}>
           <div className="lg:sticky lg:top-20 space-y-3">
-            <Panel title="Aperçu temps réel" icon={Activity} right={<LiveBadge running={running} ms={out?.computeMs} />}>
+            <Panel title="Aperçu temps réel" icon={Activity} right={<LiveBadge running={running} ms={out?.computeMs} source={source} />}>
               {!out || parcels.length === 0 ? (
                 <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-xs text-slate-400">
                   <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 2, repeat: Infinity }}><Drosophila size={56} /></motion.div>Dessinez un verger (ou choisissez un modèle) : les résultats apparaissent instantanément ici.
@@ -127,7 +127,7 @@ export default function SimulatorPage() {
               <Paintbrush className="h-4 w-4 text-slate-500" />
               <span className="text-sm font-extrabold text-slate-900">Éditeur parcellaire — plein écran</span>
               <span className="hidden text-[11px] text-slate-400 md:inline">Échap ou Maj+F pour quitter · [ ] taille du pinceau · 1-4 types · B R F E V outils</span>
-              <span className="ml-auto"><LiveBadge running={running} ms={out?.computeMs} /></span>
+              <span className="ml-auto"><LiveBadge running={running} ms={out?.computeMs} source={source} /></span>
               <button onClick={() => useGridStore.getState().setEditorFullscreen(false)} className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white"><Minimize2 className="h-4 w-4" /> Réduire</button>
             </div>
             <div className="flex min-h-0 flex-1 gap-4 overflow-auto p-4">

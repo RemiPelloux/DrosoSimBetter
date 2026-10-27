@@ -37,10 +37,13 @@ src/
 │   └── illustrations.tsx    SVG sur mesure (drosophile, logo, schémas)
 ├── lib/
 │   ├── engine.ts            Moteur de simulation (pur, sans dépendance)
+│   ├── backend.ts           Contrat + backends (local, HTTP, WebSocket)
+│   ├── projectIO.ts         Import / export universel (JSON, .drososim, PNG, CSV, TXT)
 │   ├── sim.worker.ts        Enveloppe Web Worker
 │   ├── useSimulation.ts     Hook temps réel
 │   └── store.ts             État global, historique, persistance, partage
-docs/                        Sources Markdown de la documentation
+docs/                        Sources Markdown de la documentation (+ assets/)
+examples/                    backend-node (référence), backend-python (squelette)
 scripts/                     engine-check.ts, e2e.mjs
 ```
 
@@ -59,8 +62,8 @@ La fonction `simulate(grid, parcels, strategies, params, economics)` renvoie, po
 ## 4. Calcul temps réel
 
 `useSimulation()` observe la grille, les stratégies, les paramètres et l'économie. À chaque changement :
-1. un **délai de 60 ms** regroupe les modifications rapides (un glissement de curseur, par exemple) ;
-2. la requête est envoyée au **Web Worker**, avec un numéro de séquence ;
+1. un **délai de 60 ms** (350 ms pour un backend distant) regroupe les modifications rapides (un glissement de curseur, par exemple) ;
+2. la requête est envoyée au **backend configuré** (Web Worker local par défaut, ou serveur HTTP / WebSocket — voir *Brancher son backend*), avec un numéro de séquence ;
 3. seule la **dernière réponse** est prise en compte, pour qu'aucun résultat périmé ne s'affiche ;
 4. renommer une parcelle **ne relance pas** le calcul (les noms n'influent pas sur le modèle).
 
@@ -93,7 +96,7 @@ Les leviers incomplets (anciennes versions) sont complétés avec les valeurs pa
 |---|---|
 | `npm run lint` | ESLint (règles React 19 / Next) |
 | `npx tsc --noEmit` | typage strict |
-| `npm run test:engine` | 32 combinaisons (grilles vide / forêt / mixte × saisons × climats × durées) : absence de NaN, nombre de récoltes, temps de calcul |
+| `npm run test:engine` | 48 combinaisons (grilles vide / forêt / mixte × saisons × climats × durées) : absence de NaN, nombre de récoltes, temps de calcul |
 | `npm run test:e2e` | parcours navigateur (Playwright) : dessin, annuler un trait entier, gomme au clic droit, menu d'édition, leviers, lien de partage rejoué dans un navigateur vierge, démo → résultats, zéro erreur console |
 
 ## 8. Déploiement

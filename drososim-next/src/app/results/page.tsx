@@ -28,7 +28,7 @@ export default function ResultsPage() {
   const grid = useGridStore(s => s.grid);
   const simParams = useGridStore(s => s.simParams);
   const economics = useGridStore(s => s.economics);
-  const { out, running, parcels } = useSimulation();
+  const { out, running, parcels, source } = useSimulation();
   const [excluded, setExcluded] = useState<Record<string, boolean>>({});
   const [mode, setMode] = useState<'columns' | 'overlay'>('columns');
   const [focusId, setFocusId] = useState<string | null>(null);
@@ -117,7 +117,7 @@ export default function ResultsPage() {
       {!shown || !base ? <main className="mx-auto max-w-[1500px] p-6"><SkeletonResults /></main> : (
         <>
           <Hero best={best?.r} net={best?.net ?? 0} base={base} count={ranked.length} color={best ? color(best.r.id) : '#10B981'} grid={grid}
-            running={running} ms={out?.computeMs}
+            running={running} ms={out?.computeMs} source={source}
             chips={[
               { icon: MapIcon, label: `${parcels.length} parcelles · ${cherryHa.toFixed(2)} ha de cerisiers` },
               { icon: Clock, label: `${simParams.durationYears} an${simParams.durationYears > 1 ? 's' : ''} · départ ${simParams.startSeason === 'spring' ? 'printemps' : 'automne'}` },
@@ -256,9 +256,9 @@ function ChapterNav() {
   );
 }
 
-function Hero({ best, net, base, count, color, grid, chips, running, ms, settingsOpen, onToggleSettings }: {
+function Hero({ best, net, base, count, color, grid, chips, running, ms, source, settingsOpen, onToggleSettings }: {
   best?: StrategyResult; net: number; base: StrategyResult; count: number; color: string; grid: import('@/lib/engine').CellType[];
-  chips: { icon: React.ElementType; label: string }[]; running: boolean; ms?: number; settingsOpen: boolean; onToggleSettings: () => void;
+  chips: { icon: React.ElementType; label: string }[]; running: boolean; ms?: number; source?: { label: string; error?: string }; settingsOpen: boolean; onToggleSettings: () => void;
 }) {
   const [view, setView] = useState<'best' | 'base'>('best');
   const max = Math.max(...Array.from(base.peakByCell), 1);
@@ -276,7 +276,7 @@ function Hero({ best, net, base, count, color, grid, chips, running, ms, setting
         <div>
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-center gap-2">
             <Link href="/simulator" className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold ring-1 ring-white/20 backdrop-blur hover:bg-white/20"><ArrowLeft className="h-3.5 w-3.5" /> Modifier le verger</Link>
-            <LiveBadge running={running} ms={ms} />
+            <LiveBadge running={running} ms={ms} source={source} />
           </motion.div>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="mt-8 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.3em] text-emerald-300">
             <Trophy className="h-4 w-4" /> {best ? (count > 1 ? `Verdict · meilleure stratégie sur ${count}` : 'Verdict de la simulation') : 'Témoin seul'}

@@ -13,9 +13,9 @@ import GithubSlugger from 'github-slugger';
 import { DIAGRAMS, Logo, Drosophila } from '@/components/illustrations';
 import type { Doc, DocMeta } from '@/lib/docs';
 import { cn } from '@/lib/utils';
-import { BookOpen, Compass, Bug, ShieldCheck, Euro, Cpu, AlertTriangle, ChevronLeft, ChevronRight, Search, Menu, X, ArrowUpRight, ListTree } from 'lucide-react';
+import { BookOpen, Compass, Bug, ShieldCheck, Euro, Cpu, AlertTriangle, ScanSearch, ChevronLeft, ChevronRight, Search, Menu, X, ArrowUpRight, ListTree } from 'lucide-react';
 
-const ICONS: Record<string, React.ElementType> = { book: BookOpen, compass: Compass, bug: Bug, shield: ShieldCheck, euro: Euro, cpu: Cpu, alert: AlertTriangle };
+const ICONS: Record<string, React.ElementType> = { book: BookOpen, compass: Compass, bug: Bug, shield: ShieldCheck, euro: Euro, cpu: Cpu, alert: AlertTriangle, search: ScanSearch };
 
 export function DocsShell({ doc, nav }: { doc: Doc; nav: DocMeta[] }) {
   const [q, setQ] = useState('');

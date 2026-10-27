@@ -43,3 +43,4 @@ L'outil institutionnel de référence souffrait de plusieurs freins à l'usage s
 | **Calcul économique & indicateurs** | Chiffre d'affaires, coûts, bilan, IFT, score multicritère |
 | **Architecture technique** | Moteur, Web Worker, état, persistance, partage, performances |
 | **Limites & calibration** | Hypothèses, ordres de grandeur, comment calibrer, tests |
+| **Analyse du DrosoSim institutionnel** | Ce que l’on sait du modèle de drososim.fr (code client + publications) |

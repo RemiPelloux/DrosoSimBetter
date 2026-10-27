@@ -47,7 +47,7 @@ await page.screenshot({ path: './.e2e-shots/5-levers.png' });
 await page.getByRole('button', { name: /Partager/ }).click(); await page.waitForTimeout(300);
 const link = await page.evaluate(() => navigator.clipboard.readText());
 // demo -> results
-await page.goto(U); await page.getByRole('button', { name: /Voir une démo/ }).first().click();
+await page.goto(U); await page.getByRole('button', { name: /Voir (une|la) démo/ }).first().click();
 await page.waitForURL(/results/); await page.waitForTimeout(2500);
 await page.screenshot({ path: './.e2e-shots/6-results-top.png' });
 await page.screenshot({ path: './.e2e-shots/7-results-full.png', fullPage: true });

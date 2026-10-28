@@ -2,7 +2,7 @@
 // Tests du moteur de simulation (sans navigateur)        npm run test:engine
 // Vérifie la robustesse numérique, les invariants et la cohérence agronomique.
 // =============================================================================
-import { simulate, detectParcels, defaultLeverConfig, type CellType, type LeverConfig, type SimParams } from '../src/lib/engine.ts';
+import { simulate, detectParcels, defaultLeverConfig, thermalPhenology, climateTable, PHENOLOGY, PARAMS, MODEL_VERSION, type CellType, type LeverConfig, type SimParams } from '../src/lib/engine.ts';
 // @ts-expect-error — module JS sans types
 import { createSuite } from './lib/harness.mjs';
 
@@ -68,7 +68,38 @@ const bio = run(mixed, p1, { treatment: true, treatmentMode: 'biocontrol', treat
 t.check('le biocontrôle ne compte pas dans l’IFT chimique', conv.ift > 0 && bio.ift === 0, `conventionnel ${conv.ift} · biocontrôle ${bio.ift}`);
 t.check('aucun coût pour le témoin', a.results[0].totalCost === 0);
 
-// ---------------------------------------------------------------- 5. performance
+// ---------------------------------------------------------------- 5. modèle v2 : climat, phénologie thermique, coûts réels, leviers de fond
+t.check('version du modèle exposée dans la sortie', a.modelVersion === MODEL_VERSION && !!a.climate, `${a.modelVersion} · ${JSON.stringify(a.climate)}`);
+const dry = climateTable('dry-summer').summary, ref = climateTable(null).summary;
+t.check('été caniculaire : des jours > 30 °C existent (stress thermique actif)', dry.hotDays > 0 && ref.hotDays === 0, `caniculaire ${dry.hotDays} j · référence ${ref.hotDays} j`);
+const phHum = thermalPhenology('humid-spring'), phDry = thermalPhenology('dry-summer'), phRef = thermalPhenology(null);
+t.check('phénologie thermique : référence = dates nominales', phRef['early-cherry'].veraison === PHENOLOGY['early-cherry'].veraison && phRef['late-cherry'].harvest === PHENOLOGY['late-cherry'].harvest);
+t.check('printemps frais → véraison retardée ; été chaud → tardive avancée', phHum['early-cherry'].veraison > phRef['early-cherry'].veraison && phDry['late-cherry'].veraison < phRef['late-cherry'].veraison,
+  `précoce ${phRef['early-cherry'].veraison} → ${phHum['early-cherry'].veraison} (humide) · tardive ${phRef['late-cherry'].veraison} → ${phDry['late-cherry'].veraison} (caniculaire)`);
+const outDry = run(mixed, { ...p1, climateProfile: 'dry-summer' });
+t.check('les fenêtres renvoyées suivent la phénologie thermique du profil', outDry.phenology.every(w => w.start === phDry[w.type].veraison && w.end === phDry[w.type].harvest));
+const haPerCell = eco.cellAreaM2 / 10000, years3: SimParams = { startSeason: 'spring', durationYears: 3, climateProfile: 'mild-winter' };
+const thr = run(mixed, years3, { treatment: true, treatmentTrigger: 'threshold', treatmentPasses: 4 }).results[1];
+const expectedPhyto = Math.round(parcels.filter(p => p.type !== 'forest').reduce((acc, p) => acc + p.cells.length * haPerCell * (thr.events.filter(e => e.type === 'treatment' && e.parcelId === p.id).length / 3) * 85, 0));
+t.check('coût phyto = passages réellement déclenchés (déclenchement au seuil)', thr.costs.phyto === expectedPhyto && (thr.treatmentsApplied ?? -1) === thr.events.filter(e => e.type === 'treatment').length,
+  `${thr.treatmentsApplied} passages · ${thr.costs.phyto} € (attendu ${expectedPhyto} €)`);
+const cherryCells = parcels.filter(p => p.type !== 'forest').reduce((acc, p) => acc + p.cells.length, 0);
+const expectedIft = Math.round((thr.events.filter(e => e.type === 'treatment').reduce((acc, e) => acc + parcels.find(p => p.id === e.parcelId)!.cells.length, 0) / cherryCells / 3) * 10) / 10;
+t.check('IFT cohérent avec les passages conventionnels', thr.ift === expectedIft, `${thr.ift} (attendu ${expectedIft})`);
+t.check('total des coûts = somme des postes', a.results[1].totalCost === Object.values(a.results[1].costs).reduce((x, y) => x + y, 0));
+const maxDensity = PARAMS.K.cherry * 2.5 * (10000 / eco.cellAreaM2);
+t.check('surpeuplement borné : pic < 2,5 × K', [a, net, outDry].every(o => o.results.every(r => r.peakDensity < maxDensity)), `max ${Math.max(...[a, net, outDry].flatMap(o => o.results.map(r => r.peakDensity)))} < ${maxDensity}`);
+const base3 = run(mixed, years3, {}).results[0].harvestByParcelYear['late-cherry-1'];
+const pro3 = run(mixed, years3, { prophylaxis: true }).results[1].harvestByParcelYear['late-cherry-1'];
+const par3 = run(mixed, years3, { parasitoids: true }).results[1].harvestByParcelYear['late-cherry-1'];
+t.check('prophylaxie : effet cumulatif (année 3 ≥ témoin)', pro3[2] >= base3[2], `témoin ${base3.map(v => v.toFixed(0)).join('/')} · prophylaxie ${pro3.map(v => v.toFixed(0)).join('/')}`);
+t.check('parasitoïdes : gain croissant avec les années', par3[2] - base3[2] > par3[0] - base3[0], `gain A1 ${(par3[0] - base3[0]).toFixed(0)} pt → A3 ${(par3[2] - base3[2]).toFixed(0)} pt`);
+const tis = run(mixed, p1, { tis: true }).results;
+t.check('la TIS réduit les dégâts sans IFT', tis[1].globalHarvest > tis[0].globalHarvest && tis[1].ift === 0, `${tis[0].globalHarvest} → ${tis[1].globalHarvest} %`);
+const autumn = run(mixed, { startSeason: 'autumn', durationYears: 2, climateProfile: 'mild-winter' });
+t.check('départ automne : 2 récoltes par parcelle et séries continues', autumn.results.every(r => Object.values(r.harvestByParcelYear).every(v => v.length === 2)) && autumn.totalDays === 2 * 365 + 92);
+
+// ---------------------------------------------------------------- 6. performance
 const perf: SimParams = { startSeason: 'spring', durationYears: 3, climateProfile: 'mild-winter' };
 const [base, netS] = strategiesFor(mixed, { netting: true });
 const tisS = strategiesFor(mixed, { tis: true })[1], allS = strategiesFor(mixed, { prophylaxis: true, parasitoids: true, treatment: true })[1];

@@ -162,7 +162,8 @@ Ces points ne pourront être confirmés qu'avec la publication de l'outil (`hal-
 | Sexes / accouplement | mâles, femelles fécondées / infertiles / mixtes | femelles seules ; TIS via un facteur de fertilité |
 | TIS | mécaniste : $\frac{M}{M+\eta S}$, polyandrie | phénoménologique : $1/(1+0{,}12\times\text{ratio})$ |
 | Espace | parcelles couplées (migration) | grille de 400 cases, dispersion vers les 8 voisines |
-| Température | non visible dans le client | sinusoïde + profils climatiques |
+| Stades | larves (un compartiment), femelles, mâles | trois sous-stades immatures (délai gamma), femelles |
+| Température | non visible dans le client | sinusoïde + variabilité synoptique déterministe + profils ; phénologie thermique |
 | Leviers | impulsions datées, réglables | impulsions et effets continus, réglages agronomiques |
 | Paramètres | **issus de la littérature** (tableau ci-dessus) | choisis pour des ordres de grandeur plausibles |
 | Calcul | serveur, environ 1 s, slots limités | navigateur, environ 20 ms par stratégie |

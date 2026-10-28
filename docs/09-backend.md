@@ -110,8 +110,9 @@ L'application **complète automatiquement** ce qui manque (fonction `normalizeOu
 | `revenue` | chiffre d'affaires | calculé avec `eco` |
 | `costs`, `totalCost`, `ift`, `laborHours` | bilan économique et environnemental | 0 |
 | `events` | marqueurs 🚜 🛡️ 🧺 🐝 🧬 : `[{ "day": 140, "type": "treatment", "parcelId": "…" }]` | aucun marqueur |
+| `treatmentsApplied` | nombre de passages réellement effectués (information) | non affiché |
 
-Champs globaux optionnels : `computeMs`, `totalDays`, `startDayOfYear`, `phenology`.
+Champs globaux optionnels : `computeMs`, `totalDays`, `startDayOfYear`, `phenology` (fenêtres véraison → récolte réellement utilisées, `[{ "type": "late-cherry", "start": 166, "end": 198 }]` ; sans elles, l'application dessine les dates de référence), `modelVersion` (chaîne libre, affichée à titre d'information) et `climate` (`{ "tMin", "tMax", "degreeDays", "coldDays", "hotDays" }`).
 
 Les **jours** (`day`) sont comptés depuis le début de la simulation : jour 0 = 1er mars (départ printemps) ou 1er octobre (départ automne).
 

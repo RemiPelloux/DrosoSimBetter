@@ -43,8 +43,8 @@
 | 🖌️ **Éditeur de verger 20 × 20** | pinceau 1×1 à 3×3, zone rectangulaire, remplissage, gomme au clic droit, modèles prêts à l'emploi, plein écran, colonnes redimensionnables, historique Ctrl+Z / Ctrl+Y |
 | 🌳 **Parcelles automatiques** | les cases contiguës forment des parcelles nommées, renommables, avec leur surface |
 | 🛡️ **5 leviers par parcelle** | filet insect-proof, prophylaxie, traitements chimiques ou de biocontrôle, parasitoïdes, TIS, avec des réglages fins et « Appliquer à toutes » |
-| ⚡ **Calcul en temps réel** | moteur spatio-temporel journalier, environ 20 ms par stratégie sur 3 ans, relancé à chaque modification |
-| 🌦️ **Climat & durée** | départ printemps ou automne, 1 à 3 ans, 4 profils climatiques |
+| ⚡ **Calcul en temps réel** | moteur spatio-temporel journalier (v2 : stades immatures, capacité liée à la ressource, filet symétrique), environ 20 ms par stratégie sur 3 ans, relancé à chaque modification |
+| 🌦️ **Climat & durée** | départ printemps ou automne, 1 à 3 ans, 4 profils climatiques avec variabilité déterministe et **phénologie thermique** (véraison pilotée par les degrés-jours) |
 | 🏆 **Résultats « décision »** | verdict, podium, cartes animées, 8 graphiques légendés (phénologie, interventions), carte de pression en 3D isométrique |
 | 💶 **Économie** | chiffre d'affaires sauvé, coûts détaillés et modifiables, bilan net, ROI, IFT, heures de travail, radar multicritère |
 | 💾 **Import / export universel** | JSON, `.drososim`, image PNG, CSV, lien : tous rechargeables, y compris par glisser-déposer |
@@ -78,7 +78,7 @@ Cliquez sur **« Voir la démo »** pour charger un verger d'exemple avec trois 
 | `npm run check` | lint + typage + tests du moteur, à lancer avant chaque commit |
 | `npm test` | tests du moteur + parcours navigateur |
 | `npm run lint` / `npm run typecheck` | ESLint / TypeScript |
-| `npm run test:engine` | tests du moteur (12 vérifications, sans navigateur) |
+| `npm run test:engine` | tests du moteur (25 vérifications, sans navigateur) |
 | `npm run test:e2e` | parcours navigateur (16 vérifications ; serveur démarré automatiquement, build et Chromium requis) |
 | `npm run docs:media` | régénère captures, démo GIF et MP4 de ce README |
 | `npm run backend:node` / `backend:python` | backends d'exemple sur les ports 8787 / 8788 |
@@ -232,7 +232,14 @@ npm ci && npm run build && npm start          # Node, port 3000
 
 ## 🔬 Le modèle et ses limites
 
-Le moteur intégré est un **modèle spatio-temporel journalier** sur une grille de 400 cases : température, ponte selon la maturité des fruits, développement en degrés-jours, mortalité, dispersion vers les vergers attractifs. Chaque stratégie est simulée intégralement.
+Le moteur intégré (modèle **v2**) est un **modèle spatio-temporel journalier et déterministe** sur une grille de 400 cases :
+
+- **climat** par profil, avec variabilité synoptique déterministe, tabulé une fois pour toutes ; **phénologie thermique** (la véraison suit les degrés-jours, donc varie avec le climat) ;
+- **population** : femelles adultes + trois sous-stades immatures (délai de développement gamma, 210 degrés-jours), ponte limitée par une **capacité d'accueil proportionnelle à la ressource fruitière du jour**, réponses continues au froid et à la chaleur, mortalité de surpeuplement ;
+- **espace** : dispersion orientée par l'attractivité vers les 8 voisines, conservative, filtrée dans les deux sens par les filets ;
+- **leviers** intégrés aux équations (pas des coefficients a posteriori) ; coûts et IFT calculés sur les passages **réellement déclenchés**.
+
+Chaque stratégie est simulée intégralement. Les équations sont au chapitre [Le modèle biologique](docs/03-modele.md), la spécification complète (symboles, constantes, ordre du calcul, table maître des paramètres) au chapitre [Spécification du moteur](docs/11-modele-mathematique.md).
 
 > ⚠️ **Modèle pédagogique, non calibré sur des données de terrain.** Il sert à **comparer des stratégies** et à comprendre les mécanismes, pas à prédire un rendement. Les équipes de recherche peuvent y substituer leur modèle validé via le [backend](#-brancher-son-backend-de-simulation). Voir [Limites & calibration](docs/07-limites.md).
 

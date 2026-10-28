@@ -41,14 +41,14 @@ Pour une parcelle de surface $S$ (ha) sur laquelle le levier est actif, avec $\o
 | Filet monorang | $S \times 3\,800$ €/an (amorti) | $40\,S$ h (pose / dépose) |
 | Filet monoparcelle | $S \times 2\,600$ €/an (amorti) | $40\,S$ h |
 | Prophylaxie | — | $55\,S$ h (ou $90\,S$ h si taux ≥ 95 %) $+ 25\,S$ h si destruction des fruits au sol |
-| Traitement conventionnel | $85$ € × passages × $S$ | $1{,}5$ h × passages × $S$ |
-| Biocontrôle | $150$ € × passages × $S$ | $1{,}5$ h × passages × $S$ |
+| Traitement conventionnel | $85$ € × passages réels / an × $S$ | $1{,}5$ h × passages réels / an × $S$ |
+| Biocontrôle | $150$ € × passages réels / an × $S$ | $1{,}5$ h × passages réels / an × $S$ |
 | Parasitoïdes | $300$ €/ha (standard) ou $520$ €/ha (renforcé) | — |
 | TIS | $950$ €/ha | — |
 
 Toutes les heures sont valorisées au taux $\omega$ (16 €/h par défaut) dans le poste *Main-d'œuvre*. Toutes ces valeurs sont **modifiables** dans l'interface.
 
-Le nombre de passages de traitement facturé est le **nombre maximal configuré**. Avec un déclenchement au seuil, la simulation peut en réaliser moins : le coût affiché est alors un majorant prudent.
+Le nombre de passages facturé est le **nombre réellement déclenché** par la simulation, ramené à l'année — exactement celui qui entre dans l'IFT. Avec un déclenchement au seuil, une parcelle peu exposée peut ne jamais être traitée : elle ne coûte alors rien. Le total des passages est affiché dans les résultats.
 
 ## 4. Bilan net et ROI
 

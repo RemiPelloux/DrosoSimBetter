@@ -51,11 +51,15 @@ scripts/                     test-engine.ts, test-e2e.mjs, docs-media.mjs, with-
 
 La fonction `simulate(grid, parcels, strategies, params, economics)` renvoie, pour chaque stratégie, les séries, les récoltes, les coûts et les événements.
 
+Le modèle (v2) est décrit dans *Le modèle biologique* et spécifié dans *Spécification du moteur*. Ses paramètres sont regroupés dans l'objet exporté `PARAMS` ; les fonctions `climateTable(profil)` et `thermalPhenology(profil)` sont exportées pour les tests et les outils de calibration.
+
 **Optimisations** (environ 20 ms par stratégie pour 3 ans sur un processeur portable récent) :
-- tableaux typés (`Float64Array`, `Int8Array`…) pré-alloués, **aucune allocation dans la boucle chaude** ;
-- tout ce qui ne change pas pendant la simulation (type de case, dates de véraison et de récolte, paramètres des leviers) est **pré-calculé en tableaux numériques**, pour qu'aucune chaîne de caractères ni aucun objet ne soit lu dans la boucle ;
-- voisinage de Moore stocké en **tableau plat** (CSR) ;
-- attractivité et filets calculés **une fois par jour et par case**, puis réutilisés pour les 8 voisines ;
+- **tables climatiques par profil** (température, aptitude à la ponte, développement, ressource sauvage, dispersion, froid, chaleur, degrés-jours cumulés), calculées une fois et mises en cache : la boucle journalière ne contient ni sinus ni exponentielle climatique ;
+- voisinage de Moore construit **une fois au chargement du module** en tableau plat (CSR) ;
+- parcelles aplaties en tableaux typés (`pStart`, `pCells`, `pIsCherry`, `pVer`, `pHar`) : **aucune fermeture ni `forEach` dans la boucle journalière** ;
+- tableaux typés (`Float64Array`, `Int8Array`…) pré-alloués et partagés entre stratégies, **aucune allocation dans la boucle chaude** ;
+- une **seule passe locale par jour et par case** : ressource, capacité, attractivité, filet, ponte, dégâts, chaîne immature, mortalité et pic ; les trois sous-stades immatures sont entrelacés en mémoire ;
+- cases neutres vides court-circuitées ;
 - valeurs inférieures à $10^{-9}$ remises à zéro, pour éviter les nombres dénormalisés qui ralentissent fortement les calculs flottants ;
 - séries échantillonnées **tous les 3 jours** (environ 365 points pour 3 ans).
 
@@ -96,7 +100,7 @@ Les leviers incomplets (anciennes versions) sont complétés avec les valeurs pa
 |---|---|
 | `npm run lint` | ESLint sur tout le dépôt (règles React 19 / Next) |
 | `npm run typecheck` | génération des types de routes (`next typegen`) puis typage strict |
-| `npm run test:engine` | 12 vérifications : 48 scénarios sans NaN (grilles vide / forêt / mixte × saisons × climats × durées), une récolte par an, bornes, déterminisme, cohérence agronomique, budget de temps |
+| `npm run test:engine` | 25 vérifications : 48 scénarios sans NaN (grilles vide / forêt / mixte × saisons × climats × durées), une récolte par an, bornes, déterminisme, cohérence agronomique, phénologie thermique, coûts et IFT sur les passages réels, bornes de surpeuplement, effets cumulatifs des leviers de fond, budget de temps |
 | `npm run test:e2e` | 16 vérifications dans Chromium : accueil, visite guidée, dessin interpolé, annulation d'un trait entier, gomme, menu d'édition, leviers, lien de partage rejoué dans un navigateur vierge, résultats, mobile, zéro erreur console. Le serveur de production est démarré puis arrêté automatiquement. |
 | `npm run check` | lint + typage + tests du moteur (rapide, sans navigateur) |
 | `npm test` | tests du moteur + parcours navigateur |

@@ -6,7 +6,7 @@ La documentation est aussi consultable **dans l'application**, sur `/docs`, avec
 |---|---|---|---|
 | 1 | [Présentation](01-presentation.md) | tous | objectifs, comparaison avec l'outil existant, personas |
 | 2 | [Guide d'utilisation](02-guide.md) | utilisateurs | éditeur, leviers, résultats, sauvegarde et partage, raccourcis |
-| 3 | [Le modèle biologique](03-modele.md) | chercheurs | variables d'état, équations, paramètres, pas de temps journalier |
+| 3 | [Le modèle biologique](03-modele.md) | chercheurs | variables d'état, climat, phénologie thermique, équations, paramètres, pas de temps journalier |
 | 4 | [Les leviers de lutte](04-leviers.md) | chercheurs, conseillers | formalisation de chaque levier et combinaisons |
 | 5 | [Économie & indicateurs](05-economie.md) | conseillers | chiffre d'affaires, coûts, bilan, IFT, radar, recommandations |
 | 6 | [Architecture technique](06-architecture.md) | développeurs | pile, moteur, état, formats, qualité |

@@ -2,7 +2,7 @@
 
 | Script | Commande | Rôle |
 |---|---|---|
-| [`test-engine.ts`](test-engine.ts) | `npm run test:engine` | tests du moteur sans navigateur : 48 scénarios sans NaN, une récolte par an, bornes, déterminisme, cohérence agronomique, budget de temps |
+| [`test-engine.ts`](test-engine.ts) | `npm run test:engine` | tests du moteur sans navigateur (25 vérifications) : 48 scénarios sans NaN, une récolte par an, bornes, déterminisme, cohérence agronomique, phénologie thermique, coûts et IFT sur les passages réels, bornes de surpeuplement, effets cumulatifs, budget de temps |
 | [`test-e2e.mjs`](test-e2e.mjs) | `npm run test:e2e` | parcours navigateur : accueil, visite guidée, dessin, annulation, gomme, menu, leviers, partage, résultats, mobile, erreurs console |
 | [`docs-media.mjs`](docs-media.mjs) | `npm run docs:media` | régénère les captures, `demo.mp4` et `demo.gif` de `docs/assets/` |
 | [`with-server.mjs`](with-server.mjs) | utilisé par les commandes ci-dessus | démarre `next start` sur le port 3100, exécute un script, puis arrête le serveur |

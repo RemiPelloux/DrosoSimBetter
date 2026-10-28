@@ -12,7 +12,7 @@ icon: book
 3. **simuler** jour par jour la dynamique de la population et les dégâts sur fruits, sur 1 à 3 ans ;
 4. **comparer** plusieurs stratégies à un **témoin sans protection** avec des indicateurs techniques (récolte saine, pic de population), économiques (chiffre d'affaires sauvé, coûts, bilan net) et environnementaux (IFT).
 
-> **Statut du modèle.** Le modèle est **pédagogique et qualitatif** : il reproduit les grands mécanismes connus de la biologie de *D. suzukii* (rôle des refuges, sensibilité des variétés tardives, pic estival, rebond post-récolte), mais **ses paramètres ne sont pas calibrés sur des données de terrain**. Il sert à **comparer des stratégies entre elles** et à comprendre *pourquoi* l'une fonctionne mieux qu'une autre, pas à prédire un rendement exact. Voir le chapitre *Limites & calibration*.
+> **Statut du modèle.** Le modèle est **pédagogique et qualitatif** : il reproduit les grands mécanismes connus de la biologie de *D. suzukii* (rôle des refuges, goulot d'étranglement hivernal, creux printanier puis pic estival, sensibilité des variétés tardives, rebond post-récolte, montée de la pression d'une année sur l'autre), mais **ses paramètres ne sont pas calibrés sur des données de terrain**. Il sert à **comparer des stratégies entre elles** et à comprendre *pourquoi* l'une fonctionne mieux qu'une autre, pas à prédire un rendement exact. Voir le chapitre *Limites & calibration*.
 
 ## Pourquoi cet outil ?
 

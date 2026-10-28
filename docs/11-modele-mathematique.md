@@ -3,11 +3,11 @@ title: Spécification du moteur
 icon: code
 ---
 
-# Spécification mathématique du moteur
+# Spécification mathématique du moteur (v2)
 
 Le chapitre [Le modèle biologique](03-modele.md) est une **visite guidée** : il explique *pourquoi* chaque mécanisme existe. Ce chapitre-ci est la **spécification de référence**, destinée à qui veut réimplémenter le moteur, le calibrer ou en discuter les hypothèses : chaque symbole, chaque constante, chaque formule, dans l'ordre exact du calcul.
 
-> **Règle en cas de désaccord** : le code (`src/lib/engine.ts`) fait foi ; si une formule ci-dessous diverge, c'est la documentation qu'il faut corriger.
+> **Règle en cas de désaccord** : le code (`src/lib/engine.ts`, constante `MODEL_VERSION = "2.0.0"`) fait foi ; si une formule ci-dessous diverge, c'est la documentation qu'il faut corriger. Tous les nombres de ce chapitre sont calculés à partir du moteur, pas recopiés à la main.
 
 ## 0. Forme générale
 
@@ -16,15 +16,15 @@ Le modèle est un **système dynamique déterministe, spatialisé, à temps disc
 $$
 \mathbf{S}_{t+1} = \mathcal{D}_t \circ \mathcal{G}_t^{(\kappa_t)}\big(\mathbf{S}_t\big),
 \qquad
-\mathbf{S}_t = \big(A_c(t),\, L_c(t),\, H_c(t),\, R_c(t)\big)_{c \in \mathcal{C}}
+\mathbf{S}_t = \big(A_c,\ S_{1,c},\ S_{2,c},\ S_{3,c},\ H_c,\ R_c\big)_{c \in \mathcal{C}}
 $$
 
 - $c \in \mathcal{C}$ : cases de la grille, $|\mathcal{C}| = 400$ ;
-- $\mathcal{G}$ : opérateur **local** (ponte, dégâts, développement, mortalité), case par case ;
-- $\mathcal{D}$ : opérateur de **dispersion** (8 voisines, conservatif) ;
-- $\kappa_t$ : mortalité additionnelle due à un traitement **actif** ce jour-là, calculée sur $\mathbf{S}_t$ *avant* $\mathcal{G}$ ;
+- $\mathcal{G}$ : opérateur **local** (ressource, capacité, ponte, dégâts, chaîne immature, mortalité), case par case ;
+- $\mathcal{D}$ : opérateur de **dispersion** (8 voisines, conservatif, filtré par les filets) ;
+- $\kappa_t$ : mortalité additionnelle due à un traitement **actif** ce jour-là, décidée sur $\mathbf{S}_t$ *avant* $\mathcal{G}$ ;
 - les leviers $u$ ne sont pas des coefficients de sortie : ils entrent dans $\mathcal{G}$, $\mathcal{D}$ et $\kappa$ ;
-- **aucun aléa** : deux appels identiques produisent des sorties identiques au bit près (vérifié par `npm run test:engine`).
+- **aucun aléa** : deux appels identiques produisent des sorties identiques au bit près (vérifié par `npm run test:engine`). La variabilité climatique est *quasi-périodique*, pas aléatoire.
 
 Chaque stratégie — témoin compris — est une **trajectoire indépendante** sur la même grille et le même climat.
 
@@ -40,7 +40,7 @@ Chaque stratégie — témoin compris — est une **trajectoire indépendante** 
 | Pas de temps | 1 jour | — |
 | Horizon | 1 à 3 ans | `params.durationYears` |
 
-Voisinage de **Moore** (8 cases), pré-calculé en liste compressée (`nbrStart` + `nbr`) ; les bords sont **réfléchissants** (aucun flux hors grille).
+Voisinage de **Moore** (8 cases), construit **une seule fois au chargement du module** en liste compressée (`NBR_START`, `NBR`) ; les bords sont **réfléchissants** (aucun flux hors grille).
 
 ## 2. Temps et calendrier
 
@@ -58,8 +58,6 @@ $$
 
 Les 92 jours supplémentaires du départ automne servent à couvrir $N_{ans}$ saisons de récolte **complètes** (l'hiver initial est inclus mais ne compte pas comme une année de récolte).
 
-Indices utiles :
-
 $$
 a(t) = \left\lfloor \frac{j_0 + t}{365} \right\rfloor,
 \qquad
@@ -70,29 +68,39 @@ $n_{saison}$ est le nombre d'années de saison écoulées : il pilote la montée
 
 ## 3. Forçage climatique
 
+Toutes les grandeurs de cette section sont **tabulées par profil** sur 365 jours au premier appel (`climateTable(profil)`), puis partagées par toutes les simulations : la boucle journalière ne fait que lire des tableaux.
+
 ### 3.1 Température
 
 $$
-T(j) = 12{,}5 + 10{,}5\,\sin\!\left(\frac{2\pi\,(j-110)}{365}\right) + \Delta_{p}(j)
+T(j) = 12{,}5 + 10{,}5\,\sin\!\left(\frac{2\pi\,(j-110)}{365}\right) + \sigma(j) + \Delta_{p}(j)
 $$
+
+$$
+\sigma(j) = 2{,}0\,\sin\!\left(\frac{2\pi j}{6{,}9} + 0{,}7\right) + 1{,}3\,\sin\!\left(\frac{2\pi j}{17{,}3} + 2{,}1\right)
+$$
+
+$\sigma$ est la **variabilité synoptique** : deux oscillations de périodes incommensurables (6,9 et 17,3 jours), d'amplitude totale ±3,3 °C, déterministes. Elle représente les passages de masses d'air et permet aux seuils (gel, 30 °C) d'être franchis.
 
 | Profil $p$ | $\Delta_p$ | $\mu_{hiv}$ | Autre |
 |---|---|---|---|
 | `mild-winter` — Hiver doux | $+3{,}5$ si $j<60$ ou $j>320$ | 0,016 | — |
 | `harsh-winter` — Hiver rigoureux | $-4$ idem | 0,050 | — |
 | `humid-spring` — Printemps humide | $-0{,}5$ si $80<j<180$ | 0,028 | ponte $\times 1{,}25$ ; rémanence des traitements $\times 0{,}6$ |
-| `dry-summer` — Été caniculaire | $+5$ si $160<j<250$ | 0,028 | mortalité $+0{,}035$ si $T>30$ |
+| `dry-summer` — Été caniculaire | $+5$ si $160<j<250$ | 0,028 | — |
+| *(référence)* | 0 | 0,028 | sert à définir les seuils phénologiques |
 
-**Plages réellement atteintes** (calculées sur les paramètres actuels) :
+**Plages réellement atteintes** (résumé `climate` renvoyé avec chaque sortie) :
 
-| Profil | $T_{\min}$ | $T_{\max}$ | Jours $T<6$ °C | Jours $T>30$ °C |
-|---|---|---|---|---|
-| hiver doux | 6,0 | 23,0 | 48 | 0 |
-| hiver rigoureux | −1,4 | 23,0 | 116 | 0 |
-| printemps humide | 2,0 | 23,0 | 105 | 0 |
-| été caniculaire | 2,5 | **28,0** | 105 | **0** |
+| Profil | $T_{\min}$ | $T_{\max}$ | Jours $T<6$ | Jours $T>30$ | DJ annuels ($>8$ °C) | DJ 1er mars → 19 juil. | Générations théoriques sur cette période |
+|---|---|---|---|---|---|---|---|
+| référence | −1,2 | 25,9 | 100 | 0 | 2 173 | 1 072 | 5,1 |
+| hiver doux | 1,4 | 25,9 | 51 | 0 | 2 226 | 1 072 | 5,1 |
+| hiver rigoureux | −5,2 | 25,9 | 117 | 0 | 2 170 | 1 072 | 5,1 |
+| printemps humide | −1,2 | 25,9 | 101 | 0 | 2 127 | 1 026 | 4,9 |
+| été caniculaire | −1,2 | **30,9** | 100 | **5** | 2 618 | 1 272 | 6,1 |
 
-> **Conséquence à connaître** : avec ces paramètres, $T$ ne dépasse jamais 30 °C, donc le terme $+0{,}035\,[T>30]$ n'est **jamais activé** et la branche haute de $\varphi$ (au-delà de 26 °C) ne sert qu'en été caniculaire. Une calibration sur météo réelle rendra ces deux termes actifs.
+Repères de la courbe de référence : 5,0 °C le 1er janvier, 1,4 °C le 1er mars, 10,3 °C le 1er avril, 19,8 °C le 1er juin, 22,8 °C le 1er juillet, 15,0 °C le 1er octobre. Premier jour $T > 10$ °C : $j = 83$ (24 mars) ; 213 jours $T>10$, 86 jours $T>20$.
 
 ### 3.2 Aptitude thermique de la ponte
 
@@ -108,103 +116,132 @@ $$
 ### 3.3 Vitesse de développement (degrés-jours)
 
 $$
-\delta(T) = \min\!\left(1,\ \frac{\max(0,\;T-8)}{210}\right)
+\delta(T) = \min\!\left(1,\ \frac{\max(0,\;T-8)}{210}\right),
+\qquad
+\delta_{stade} = \min(1,\ 3\,\delta)
 $$
 
-210 degrés-jours au-dessus de 8 °C ≈ **15 jours** œuf → adulte à 22 °C. Cumul annuel du modèle : ≈ 2 190 DJ (soit ≈ 10 générations théoriques, largement chevauchantes), dont ≈ 1 070 DJ entre le 1er mars et le 20 juillet, soit ≈ 5 générations sur la période de récolte.
+$\delta_{stade}$ est la fraction d'un **sous-stade** qui passe au suivant chaque jour (§ 6.3). 210 degrés-jours au-dessus de 8 °C ≈ **15 jours** œuf → adulte à 22 °C.
 
-### 3.4 Ressource sauvage
+### 3.4 Réponses au froid et à la chaleur (tabulées)
 
 $$
-\rho_{nat}(j) = \begin{cases}
-0{,}05 & j < 95\\[2pt]
-0{,}12 + 0{,}28\,\max\!\left(0,\ \sin\dfrac{\pi\,(j-95)}{270}\right) & j \ge 95
-\end{cases}
+f_{froid}(T) = \begin{cases} \min\!\left(1{,}5,\ \dfrac{6 - T}{4}\right) & T < 6\\[6pt] 0 & \text{sinon}\end{cases}
+\qquad
+\mu_{chaleur}(T) = \begin{cases} \min\!\big(0{,}06,\ 0{,}012\,(T - 28)\big) & T > 28\\ 0 & \text{sinon}\end{cases}
 $$
 
-## 4. Phénologie
+### 3.5 Autres tables
 
-Fenêtre de sensibilité $[v, h)$ : de la **véraison** (fruits pondables et donc endommageables) à la **récolte**.
+$$
+\rho_{nat}(j) = \begin{cases} 0{,}05 & j < 95\\ 0{,}12 + 0{,}28\,\max\!\left(0,\ \sin\dfrac{\pi\,(j-95)}{270}\right) & j \ge 95\end{cases}
+\qquad
+D(T) = \begin{cases} 0{,}12 & T > 10\\ 0{,}03 & \text{sinon}\end{cases}
+\qquad
+\mu_L(T) = \begin{cases} 0{,}03 & T < 5\\ 0{,}012 & \text{sinon}\end{cases}
+$$
 
-| Type | Code | $v$ | $h$ | Dates |
+et le cumul $\mathrm{DJ}(j) = \sum_{i \le j} \max(0, T(i) - 8)$ qui sert à la phénologie.
+
+## 4. Phénologie thermique
+
+Dates **de référence** (climat de référence) et durées de maturation :
+
+| Type | Code | $v_{ref}$ | $h_{ref}$ | $h - v$ |
 |---|---|---|---|---|
-| Cerise précoce | `early-cherry` | 130 | 158 | 10 mai → 7 juin |
-| Cerise de saison | `season-cherry` | 150 | 178 | 30 mai → 27 juin |
-| Cerise tardive | `late-cherry` | 168 | 200 | 17 juin → 19 juil. |
+| Cerise précoce | `early-cherry` | 130 | 158 | 28 j |
+| Cerise de saison | `season-cherry` | 150 | 178 | 28 j |
+| Cerise tardive | `late-cherry` | 168 | 200 | 32 j |
 
-Ces six nombres sont utilisés **partout** : ressource, attractivité, DAR des traitements, pose des filets, date de récolte. La phénologie est fixe d'une année sur l'autre (pas de lien avec la température).
+Pour un profil $p$, la véraison est le **premier jour où le cumul de degrés-jours atteint celui de la date de référence** dans le climat de référence, et la récolte suit à durée fixe :
 
-## 5. Ressource $\rho$, attractivité $w$, capacité $K$
+$$
+v_p = \min\{\, j \in [60, 300) : \mathrm{DJ}_p(j) \ge \mathrm{DJ}_{ref}(v_{ref}) \,\},
+\qquad
+h_p = v_p + (h_{ref} - v_{ref})
+$$
 
-| Case | Phase | $\rho_c$ | $w_c$ | $K_c$ |
+Résultat par profil (véraison / récolte) :
+
+| Profil | Précoce | Saison | Tardive |
+|---|---|---|---|
+| référence, hiver rigoureux | 130 / 158 | 150 / 178 | 168 / 200 |
+| hiver doux | 129 / 157 | 150 / 178 | 168 / 200 |
+| printemps humide | 133 / 161 | 153 / 181 | 172 / 204 |
+| été caniculaire | 130 / 158 | 150 / 178 | 166 / 198 |
+
+Ces dates sont utilisées **partout** (ressource, attractivité, DAR des traitements, pose des filets, date de récolte) et renvoyées dans `SimOutput.phenology`. La constante `PHENOLOGY` du code ne contient que les dates de référence et les libellés.
+
+## 5. Ressource $\rho$, capacité $K$, attractivité $w$
+
+| Case | Phase | $\rho_c$ | $\hat\rho_c$ | $w_c$ |
 |---|---|---|---|---|
-| Zone neutre | toujours | 0,003 | 0,15 | 8 |
-| Espace naturel | toujours | $\rho_{nat}(j)$ | $0{,}6 + \rho_{nat}(j)$ | 260 |
-| Cerisier | $j < v$ | 0,02 | 0,25 | 700 |
-| Cerisier | $v-5 \le j < v$ | 0,02 | **3** | 700 |
-| Cerisier | $v \le j < h$ | **1** | **3** | 700 |
-| Cerisier | $j = h$ | 0,003 | 0,25 | 700 |
-| Cerisier | $j > h$ | $1{,}4\,R_c + 0{,}02$ | $0{,}3 + 3\,R_c$ | 700 |
+| Zone neutre | toujours | 0,003 | — ($K = 8$) | 0,15 |
+| Espace naturel | toujours | $\rho_{nat}(j)$ | $\rho_{nat}/0{,}4$ | $0{,}6 + \rho_{nat}(j)$ |
+| Cerisier | $j < v-5$ | 0,02 | 0,02 | 0,25 |
+| Cerisier | $v-5 \le j < v$ | 0,02 | 0,02 | **3** |
+| Cerisier | $v \le j < h$ | **1** | 1 | **3** |
+| Cerisier | $j \ge h$ | $1{,}4\,R_c + 0{,}02$ | idem | $0{,}3 + 3\,R_c$ |
 
-> **Discontinuité du jour de récolte.** Le jour $j = h$ n'appartient ni à la fenêtre $[v,h)$ ni au « après récolte » : la ressource retombe à 0,003 et l'attractivité à 0,25 pendant 24 h. C'est un effet de bord de l'implémentation (pas une hypothèse biologique) ; il est invisible sur les courbes mais doit être connu avant toute calibration.
-
-**Résidus post-récolte.** Le jour même de la récolte, on fixe
+Capacité d'accueil du jour (limite la ponte) et capacité statique (seuil du surpeuplement) :
 
 $$
-R_c \leftarrow \underbrace{(1 - r_h)}_{\text{fruits non cueillis}} \times
-\begin{cases}
-0{,}25 & \text{prophylaxie \& destruction au sol}\\
-1 & \text{sinon}
-\end{cases}
+K_c = K_{type}\,\max(0{,}25,\ \hat\rho_c),
+\qquad
+K_{type} = \begin{cases} 260 & \text{espace naturel}\\ 700 & \text{cerisier}\\ 8 & \text{neutre}\end{cases}
 $$
 
-avec $r_h = 0{,}80$ par défaut, ou `harvestRate`/100 si la prophylaxie est active. Puis, chaque jour suivant :
+Exemples : espace naturel en mars $K = 65$ ; cerisier avant véraison $K = 175$ ; en fenêtre $K = 700$ ; après récolte avec 20 % de résidus $K = 210$ ; avec 2 % de résidus $K = 175$ (plancher).
+
+**Résidus post-récolte.** Le jour $j = h$ (inclus dans la phase « à partir de la récolte » : il n'y a plus de trou d'un jour) :
 
 $$
-R_c \leftarrow 0{,}965\,R_c \qquad (\text{demi-vie} \approx 19{,}5\ \text{jours})
+R_c \leftarrow (1 - r_h) \times \begin{cases} 0{,}25 & \text{prophylaxie et destruction au sol}\\ 1 & \text{sinon}\end{cases},
+\qquad
+r_h = \begin{cases} \texttt{harvestRate}/100 & \text{prophylaxie}\\ 0{,}80 & \text{sinon}\end{cases}
 $$
 
-Les résidus restent attractifs et pondables : c'est le **rebond post-récolte**, et la raison pour laquelle la prophylaxie agit sur l'année suivante autant que sur l'année en cours.
+puis, chaque jour suivant, $R_c \leftarrow 0{,}965\,R_c$ (demi-vie ≈ 19,5 jours).
 
 ## 6. Opérateur local $\mathcal{G}$
 
-Pour chaque case $c$, dans cet ordre exact :
+Pour chaque case $c$, dans cet ordre exact (extrait fidèle du code) :
 
 ```ts
-const dd = a < K ? 1 - a / K : 0;                       // densité-dépendance
-const eggs = a * 6 * suit * res * (1 - net) * (tisOn ? tisF : 1) * dd * humidF;
+// pic de densité (état après la dispersion de la veille)
+// ressource ρ, capacité K (dynamique) et Ks (statique), attractivité w, filet η  → § 5
+const dd   = a < K ? 1 - a / K : 0;
+const eggs = a * 8 * suit * res * (1 - net) * (tisOn ? tisF : 1) * dd * humidF;
+if (fruit && eggs > 0) healthy *= Math.exp(-eggs / 3500);
 
-if (fruit && eggs > 0) healthy *= Math.exp(-eggs / 3500); // dégâts, avant tout le reste
+const o1 = s1 * devStage, o2 = s2 * devStage, o3 = s3 * devStage;   // sorties de sous-stade
+S1 = (s1 - o1) * (1 - muL) + eggs * 0.30;
+S2 = (s2 - o2) * (1 - muL) + o1;
+S3 = (s3 - o3) * (1 - muL) + o2 * paraF;                           // parasitoïdes à la sortie de S2
+const emerge = o3;
 
-larvae += eggs * larvS;                                  // survie larvaire
-const emerge = larvae * devC;                            // émergence (degrés-jours)
-larvae = larvae - emerge - larvae * larvMort;
-
-let mort = baseMort;                                     // 0.028
-if (cold) mort += winterMortExtra * (kind === forest ? 0.5 : 1);
-if (kind === neutral) mort += 0.04;
+let mort = 0.028 + heat;
+if (coldF > 0)  mort += coldF * muHiv * (forest ? 0.5 : 1);
+if (neutral)    mort += 0.04;
+if (a > Ks)     mort += 0.15 * (a / Ks - 1);
 if (treatRemain[parcel] > 0) mort += treatKill[parcel];
 if (mort > 0.95) mort = 0.95;
-
 a = a * (1 - mort) + emerge;
-if (a > K * 1.3) a = K * 1.3;
 ```
 
 ### 6.1 Ponte
 
 $$
-E_c = A_c \cdot 6 \cdot \varphi(T) \cdot \rho_c \cdot (1-\eta_c) \cdot \tau_c \cdot \left(1 - \frac{A_c}{K_c}\right)^{\!+} \cdot h_{hum}
+E_c = A_c \cdot 8 \cdot \varphi(T) \cdot \rho_c \cdot (1-\eta_c) \cdot \tau_c \cdot \left(1 - \frac{A_c}{K_c}\right)^{\!+} \cdot h_{hum}
 $$
 
 | Terme | Sens | Valeur |
 |---|---|---|
-| $6$ | fécondité maximale | 6 œufs ♀⁻¹ j⁻¹ |
+| $8$ | fécondité maximale | 8 œufs ♀⁻¹ j⁻¹ |
 | $\eta_c$ | efficacité du filet actif | 0 ; 0,95 (monorang) ; 0,85 (monoparcelle) |
-| $\tau_c$ | fertilité des pontes (TIS) | $1$, ou $1/(1+0{,}12\,r)$ hors fenêtre TIS |
+| $\tau_c$ | fertilité des pontes (TIS) | $1$, ou $1/(1+0{,}12\,r)$ dans la fenêtre TIS |
 | $h_{hum}$ | printemps humide | 1,25 ou 1 |
-| $(\cdot)^+$ | compétition pour la ressource | plafonne la ponte à $A = K$ |
-
-La densité-dépendance porte **uniquement sur la ponte** : les adultes peuvent dépasser $K$ (jusqu'à $1{,}3K$) sans que leur survie en soit affectée.
+| $(\cdot)^+$ | compétition pour la ressource du jour | plafonne la ponte à $A = K_c$ |
 
 ### 6.2 Dégâts sur fruits
 
@@ -216,96 +253,96 @@ H_c \leftarrow H_c \cdot \exp\!\left(-\frac{E_c}{3\,500}\right)
 H_c(T) = \exp\!\left(-\frac{1}{3\,500}\sum_{t} E_c(t)\right)
 $$
 
-Loi de Poisson : les œufs se répartissent au hasard, donc les derniers tombent de plus en plus souvent sur des fruits déjà piqués. Interprétation de la constante : **2 426 œufs cumulés dans une case** (≈ 24 œufs/m², soit 243 000/ha) font tomber la fraction saine à 50 %.
+Loi de Poisson : 2 426 œufs cumulés dans une case (≈ 24 œufs/m²) font tomber la fraction saine à 50 %. À $A = K = 700$, $E$ est nulle par densité-dépendance ; le maximum de $E$ sur une case est atteint à $A = K/2 = 350$ et vaut $350 \times 8 \times \tfrac12 = 1\,400$ œufs/jour (à $\varphi = \rho = 1$), soit $H \times 0{,}67$ par jour : **une case en fenêtre de sensibilité est perdue en moins d'une semaine** de forte pression.
 
-À saturation ($A=K=700$, plein été), $E$ atteint plusieurs milliers d'œufs par jour : une case peut être perdue en **une seule journée**, ce qui rend le pic estival très tranchant.
-
-### 6.3 Immatures
+### 6.3 Chaîne immature (délai gamma)
 
 $$
-L_c \leftarrow L_c + \sigma_c E_c, \qquad
-L_c \leftarrow L_c\,(1 - \delta) - \mu_L L_c
+\begin{aligned}
+S_1 &\leftarrow (1 - \delta_s)(1 - \mu_L)\,S_1 + 0{,}30\,E_c\\
+S_2 &\leftarrow (1 - \delta_s)(1 - \mu_L)\,S_2 + \delta_s S_1\\
+S_3 &\leftarrow (1 - \delta_s)(1 - \mu_L)\,S_3 + \delta_s S_2\,(1 - \pi_c)\\
+\text{Ém} &= \delta_s S_3
+\end{aligned}
+\qquad \delta_s = \min(1, 3\delta)
 $$
 
-- $\sigma_c$ : survie larvaire, base 0,30, réduite par les parasitoïdes ;
-- $\mu_L$ : 0,012 j⁻¹, ou 0,03 j⁻¹ si $T < 5$ °C ;
-- l'émergence n'est **pas** structurée en âges : une fraction journalière sort du compartiment, ce qui étale les générations (≈ développement exponentiel plutôt que file d'attente).
+Trois compartiments à taux $3\delta$ réalisent un **délai de loi gamma d'ordre 3** de moyenne $1/\delta$ et de coefficient de variation $1/\sqrt{3} \approx 0{,}58$ : la majorité des individus émerge entre 0,5 et 1,5 fois la durée moyenne, aucun le jour même. $\pi_c$ est la fraction parasitée (§ 9).
 
 ### 6.4 Adultes
 
 $$
-A_c \leftarrow A_c\,(1-\mu_c) + \delta\,L_c,
-\qquad A_c \le 1{,}3 K_c
+A_c \leftarrow A_c\,(1-\mu_c) + \text{Ém}
 $$
 
 $$
-\mu_c = 0{,}028 + 0{,}035\,[T>30] + \underbrace{\mu_{hiv}\,[T<6] \times (0{,}5 \text{ en espace naturel})}_{\text{froid}} + 0{,}04\,[\text{neutre}] + \kappa_p
+\mu_c = 0{,}028 + \mu_{chaleur}(T) + \mu_{hiv}\,f_{froid}(T)\,\big(0{,}5\,[\text{esp. naturel}]\big) + 0{,}04\,[\text{neutre}] + 0{,}15\left(\frac{A_c}{K_{type}} - 1\right)^{\!+} + \kappa_p\,[\text{traitement actif}]
 $$
 
-$\mu_c$ est plafonnée à 0,95. Espérance de vie de base : $1/0{,}028 \approx 36$ jours.
+plafonnée à 0,95. Espérance de vie de base : $1/0{,}028 \approx 36$ jours.
 
-**Survie hivernale résultante** (nombre de jours $T<6$ du modèle, cumulés) :
+**Taux d'accroissement intrinsèque** (équation d'Euler-Lotka appliquée à la chaîne, à 22 °C, $\varphi = \rho = 1$, sans densité-dépendance) : $r \approx 0{,}216$ j⁻¹, soit un temps de doublement de **3,2 jours**. C'est l'ordre de grandeur des mesures de laboratoire sur *D. suzukii* (0,15 – 0,22 j⁻¹ entre 22 et 28 °C).
 
-| Profil | Jours $T<6$ | Survie hiver, plein champ | Survie hiver, espace naturel |
-|---|---|---|---|
-| Hiver doux | 48 | ≈ 12 % | ≈ 18 % |
-| Printemps humide / base | 105 | ≈ 0,3 % | ≈ 1,2 % |
-| Hiver rigoureux | 116 | ≈ 0,02 % | ≈ 0,2 % |
+**Survie hivernale résultante** (1er octobre → 1er mars, sans reproduction) :
 
-C'est le mécanisme qui explique l'essentiel de l'écart entre profils climatiques, et le rôle de refuge de l'espace naturel (facteur 0,5 sur la surmortalité hivernale).
+| Profil | Surmortalité froid seule, plein champ | idem, espace naturel | Survie totale, plein champ | Survie totale, espace naturel |
+|---|---|---|---|---|
+| Hiver doux | 83 % | 91 % | 1,2 % | 1,3 % |
+| Référence / humide / caniculaire | 15 % | 39 % | 0,22 % | 0,57 % |
+| Hiver rigoureux | 0,1 % | 3,4 % | < 0,01 % | 0,05 % |
+
+La colonne « survie totale » inclut les 0,028 /j de base sur 151 jours ($e^{-4{,}2} \approx 1{,}5\,\%$) : même un hiver doux divise la population par ≈ 80.
 
 ## 7. Dispersion $\mathcal{D}$
 
-Fraction émigrante :
+Pour chaque case source $c$, avec $V(c)$ le voisinage de Moore, $w$ l'attractivité et $\eta$ le filet actif :
 
 $$
-D = \begin{cases} 0{,}12 & T > 10\ ^\circ\text{C}\\ 0{,}03 & \text{sinon}\end{cases}
-$$
-
-Pour chaque case source $c$, avec $V(c)$ le voisinage de Moore et $w$ l'attractivité :
-
-$$
-\Phi_n = D\,A_c \cdot \frac{w_n}{\sum_{m \in V(c)} w_m},
+\text{sortants}_c = D\,A_c\,(1 - 0{,}7\,\eta_c)
 \qquad
+\Phi_n = \text{sortants}_c \cdot \frac{w_n}{\sum_{m \in V(c)} w_m}
+$$
+
+$$
 \text{reçu}_n = \Phi_n\,(1 - 0{,}7\,\eta_n),
 \qquad
-\text{refoulé} = \sum_{n} \Phi_n \cdot 0{,}7\,\eta_n
+\text{refoulé}_c = \sum_{n} \Phi_n \cdot 0{,}7\,\eta_n
 $$
 
 $$
 A_n \leftarrow A_n + \text{reçu}_n,
 \qquad
-A_c \leftarrow A_c - D A_c + \text{refoulé}
+A_c \leftarrow A_c - \text{sortants}_c + \text{refoulé}_c
 $$
 
-Propriétés à retenir :
+Propriétés :
 
-- **conservatif** : aucune perte d'individus dans la dispersion, les immigrants refusés par un filet rentrent chez eux (bords réfléchissants inclus) ;
-- si $\sum_m w_m = 0$ (voisinage entièrement neutre), la case ne disperse pas ;
-- le filtre du filet s'applique à l'**arrivée** : une femelle sort librement d'une parcelle filetée, elle n'y rentre pas (asymétrie voulue, à discuter) ;
-- le flux est **orienté par l'attractivité**, donc pas une diffusion isotrope : au printemps il descend de l'espace naturel vers les cerisiers en véraison, puis de variété en variété, puis revient vers les refuges.
+- **conservatif** : aucun individu n'est créé ni perdu par la dispersion ; les refoulées restent chez elles (bords réfléchissants inclus) ;
+- le filet est **symétrique** (v2) : il freine l'entrée et la sortie dans la même proportion $0{,}7\,\eta$ ;
+- si $\sum_m w_m = 0$ ou si les sortants sont $< 10^{-4}$, la case ne disperse pas ;
+- le flux est **orienté par l'attractivité**, donc pas une diffusion isotrope.
 
-Ordre de grandeur (marche aléatoire non biaisée équivalente, case de 10 m) : déplacement quadratique moyen $\approx 0{,}12 \times 1{,}5\,t$ cases², soit un écart-type $\approx 4{,}2\sqrt{t}$ m — ≈ 23 m en 30 jours. En pratique plus lent, puisque l'attractivité concentre les flux.
+Ordre de grandeur (marche aléatoire non biaisée équivalente, case de 10 m) : écart-type du déplacement $\approx 4{,}2\sqrt{t}$ m, ≈ 23 m en 30 jours ; en pratique les flux se concentrent vers les cases attractives.
 
 ## 8. Traitements ($\kappa$)
 
 Un traitement n'est déclenché que si le levier est actif sur une parcelle de cerisier, et si **toutes** ces conditions sont réunies :
 
 ```
-véraison − 3  ≤  j  ≤  récolte − 3          (respect du délai avant récolte)
+véraison − 3  ≤  j  ≤  récolte − 3          (délai avant récolte)
 nb_passages(année)  <  treatmentPasses
 t − dernier_passage  ≥  7 jours
 déclencheur satisfait
 ```
 
-Déclencheur `calendar` — les passages sont répartis uniformément sur la fenêtre :
+Déclencheur `calendar` — passages répartis uniformément sur la fenêtre :
 
 $$
 \text{slot}_k = v + \left\lfloor \frac{(h - 3 - v)\;k}{n} \right\rceil,
 \qquad k = 0, \dots, n-1
 $$
 
-Déclencheur `threshold` — seuil de piégeage traduit en densité moyenne de la parcelle :
+Déclencheur `threshold` — densité moyenne de la parcelle :
 
 $$
 \frac{1}{|P|}\sum_{c \in P} A_c \cdot \frac{10^4}{S_c} > 1\,500\ \text{femelles/ha}
@@ -319,95 +356,93 @@ $$
 \text{rémanence} = \begin{cases} 7\ \text{j} & \text{conv.}\\ 4\ \text{j} & \text{bio}\end{cases} \times \begin{cases} 0{,}6 & \text{printemps humide}\\ 1 & \text{sinon}\end{cases}
 $$
 
-**Limites explicites** : le traitement ne touche que les **adultes** (pas les immatures), et $\kappa$ s'applique à toutes les cases de la parcelle, quelle que soit leur population.
+Le traitement ne touche que les **adultes** et s'applique à toutes les cases de la parcelle.
 
-L'IFT ne compte que les passages **réellement déclenchés** en conventionnel :
+**IFT et coûts sur les passages réels (v2).** Les compteurs `passesConv` et `passesBio` par parcelle enregistrent les passages déclenchés :
 
 $$
-\text{IFT} = \frac{1}{N_{ans}} \cdot \frac{\sum_{\text{passages conv.}} |P|}{|P_{\text{cerisiers}}|}
+\text{IFT} = \frac{1}{N_{ans}} \cdot \frac{\sum_{\text{passages conv.}} |P|}{|P_{\text{cerisiers}}|},
+\qquad
+C_{\text{phyto}} = \sum_P S_P \left(\frac{n_{conv,P}}{N_{ans}}\,85 + \frac{n_{bio,P}}{N_{ans}}\,150\right)
 $$
 
-c'est-à-dire le nombre moyen de passages conventionnels par hectare de cerisier et par an. Le **coût** phyto, lui, est calculé sur `treatmentPasses` déclaré : avec un déclencheur `threshold` qui traite moins que prévu, le coût est donc surestimé par rapport aux passages réels.
+Un déclenchement au seuil qui ne traite pas coûte 0 € et compte 0 dans l'IFT. Le total `treatmentsApplied` est renvoyé avec chaque résultat.
 
 ## 9. Les cinq leviers dans les équations
 
 | Levier | Paramètre | Entre dans | Effet exact |
 |---|---|---|---|
 | **Filet** | `netType` ∈ {monorang, monoparcelle} | $\eta_c$ | 0,95 / 0,85 |
-| | `netDeploy` ∈ {bloom, veraison} | date | actif de $j=105$ (floraison) ou $v-5$, jusqu'à $h+5$ |
-| | — | $\mathcal{D}$ | refoule 70 % de la fraction reçue |
+| | `netDeploy` ∈ {bloom, veraison} | période | actif de $j=105$ (floraison) ou $v-5$, jusqu'à $h+5$ |
+| | — | $\mathcal{D}$ | freine entrée **et** sortie de $0{,}7\,\eta$ |
 | **Prophylaxie** | `harvestRate` (80→98) | $r_h$ | fruits non cueillis 20 % → 2 % |
 | | `groundFruitDestruction` | $R_c$ | résidus ×0,25 |
 | **Traitement** | `treatmentMode`, `passes`, `trigger` | $\kappa_p$ | cf. §8 |
-| **Parasitoïdes** | `parasitoidDose` ∈ {standard, reinforced} | $\sigma_c$ | voir ci-dessous |
-| | `parasitoidSeason` ∈ {spring, autumn} | date | lâcher $j=100$ ou $j=280$ |
+| **Parasitoïdes** | `parasitoidDose` ∈ {standard, reinforced} | $\pi_c$ | voir ci-dessous |
+| | `parasitoidSeason` ∈ {spring, autumn} | événement | lâcher $j=100$ ou $j=280$ (marqueur) |
 | **TIS** | `tisRatio` $r \in [5, 20]$ | $\tau_c$ | $\tau = 1/(1+0{,}12\,r)$, actif $80 \le j \le 260$ |
 
-Survie larvaire avec parasitoïdes :
+Fraction parasitée, appliquée à la sortie du stade larvaire :
 
 $$
-\sigma_c = 0{,}30 \times \Big[1 - \min\big(0{,}75,\ 0{,}38 \cdot \min(1,\ 0{,}35 + 0{,}33\,n_{saison}) \cdot d\big)\Big],
+\pi_c = \min\big(0{,}75,\ 0{,}38 \cdot \min(1,\ 0{,}35 + 0{,}33\,n_{saison}) \cdot d\big),
 \qquad d = \begin{cases}1 & \text{standard}\\ 1{,}4 & \text{renforcé}\end{cases}
 $$
 
-L'effet est **cumulatif dans le temps** ($n_{saison}$ = nombre de saisons écoulées) et **plafonné à 75 %** : un lâcher ne peut pas éteindre la population, seulement la réduire.
-
-TIS : $\tau = 1/(1+0{,}12r)$ donne $\tau = 0{,}625$ à $r=5$ et $\tau = 0{,}294$ à $r=20$ — mais **seulement entre les jours 80 et 260** ; hors fenêtre, la TIS n'a aucun effet, même activée.
+L'effet est **cumulatif dans le temps** et **plafonné à 75 %**. TIS : $\tau = 0{,}625$ à $r=5$, $0{,}455$ à $r=10$, $0{,}294$ à $r=20$ — uniquement entre les jours 80 et 260.
 
 ## 10. Conditions initiales
 
 $$
 A_c(0) = \begin{cases}
-30 & \text{espace naturel, départ automne}\\
-12 & \text{espace naturel, départ printemps}\\
-0{,}05 & \text{cerisier}\\
+50 & \text{espace naturel, départ automne}\\
+20 & \text{espace naturel, départ printemps}\\
+1 & \text{cerisier}\\
 0 & \text{zone neutre}
 \end{cases}
 \qquad
-L_c(0) = 0,\quad H_c(0) = 1,\quad R_c(0) = 0
+S_{1,2,3} = 0,\quad H_c = 1,\quad R_c = 0
 $$
 
-$H$ est réinitialisé à 1 à chaque 1er janvier ($j = 0$ en cours de simulation).
+$H$ est réinitialisé à 1 et les compteurs annuels de passages à 0 à chaque 1er janvier.
 
 ## 11. Sorties
 
 | Sortie | Définition | Notes |
 |---|---|---|
 | Séries | tous les 3 jours : $A_c \cdot 10^4/S_c$ moyenné par parcelle, plus `forest_all` et `cherry_all` | 1 point = 1 label « 12 juin A2 » |
-| Fruits sains | $100 \times \overline{H}_P$ le jour $j = h$ de chaque parcelle | moyenne sur les années |
+| Fruits sains | $100 \times \overline{H}_P$ le jour $j = h$ de chaque parcelle | moyenne sur les années + détail `harvestByParcelYear` |
 | Récolte globale | moyenne des parcelles de cerisier pondérée par le nombre de cases | 100 si aucun cerisier |
-| Pic | $\max_{t,c \in \text{cerisiers}} A_c(t)\cdot 10^4/S_c$ | ♀/ha |
+| Pic | $\max_{t,c \in \text{cerisiers}} A_c(t)\cdot 10^4/S_c$ | femelles/ha |
 | Carte de pression | $P_c = \max_t A_c(t)\cdot 10^4/S_c$ | `peakByCell`, une valeur par case |
 | Événements | traitements, filets, récoltes, lâchers, TIS | datés en jours absolus |
-| IFT | cf. §8 | arrondi à 0,1 |
+| IFT, `treatmentsApplied` | cf. §8 | passages réels |
 | Coûts, CA, heures | cf. §12 | annuels |
-
-Sont aussi produits `harvestByParcelYear` (une valeur par année et par parcelle) et `computeMs` (durée de calcul, utile en test).
+| `phenology` | fenêtres $[v_p, h_p)$ du profil | dessinées sur les courbes |
+| `climate` | $T_{\min}$, $T_{\max}$, DJ, jours froids / chauds | résumé du profil |
+| `modelVersion` | `"2.0.0"` | utile aux backends tiers |
 
 ## 12. Économie
 
-Les coûts sont **annuels** et forfaitaires par hectare, calculés sur les leviers déclarés (pas sur les événements) :
+Coûts **annuels**, calculés sur les leviers déclarés sauf les traitements (passages réels, §8) :
 
 $$
 C_{\text{filet}} = S_P \, c_{\text{filet}} \qquad
-C_{\text{phyto}} = S_P \cdot n \cdot c_{\text{mode}} \qquad
 C_{\text{bio}} = S_P \, c_{\text{parasitoïde}} \qquad
 C_{\text{TIS}} = S_P \, c_{\text{TIS}}
 $$
 
-avec, en €/ha/an : $c_{\text{filet}} = 3\,800$ (monorang) ou $2\,600$ (monoparcelle) ; $c_{\text{mode}} = 85$ par passage conventionnel, $150$ en biocontrôle ; $c_{\text{parasitoïde}} = 300$ (standard) ou $520$ (renforcé) ; $c_{\text{TIS}} = 950$. $S_P$ est la surface de la parcelle en hectares, $n$ le nombre de passages déclaré.
+avec, en €/ha/an : $c_{\text{filet}} = 3\,800$ (monorang) ou $2\,600$ (monoparcelle) ; $c_{\text{parasitoïde}} = 300$ (standard) ou $520$ (renforcé) ; $c_{\text{TIS}} = 950$. $S_P$ est la surface de la parcelle en hectares.
 
-Travail (16 €/h) : filet 40 h/ha ; prophylaxie 90 h/ha si `harvestRate` ≥ 95 sinon 55, + 25 h/ha de destruction au sol ; traitement 1,5 h/passage/ha.
+Travail (16 €/h) : filet 40 h/ha ; prophylaxie 90 h/ha si `harvestRate` ≥ 95 sinon 55, + 25 h/ha de destruction au sol ; traitement 1,5 h par passage réel et par ha.
 
-Chiffre d'affaires, par an, sommé sur les parcelles de cerisier :
+Chiffre d'affaires annuel, sommé sur les parcelles de cerisier :
 
 $$
 \text{CA} = \sum_{P} S_P \cdot Y \cdot 1000 \cdot p \cdot \frac{\overline{H}_P}{100}
 $$
 
-avec $Y = 10$ t/ha et $p = 3{,}5$ €/kg (le facteur 1 000 convertit les tonnes en kilos).
-
-Indicateurs dérivés, calculés dans l'interface et non dans le moteur :
+avec $Y = 10$ t/ha et $p = 3{,}5$ €/kg. Indicateurs dérivés, calculés dans l'interface :
 
 $$
 \text{CA sauvé} = \text{CA}(\text{stratégie}) - \text{CA}(\text{témoin}),
@@ -417,80 +452,84 @@ $$
 \text{ROI} = \frac{\text{CA sauvé}}{C_{\text{total}}}
 $$
 
+Chaque poste de coût est arrondi à l'euro ; `totalCost` est la somme des postes arrondis.
+
 ## 13. Implémentation numérique
 
 | Choix | Raison |
 |---|---|
-| Tableaux typés (`Float64Array`, `Float32Array`, `Int16Array`, `Int32Array`) | zéro allocation dans la boucle chaude, cache-friendly |
-| Voisinage pré-calculé (`nbrStart`, `nbr`) | évite 8 tests de bord par case et par jour |
-| Parcours des cases dans l'ordre mémoire | localité, pas de dépendance entre cases dans $\mathcal{G}$ |
-| `nextA` puis `A.set(nextA)` | dispersion de type Jacobi : les sorties du jour ne nourrissent pas les entrées du même jour |
-| Aucun `Math.random` | déterminisme total, tests reproductibles |
-| Parcelles détectées par composantes 4-connexes, mémoïsées par `WeakMap` sur la référence de grille | la grille est immuable (chaque édition crée un nouveau tableau) → un seul calcul partagé |
-| Exécution dans un Web Worker (`sim.worker.ts`) | l'interface reste fluide pendant le recalcul |
+| Tables climatiques par profil (`Float64Array[365]`), mises en cache | la boucle ne calcule ni sinus ni exponentielle climatique ; toutes les stratégies et toutes les simulations d'un même profil les partagent |
+| Voisinage de Moore construit au chargement du module | zéro reconstruction par simulation |
+| Parcelles aplaties (`pStart`, `pCells`, `pIsCherry`, `pVer`, `pHar`) | aucune fermeture ni `forEach` dans la boucle journalière |
+| Sous-stades entrelacés (`S[3c], S[3c+1], S[3c+2]`) | localité mémoire |
+| Une seule passe locale par jour (ressource, capacité, attractivité, filet, ponte, chaîne, mortalité, pic) | moins de parcours de la grille |
+| `nextA` puis `A.set(nextA)` | dispersion de type Jacobi |
+| Cases neutres vides court-circuitées | la majorité des cases d'un verger réel |
+| Aucun `Math.random` | déterminisme total |
+| Parcelles détectées par composantes 4-connexes, mémoïsées par `WeakMap` | une seule détection par édition de la grille |
+| Web Worker (`sim.worker.ts`) | interface fluide pendant le recalcul |
 
-Complexité : $\mathcal{O}(T_{tot} \cdot |\mathcal{C}|)$ en temps (≈ 292 000 mises à jour de case pour 2 ans), $\mathcal{O}(|\mathcal{C}|)$ en mémoire d'état, plus les séries. L'ordre de grandeur mesuré est de quelques dizaines de millisecondes pour trois stratégies sur deux ans.
+Complexité : $\mathcal{O}(T_{tot} \cdot |\mathcal{C}|)$ en temps, $\mathcal{O}(|\mathcal{C}|)$ en mémoire d'état. Mesure de référence (`npm run test:engine`) : 4 stratégies × 3 ans en **60 – 90 ms** sur un portable, soit ≈ 20 ms par stratégie et par 3 ans, malgré trois fois plus de compartiments immatures que la v1.
 
 ## 14. Comportements émergents
 
-Ces régularités ne sont pas codées en dur : elles **sortent** des équations ci-dessus, et servent de test de non-régression (`npm run test:engine`).
+Ces régularités **sortent** des équations ; elles servent de test de non-régression (`npm run test:engine`, 25 vérifications). Verger de démonstration, départ printemps, 3 ans, hiver doux :
 
-| Comportement attendu | Observé |
+| Comportement attendu | Observé (récolte saine A1 / A2 / A3) |
 |---|---|
-| Les variétés précoces échappent au pic estival | témoin an 1 : précoce ≈ 98 %, tardive ≈ 47 % |
-| Un hiver rigoureux réduit la pression | survie hivernale ≈ 0 % contre 12 % en hiver doux |
-| Un printemps humide l'aggrave | récolte témoin ≈ 27 % contre 30 % |
-| Les traitements seuls s'épuisent | tardive protégée ≈ 79 % (an 1) → ≈ 6 % (an 3) |
-| Prophylaxie et parasitoïdes agissent à retardement | effet faible an 1, croissant ensuite |
-| Le filet domine sur la récolte saine | ≈ 99 %, toutes variétés |
-| Sans refuge, l'infestation démarre très bas | population initiale quasi nulle |
+| Les précoces échappent au pic estival | témoin : précoce 97 / 78 / 78 %, tardive 51 / 6 / 9 % |
+| La pression s'installe sans protection | saison 82 → 34 % entre A1 et A2 |
+| Un hiver rigoureux réduit la pression | tardive 56 / 34 / 38 % (contre 51 / 6 / 9) |
+| Un printemps humide l'aggrave | tardive 31 / 8 / 10 % |
+| Un été caniculaire freine la ponte | tardive 48 / 18 / 20 % |
+| Les traitements seuls s'épuisent | 2 passages conv. : tardive 82 / 31 / 36 % |
+| Prophylaxie et parasitoïdes agissent à retardement | parasitoïdes : gain sur la tardive +10 pt en A1, +31 pt en A3 |
+| Le filet domine sur la récolte saine | 100 % partout (99,9 % en global : quelques résidentes sous le filet) |
+| La TIS à 20:1 approche le filet, sans IFT | tardive 98 / 95 / 91 % |
+| Sans refuge, l'infestation démarre très bas | population initiale ÷ 10 |
 
 ## 15. Protocole de calibration
 
-Les paramètres ne sont pas calibrés (voir [Limites & calibration](07-limites.md)). Ordre de priorité, du plus rentable au plus fin :
+Tous les paramètres sont dans l'objet exporté `PARAMS` ; après modification d'un paramètre climatique, appeler `resetClimateCache()`. Ordre de priorité, du plus rentable au plus fin :
 
-1. **Météo réelle** — remplacer `temperature(j, profile)` par une série journalière. Cela active les termes aujourd'hui inertes ($T>30$, branches hautes de $\varphi$) et rend les mortalités hivernales crédibles.
-2. **Phénologie locale** — remplacer les six valeurs de `PHENOLOGY` par les dates observées des variétés suivies.
-3. **Dynamique** — ajuster fécondité (6), $\mu$ (0,028), $\sigma$ (0,30), $D$ (0,12) sur des **courbes de piégeage** converties en densité relative ; vérifier en priorité la position temporelle du pic.
-4. **Dégâts** — ajuster la constante 3 500 pour que $\overline{H}$ simulé rejoigne les taux de fruits piqués observés.
-5. **Leviers** — $\eta$ (filets), $\kappa$ et rémanence (traitements), montée en charge des parasitoïdes, $\tau$ (TIS), à partir d'essais publiés.
+1. **Météo réelle** — remplacer `temperature(j, profil)` par une série journalière (le reste du moteur ne lit que la table). La variabilité synoptique synthétique devient alors inutile.
+2. **Phénologie locale** — remplacer les trois seuils de degrés-jours (`REF_DD`) et durées de maturation (`RIPENING_DAYS`) par des valeurs observées.
+3. **Dynamique** — ajuster `fecundity`, `adultMort`, `eggSurvival`, `dispersalWarm`, les capacités `K` et `crowdMort` sur des **courbes de piégeage** ; vérifier d'abord la position du pic et la profondeur du creux printanier.
+4. **Dégâts** — ajuster `damageConst` pour que $\overline{H}$ rejoigne les taux de fruits piqués observés.
+5. **Leviers** — $\eta$ (filets), $\kappa$ et rémanence, montée en charge des parasitoïdes, $\tau$ (TIS), à partir d'essais publiés.
 6. **Validation** — garder une année ou un site hors calibration, puis comparer.
 
-Après chaque modification : `npm run test:engine` (12 vérifications, dont déterminisme et bornes physiques) puis comparaison des exports CSV.
+Après chaque modification : `npm run test:engine` puis comparaison des exports CSV.
 
-## 16. Annexe — table maître des paramètres
+## 16. Annexe — table maître des paramètres (`PARAMS`)
 
-| Paramètre | Symbole | Valeur | Unité | Emplacement |
+| Clé | Symbole | Valeur | Unité | Rôle |
 |---|---|---|---|---|
-| Taille de grille | $N$ | 20 (400 cases) | — | `N`, `NC` |
-| Surface de case | $S_c$ | 100 | m² | `economics.cellAreaM2` |
-| Fécondité max | — | 6 | œufs ♀⁻¹ j⁻¹ | boucle `G` |
-| Aptitude ponte | $\varphi$ | 10 / 20–26 / 33 | °C | `tempSuitability` |
-| Développement | — | 210 | DJ > 8 °C | boucle `G` |
-| Survie larvaire | $\sigma$ | 0,30 | — | `larvS` |
-| Mortalité immatures | $\mu_L$ | 0,012 (0,03 si $T<5$) | j⁻¹ | boucle `G` |
-| Mortalité adultes | $\mu$ | 0,028 | j⁻¹ | `baseMort` |
-| Surmortalité chaleur | — | +0,035 si $T>30$ | j⁻¹ | boucle `G` |
-| Surmortalité hiver | $\mu_{hiv}$ | 0,016 / 0,028 / 0,050 | j⁻¹ | `winterMortExtra` |
-| Surmortalité zone neutre | — | +0,04 | j⁻¹ | boucle `G` |
-| Plafond de mortalité | — | 0,95 | j⁻¹ | boucle `G` |
-| Capacités | $K$ | 260 / 700 / 8 | ind./case | boucle `G` |
-| Plafond de densité | — | $1{,}3K$ | ind./case | boucle `G` |
-| Dispersion | $D$ | 0,12 (0,03 si $T\le10$) | j⁻¹ | boucle `D` |
-| Blocage par filet | — | 0,7 | — | boucle `D` |
-| Efficacité filet | $\eta$ | 0,95 / 0,85 | — | `netE` |
-| Constante de dégâts | — | 3 500 | œufs/case | boucle `G` |
-| Décroissance des résidus | — | 0,965 | j⁻¹ | boucle `G` |
-| Résidus après récolte | $R_0$ | 0,20 (0,02 avec prophylaxie) | — | `residAfter` |
-| Seuil de traitement | — | 1 500 | ♀/ha | déclencheur `threshold` |
-| Efficacité traitement | $\kappa$ | 0,32 / 0,16 | j⁻¹ | `treatKill` |
-| Rémanence | — | 7 j / 4 j (× 0,6 si humide) | j | `treatRemain` |
-| Intervalle minimal | — | 7 | j | boucle `G` |
-| Effet parasitoïdes | — | $0{,}38 \cdot d$, plafond 0,75 | — | `updateLarvalSurvival` |
-| Effet TIS | — | $1/(1+0{,}12r)$ | — | `tisF` |
-| Fenêtre TIS | — | jours 80 → 260 | DOY | boucle `G` |
-| Femelles initiales | $A(0)$ | 30 / 12 / 0,05 | ind./case | init |
+| `fecundity` | — | 8 | œufs ♀⁻¹ j⁻¹ | ponte maximale |
+| `eggSurvival` | — | 0,30 | — | fraction d'œufs entrant dans $S_1$ |
+| `stages` | — | 3 | — | ordre du délai gamma |
+| `ddTotal`, `ddBase` | — | 210, 8 | DJ, °C | développement |
+| `immatureMort`, `immatureMortCold` | $\mu_L$ | 0,012 / 0,03 | j⁻¹ | immatures (seuil 5 °C) |
+| `adultMort` | $\mu$ | 0,028 | j⁻¹ | adultes |
+| `neutralMort` | — | 0,04 | j⁻¹ | zone neutre |
+| `crowdMort` | — | 0,15 | j⁻¹ par unité de $(A/K_{type}-1)^+$ | surpeuplement |
+| `heatT0`, `heatMortPerDeg`, `heatMortMax` | $\mu_{chaleur}$ | 28, 0,012, 0,06 | °C, j⁻¹ °C⁻¹, j⁻¹ | chaleur |
+| `coldT0`, `coldRamp`, `coldMax` | $f_{froid}$ | 6, 4, 1,5 | °C, °C, — | froid |
+| `winterExtra` | $\mu_{hiv}$ | 0,016 / 0,050 / 0,028 / 0,028 | j⁻¹ | doux / rigoureux / humide / caniculaire |
+| `forestShelter` | — | 0,5 | — | abri de l'espace naturel |
+| `K` | $K_{type}$ | 260 / 700 / 8 | ind./case | espace naturel / cerisier / neutre |
+| `kFloor` | — | 0,25 | — | plancher de $K_c/K_{type}$ |
+| `wildMax` | — | 0,40 | — | normalisation de $\rho_{nat}$ |
+| `damageConst` | — | 3 500 | œufs/case | dégâts |
+| `residualDecay` | — | 0,965 | j⁻¹ | résidus |
+| `dispersalWarm`, `dispersalCold` | $D$ | 0,12 / 0,03 | j⁻¹ | seuil 10 °C |
+| `netBlock` | — | 0,7 | — | part refoulée par un filet |
+| `threshold` | — | 1 500 | femelles/ha | déclenchement au seuil |
+| `tisWindow` | — | [80, 260] | DOY | fenêtre TIS |
+| `initForestSpring`, `initForestAutumn`, `initCherry` | $A(0)$ | 20 / 50 / 1 | ind./case | conditions initiales |
+
+Constantes hors `PARAMS` (dans le code) : efficacités de filet 0,95 / 0,85 ; dates de pose 105 ou $v-5$, dépose $h+5$ ; $\kappa$ 0,32 / 0,16 ; rémanence 7 / 4 j ; DAR 3 j ; intervalle 7 j ; parasitoïdes 0,38, 0,35 + 0,33 par saison, plafond 0,75, dose 1,4 ; TIS 0,12 ; synoptique 2,0 / 6,9 / 0,7 et 1,3 / 17,3 / 2,1 ; sinusoïde 12,5 / 10,5 / 110.
 
 ## 17. Ce que le modèle ne fait pas
 
-Sans reprise exhaustive (voir [Limites & calibration](07-limites.md)) : pas de mâles ni d'accouplement explicite (seulement $\tau$), pas de structure d'âge, pas de pluie, pas de résistance aux insecticides, pas d'effet sur les auxiliaires, une seule espèce de plante hôte sauvage, grille fermée (aucune immigration extérieure), économie à prix et rendement uniques avec perte totale des fruits piqués.
+Pas de mâles ni d'accouplement explicite (seulement $\tau$), pas de pluie ni d'humidité explicite, pas de résistance aux insecticides, pas d'effet sur les auxiliaires, une seule espèce de plante hôte sauvage, grille fermée (aucune immigration extérieure), économie à prix et rendement uniques avec perte totale des fruits piqués, traitement sans effet sur les immatures. Voir [Limites & calibration](07-limites.md).

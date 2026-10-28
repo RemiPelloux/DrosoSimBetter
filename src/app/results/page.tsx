@@ -122,7 +122,7 @@ export default function ResultsPage() {
             chips={[
               { icon: MapIcon, label: `${parcels.length} parcelles · ${cherryHa.toFixed(2)} ha de cerisiers` },
               { icon: Clock, label: `${simParams.durationYears} an${simParams.durationYears > 1 ? 's' : ''} · départ ${simParams.startSeason === 'spring' ? 'printemps' : 'automne'}` },
-              { icon: Leaf, label: climateLabel },
+              { icon: Leaf, label: out?.climate ? `${climateLabel} · ${Math.round(out.climate.tMin)} → ${Math.round(out.climate.tMax)} °C · ${out.climate.degreeDays.toLocaleString('fr-FR')} DJ` : climateLabel },
               { icon: Euro, label: `${economics.yieldTPerHa} t/ha · ${economics.pricePerKg.toFixed(2)} €/kg` },
             ]}
             settingsOpen={showSettings} onToggleSettings={() => setShowSettings(v => !v)} />
@@ -533,7 +533,7 @@ function Recommendations({ results, base, parcels }: { results: StrategyResult[]
   // parcelles les plus exposées dans le témoin
   const worst = [...cherry].sort((a, b) => (base.harvestByParcel[a.id] ?? 100) - (base.harvestByParcel[b.id] ?? 100))[0];
   if (worst && (base.harvestByParcel[worst.id] ?? 100) < 85)
-    recs.push({ tone: 'warn', text: <>Sans protection, <b>{worst.name}</b> ne conserve que <b>{base.harvestByParcel[worst.id]?.toFixed(0)} %</b> de sa récolte : c&apos;est la parcelle prioritaire ({PHENOLOGY[worst.type].label.toLowerCase()}, mûre quand la population atteint son pic).</> });
+    recs.push({ tone: 'warn', text: <>Sans protection, <b>{worst.name}</b> ne conserve que <b>{base.harvestByParcel[worst.id]?.toFixed(0)} %</b> de sa récolte : c&apos;est la parcelle prioritaire ({isCherry(worst.type) ? PHENOLOGY[worst.type].label.toLowerCase() : ''}, mûre quand la population atteint son pic).</> });
   const early = cherry.filter(p => p.type === 'early-cherry' && (base.harvestByParcel[p.id] ?? 0) > 90);
   if (early.length) recs.push({ tone: 'info', text: <>Les variétés précoces ({early.map(p => p.name).join(', ')}) sont récoltées avant l&apos;explosion estivale : une protection légère suffit souvent.</> });
   if (strats.length) {

@@ -28,9 +28,9 @@ Les leviers sont définis **par parcelle et par stratégie**. Un levier ne s'app
 
 **Effets dans le modèle** :
 1. accès aux fruits réduit : la ponte est multipliée par $(1-\eta)$ ;
-2. immigration réduite : 70 % × $\eta$ des femelles qui tentent d'entrer sont refoulées (−67 % en monorang, −60 % en monoparcelle).
+2. mouvements filtrés **dans les deux sens** : 70 % × $\eta$ des femelles qui tentent d'entrer sont refoulées (−67 % en monorang, −60 % en monoparcelle), et celles qui sont déjà sous le filet en sortent d'autant moins.
 
-**Lecture agronomique** : c'est le levier le plus efficace sur la récolte, surtout pour les variétés tardives, mais il ne réduit **pas** la population du réservoir. Hors période de pose, la parcelle redevient attractive (résidus post-récolte).
+**Lecture agronomique** : c'est le levier le plus efficace sur la récolte, surtout pour les variétés tardives, mais il ne réduit **pas** la population du réservoir. Les quelques femelles qui hivernent *dans* la parcelle restent enfermées sous le filet : la récolte saine atteint 99,9 % et non 100 %. Hors période de pose, la parcelle redevient attractive (résidus post-récolte).
 
 ## 2. Protection phytosanitaire / biocontrôle 🚜
 
@@ -51,7 +51,9 @@ Les leviers sont définis **par parcelle et par stratégie**. Un levier ne s'app
 
 En **printemps humide**, la rémanence est multipliée par 0,6 (lessivage).
 
-**Lecture agronomique** : les traitements protègent la récolte de l'année mais agissent peu sur le réservoir. La population revient dès la fin de la rémanence, d'où une efficacité qui se dégrade sur plusieurs années.
+**Coût et IFT sur les passages réels** : seuls les passages effectivement déclenchés sont facturés et comptés dans l'IFT. Avec un déclenchement au seuil, une année calme coûte donc moins qu'une année de forte pression ; le nombre total de passages est affiché dans les résultats.
+
+**Lecture agronomique** : les traitements protègent la récolte de l'année mais n'atteignent que les adultes, pas les larves dans les fruits ni le réservoir. La population revient dès la fin de la rémanence, d'où une efficacité qui se dégrade sur plusieurs années (verger de démonstration, 2 passages conventionnels : tardive 82 % en année 1, 31 % en année 2).
 
 ## 3. Prophylaxie / hygiène 🧺
 
@@ -63,9 +65,9 @@ $$
 R_c = (1 - \text{taux de récolte}) \times \begin{cases} 0{,}25 & \text{si destruction des fruits au sol} \\ 1 & \text{sinon} \end{cases}
 $$
 
-Sans prophylaxie, le taux est fixé à 80 % (donc $R = 0{,}2$). Les résidus offrent une ressource de ponte $1{,}4\,R$ et une attractivité $3\,R$ après la récolte.
+Sans prophylaxie, le taux est fixé à 80 % (donc $R = 0{,}2$). Les résidus offrent une ressource de ponte $1{,}4\,R$ et une attractivité $3\,R$ après la récolte, et fixent la **capacité d'accueil** de la parcelle récoltée : $K = 700 \times \max(0{,}25,\ 1{,}4R + 0{,}02)$, soit 210 femelles/case avec 20 % de résidus contre 175 (plancher) avec 2 %.
 
-**Lecture agronomique** : la prophylaxie ne protège pas la récolte de l'année. Elle **casse le rebond post-récolte** (le pic de juillet-août visible sur les courbes) et réduit la population qui hiverne. Son effet est donc **cumulatif sur plusieurs années**.
+**Lecture agronomique** : la prophylaxie ne protège pas la récolte de l'année. Elle **casse le rebond post-récolte** (le pic de juillet-août visible sur les courbes) et réduit la population qui hiverne. Son effet est donc **cumulatif sur plusieurs années** ; seul, il reste modeste (tardive 12 % contre 6 % en année 2 sur le verger de démonstration), mais il démultiplie les autres leviers.
 
 ## 4. Lâchers de parasitoïdes 🐝
 
@@ -73,16 +75,16 @@ Sans prophylaxie, le taux est fixé à 80 % (donc $R = 0{,}2$). Les résidus off
 
 **Réglages** : lâcher au printemps ou à l'automne (affiché sur les courbes) ; dose standard ou renforcée (× 1,4).
 
-**Effet** : réduction de la survie larvaire, avec une **installation progressive** :
+**Effet** : une fraction $\pi$ des larves est parasitée **à la sortie du stade larvaire** (là où agissent *Ganaspis* et *Trichopria*) et n'émerge jamais, avec une **installation progressive** :
 
 $$
 \text{installation}(a) = \min(1,\; 0{,}35 + 0{,}33\,a), \qquad
-\sigma = 0{,}30 \times \left(1 - \min\!\left(0{,}75,\; 0{,}38 \times \text{installation} \times \text{dose}\right)\right)
+\pi = \min\!\left(0{,}75,\; 0{,}38 \times \text{installation} \times \text{dose}\right)
 $$
 
-où $a$ est le nombre de saisons écoulées depuis le début (0 la première année). La réduction de survie passe ainsi de 13 % la première année à 38 % dès la 3e année (53 % en dose renforcée).
+où $a$ est le nombre de saisons écoulées depuis le début (0 la première année). La fraction parasitée passe ainsi de 13 % la première année à 38 % dès la 3e année (53 % en dose renforcée), sans jamais dépasser 75 %.
 
-**Lecture agronomique** : c'est un levier « de fond ». Placé dans l'espace naturel, il réduit la production de mouches du réservoir qui alimente tout le verger. Il est quasi invisible la première année, puis significatif en années 2-3.
+**Lecture agronomique** : c'est un levier « de fond ». Placé dans l'espace naturel, il réduit la production de mouches du réservoir qui alimente tout le verger. Il est modeste la première année, puis significatif en années 2-3 : sur le verger de démonstration, le gain sur la tardive passe de +10 points en année 1 à +31 points en année 3 (+51 points en dose renforcée).
 
 ## 5. Technique de l'insecte stérile (TIS) 🧬
 
@@ -102,7 +104,7 @@ $$
 
 Dans ce modèle, une ponte non fertile ne produit ni larve **ni dégât** (le facteur $\tau$ multiplie la ponte $E$).
 
-**Lecture agronomique** : la TIS réduit à la fois les dégâts et la croissance de la population, sans résidu. Elle est d'autant plus efficace qu'elle est déployée tôt et sur une surface cohérente.
+**Lecture agronomique** : la TIS réduit à la fois les dégâts et la croissance de la population, sans résidu ni IFT. Comme elle agit sur la *croissance*, son effet est très sensible au ratio : sur le verger de démonstration, 10:1 conserve 95 / 68 / 67 % de la tardive sur trois ans, 20:1 en conserve 98 / 95 / 91 %, proche du filet. Elle est d'autant plus efficace qu'elle est déployée tôt et sur une surface cohérente.
 
 ## 6. Combiner les leviers
 

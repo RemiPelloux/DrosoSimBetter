@@ -22,7 +22,7 @@ Prérequis : **Node.js ≥ 22** (fichier `.nvmrc` fourni : `nvm use`) et npm. Co
 | `npm run lint` | ESLint sur tout le dépôt |
 | `npm run typecheck` | types de routes (`next typegen`) puis vérification TypeScript |
 | `npm run check` | lint + typage + tests du moteur : **à lancer avant chaque commit** |
-| `npm run test:engine` | tests du moteur (12 vérifications, sans navigateur) |
+| `npm run test:engine` | tests du moteur (25 vérifications, sans navigateur) |
 | `npm run test:e2e` | parcours navigateur (16 vérifications ; build et Chromium requis) |
 | `npm test` | tous les tests |
 | `npm run docs:media` | régénère captures, démo GIF et MP4 du README (ffmpeg et ImageMagick requis) |
@@ -54,17 +54,21 @@ Détails et variables d'environnement des scripts : [`scripts/README.md`](../scr
 
 ### Changer un paramètre biologique
 
-Tous les paramètres sont dans `src/lib/engine.ts`, dans la fonction `runStrategy` :
+Tous les paramètres sont regroupés dans l'objet `PARAMS` de `src/lib/engine.ts` :
 
 ```ts
-const eggs = a * 6 * suit * res * …           // fécondité maximale (6 œufs/♀/j)
-let baseMort = 0.028;                         // mortalité adulte journalière
-const larvS = new Float32Array(NC).fill(0.3); // survie larvaire
-const D = T > 10 ? 0.12 : 0.03;               // fraction dispersée par jour
-healthy[c] *= Math.exp(-eggs / 3500);         // constante de dégâts
+export const PARAMS = {
+  fecundity: 8,            // œufs / femelle / jour à l'optimum
+  eggSurvival: 0.30,       // fraction d'œufs viables
+  adultMort: 0.028,        // mortalité adulte journalière
+  K: { forest: 260, cherry: 700, neutral: 8 },
+  damageConst: 3500,       // constante de dégâts
+  dispersalWarm: 0.12,     // fraction dispersée par jour si T > 10 °C
+  …
+};
 ```
 
-Après modification, lancez `npm run test:engine` : les vérifications de cohérence agronomique signalent une régression. Pensez à mettre à jour `docs/03-modele.md`.
+Ils peuvent aussi être modifiés **à l'exécution** (script de calibration, exploration de sensibilité) : `PARAMS.fecundity = 9`, puis `resetClimateCache()` si un paramètre climatique a changé. Après modification, lancez `npm run test:engine` : les vérifications de cohérence agronomique signalent une régression. Pensez à mettre à jour `docs/03-modele.md` et la table maître de `docs/11-modele-mathematique.md`.
 
 ### Changer les dates de maturité
 
@@ -83,11 +87,11 @@ export const PHENOLOGY = {
    trap: boolean; trapDensity: number;        // dans LeverConfig
    trap: false, trapDensity: 400,             // dans defaultLeverConfig
    ```
-2. **Effet** : dans `runStrategy`, précalculez un tableau par case et appliquez-le dans la boucle locale, par exemple comme mortalité adulte additionnelle :
+2. **Effet** : dans `runStrategy`, précalculez un tableau par case (à côté de `netE`, `tisF`, `paraOn`…) et appliquez-le dans la passe locale, par exemple comme mortalité adulte additionnelle :
    ```ts
-   const trapK = new Float32Array(NC);
+   const trapK = new Float32Array(NC);           // alloué une fois dans simulate(), rempli par stratégie
    // … pour chaque case : if (l?.trap) trapK[c] = 0.004 * (l.trapDensity / 100);
-   mort += trapK[c];
+   mort += trapK[c];                             // dans la section « adultes » de la boucle
    ```
 3. **Coût** : ajoutez le poste dans le calcul des coûts (`costs.bio += …`) et, si besoin, un champ dans `LeverCosts` et `defaultCosts`.
 4. **Interface** : ajoutez une entrée dans `LEVERS` (`ControlPanel.tsx`) — libellé, icône Lucide, couleur, parcelles cibles — puis un bloc de réglages dans `AdvancedLevers`.

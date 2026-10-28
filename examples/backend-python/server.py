@@ -17,7 +17,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT = 8788
 CHERRY = {"early-cherry", "season-cherry", "late-cherry"}
-# fenêtres de sensibilité (véraison, récolte) en jour de l'année — identiques au front
+# fenêtres de sensibilité (véraison, récolte) en jour de l'année — dates de référence du front
+# (le moteur TS les décale selon le climat ; renvoyez `phenology` pour afficher les vôtres)
 PHENOLOGY = {"early-cherry": (130, 158), "season-cherry": (150, 178), "late-cherry": (168, 200)}
 
 

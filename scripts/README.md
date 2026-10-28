@@ -7,7 +7,7 @@
 | [`docs-media.mjs`](docs-media.mjs) | `npm run docs:media` | régénère les captures, `demo.mp4` et `demo.gif` de `docs/assets/` |
 | [`with-server.mjs`](with-server.mjs) | utilisé par les commandes ci-dessus | démarre `next start` sur le port 3100, exécute un script, puis arrête le serveur |
 | [`lib/harness.mjs`](lib/harness.mjs) | — | utilitaires partagés : Chromium, assertions ✓/✗, code de sortie |
-| [`fix-node-mac.sh`](fix-node-mac.sh) | `bash scripts/fix-node-mac.sh` | répare Node.js sur macOS via nvm (keg Homebrew cassé, `PATH` mort, conda) — voir plus bas |
+| [`fix-node-mac.sh`](fix-node-mac.sh) | `bash scripts/fix-node-mac.sh` | docteur macOS : répare Node (nvm), conda, Homebrew et les modules natifs, et écrit un rapport dans `~/mac-dev-cleanup-<date>/` — voir plus bas |
 
 Tous les tests affichent ✓ / ✗ et **sortent avec le code 1 en cas d'échec** (utilisable en intégration continue).
 
@@ -29,23 +29,42 @@ Tous les tests affichent ✓ / ✗ et **sortent avec le code 1 en cas d'échec**
 - Chromium : `npx playwright install chromium` si aucun navigateur n'est installé.
 - `docs:media` nécessite aussi `ffmpeg` et ImageMagick (`magick`).
 
-## Réparer Node.js sur macOS — `fix-node-mac.sh`
+## Réparer l'environnement de dev macOS — `fix-node-mac.sh`
 
-Pour une machine macOS où `npm run dev` échoue sur le moteur `node` : keg Homebrew cassé (`/opt/homebrew/opt/node@20/bin/node: No such file or directory`), `PATH` mort dans `~/.zshrc`, ou terminal en `(base)` conda. Le script installe Node via **nvm** et neutralise les conflits.
+Docteur + réparateur pour un Mac où Node, conda ou Homebrew sont cassés. Cas réels traités :
+
+| Symptôme | Cause traitée |
+|---|---|
+| `/opt/homebrew/opt/node@20/bin/node: No such file or directory` | keg Homebrew incomplet + ligne `PATH` morte dans `~/.zshrc` (commentée, après sauvegarde) |
+| `node: command not found` mais `nvm` installé | bloc nvm absent ou placé avant `conda initialize` |
+| `(base)` dans chaque terminal, `python`/`node` imprévisibles | `auto_activate_base true`, `conda init` manquant, plusieurs conda installés |
+| `sqlite incompatible` côté Python | `libsqlite3.dylib` absente de la base conda (`conda install -n base sqlite`) |
+| `NODE_MODULE_VERSION 115 … requires 137` | modules natifs (`better-sqlite3`, `sqlite3`, `sharp`, `esbuild`…) compilés pour l'ancienne version de Node |
+| `dyld: Library not loaded: …libsqlite3.dylib` | `sqlite` de Homebrew incomplet, `DYLD_LIBRARY_PATH` pollué par conda |
 
 ```bash
-bash scripts/fix-node-mac.sh --dry-run    # diagnostic seul, n'écrit rien
-bash scripts/fix-node-mac.sh              # répare (ne supprime rien)
-bash scripts/fix-node-mac.sh --node 22    # force la version par défaut
-bash scripts/fix-node-mac.sh --remove-brew-node   # + désinstalle node* de Homebrew
+bash scripts/fix-node-mac.sh --dry-run                 # diagnostic seul (écrit le rapport)
+bash scripts/fix-node-mac.sh                           # répare ce qui est sûr
+bash scripts/fix-node-mac.sh --fix-brew                # + brew reinstall sqlite, kegs node*
+bash scripts/fix-node-mac.sh --fix-native              # + reconstruit les modules natifs
+bash scripts/fix-node-mac.sh --node 22                 # force la version Node par défaut
+bash scripts/fix-node-mac.sh --scan ~/dev --scan ~/Projects   # où chercher d'autres projets
+bash scripts/fix-node-mac.sh --remove-brew-node        # désinstalle node* de Homebrew
 ```
 
-| | |
-|---|---|
-| **Écrit** | bloc nvm géré en fin de `~/.zshrc`, lignes `PATH` mortes commentées, `~/.nvm`, `~/mac-dev-cleanup-<date>/` (rapport, journaux, sauvegardes) |
-| **Ne touche pas** | environnements conda, formules Homebrew, projets, `node_modules` |
-| **Version choisie** | Node 24 si macOS ≥ 13.5, sinon Node 22 (`--node` pour forcer) |
-| **Vérifie** | `node -v` ici **et** dans un shell `zsh -lic` neuf, avec un délai maximum de 25 s |
-| **Restauration** | `cp -p ~/mac-dev-cleanup-<date>/backups/.zshrc ~/.zshrc` |
+**Automatique** : conda `auto_activate_base false`, `conda init zsh` si absent, `conda clean --all`, `conda install -n base sqlite` si `import sqlite3` échoue, `brew cleanup`, nvm + Node 22 (ou 24 si macOS ≥ 13.5), lignes `PATH` mortes commentées, `npm cache verify`.
 
-macOS uniquement, bash 3.2 (celui du système), aucune dépendance hors `curl`/`brew`/`conda` déjà présents.
+**Jamais automatique** : suppression d'un environnement conda, d'une formule Homebrew (`--remove-brew-node`), reconstruction de `node_modules` (`--fix-native`).
+
+**Rapport** — tout est écrit dans `~/mac-dev-cleanup-<date>/` :
+
+| Fichier | Contenu |
+|---|---|
+| `report.md` | bilan lisible : compteurs OK / gênant / cassé / corrigé, journal, actions |
+| `problems.txt` | journal machine `[OK\|WARN\|BROKEN\|FIXED] ID message → remède` |
+| `actions.txt` | ce qui a été réellement modifié |
+| `before.txt` / `after.txt` | état Node/npm/conda/brew avant et après |
+| `brew-doctor.txt`, `conda-*.txt`, `native-*.log`, `zsh-neuf.txt` | sorties brutes des outils |
+| `backups/` | copies de `~/.zshrc`, `~/.zprofile`, `~/.npmrc`, `~/.condarc`… (restauration : `cp -p ~/mac-dev-cleanup-<date>/backups/.zshrc ~/.zshrc`) |
+
+Sort en code 1 s'il reste des points `BROKEN` : il suffit d'envoyer `report.md` pour obtenir un diagnostic à distance. macOS uniquement (bash 3.2 du système) ; un seul cas d'usage hors macOS, les tests internes : `FIXNODE_ALLOW_NON_MACOS=1`.

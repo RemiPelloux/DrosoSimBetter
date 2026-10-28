@@ -5,19 +5,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGridStore, useParcels, type Parcel } from '@/lib/store';
 import { defaultLeverConfig, defaultCosts, isCherry, type LeverConfig, type CellType, type LeverCosts } from '@/lib/engine';
 import { cn } from '@/lib/utils';
-import {
-  Snowflake, Sun, CloudRain, Thermometer, Calendar, Clock, Plus, Copy, Trash2, Pencil, Check,
-  ShieldCheck, SprayCan, Bug, Dna, Sprout, ChevronDown, Wand2, Euro, Lock, Trees, Cherry,
-} from 'lucide-react';
+import { Calendar, Clock, Plus, Copy, Trash2, Pencil, Check, ChevronDown, Wand2, Euro, Lock } from 'lucide-react';
+import { IconNet, IconHygiene, IconSpray, IconParasitoid, IconSterileMale, IconMildWinter, IconHarshWinter, IconHumidSpring, IconHeat, IconForest, IconCherry, IconClimate } from '@/components/icons';
 
 export type LeverKey = 'prophylaxis' | 'netting' | 'treatment' | 'parasitoids' | 'tis';
 
 export const LEVERS: { key: LeverKey; label: string; short: string; icon: React.ElementType; color: string; targets: (t: CellType) => boolean; cost: string; note: string }[] = [
-  { key: 'prophylaxis', label: 'Prophylaxie / Hygiène', short: 'Prophylaxie', icon: Sprout, color: '#0D9488', targets: isCherry, cost: 'Matériel faible · MO très élevée', note: 'Réduit les fruits résiduels et la population qui hiverne' },
-  { key: 'netting', label: 'Filet insect-proof', short: 'Filet', icon: ShieldCheck, color: '#2563EB', targets: isCherry, cost: 'Investissement €€€ · IFT 0', note: 'Bloque l’accès aux fruits et filtre les mouvements' },
-  { key: 'treatment', label: 'Protection phyto / Biocontrôle', short: 'Traitement', icon: SprayCan, color: '#D97706', targets: isCherry, cost: 'Coût €€ · IFT élevé (chimie) · DAR', note: 'Mortalité des adultes pendant la rémanence · coût sur passages réels' },
-  { key: 'parasitoids', label: 'Lâchers de parasitoïdes', short: 'Parasitoïdes', icon: Bug, color: '#7C3AED', targets: t => t === 'forest' || isCherry(t), cost: 'Effet de fond · montée en puissance A2-A3', note: 'Ganaspis / Trichopria : larves parasitées, effet cumulatif' },
-  { key: 'tis', label: 'TIS (mâles stériles)', short: 'TIS', icon: Dna, color: '#DB2777', targets: isCherry, cost: 'Technologie de pointe · zéro résidu', note: 'Réduit les pontes fertiles de fin mars à mi-septembre' },
+  { key: 'prophylaxis', label: 'Prophylaxie / Hygiène', short: 'Prophylaxie', icon: IconHygiene, color: '#0D9488', targets: isCherry, cost: 'Matériel faible · MO très élevée', note: 'Réduit les fruits résiduels et la population qui hiverne' },
+  { key: 'netting', label: 'Filet insect-proof', short: 'Filet', icon: IconNet, color: '#2563EB', targets: isCherry, cost: 'Investissement €€€ · IFT 0', note: 'Bloque l’accès aux fruits et filtre les mouvements' },
+  { key: 'treatment', label: 'Protection phyto / Biocontrôle', short: 'Traitement', icon: IconSpray, color: '#D97706', targets: isCherry, cost: 'Coût €€ · IFT élevé (chimie) · DAR', note: 'Mortalité des adultes pendant la rémanence · coût sur passages réels' },
+  { key: 'parasitoids', label: 'Lâchers de parasitoïdes', short: 'Parasitoïdes', icon: IconParasitoid, color: '#7C3AED', targets: t => t === 'forest' || isCherry(t), cost: 'Effet de fond · montée en puissance A2-A3', note: 'Ganaspis / Trichopria : larves parasitées, effet cumulatif' },
+  { key: 'tis', label: 'TIS (mâles stériles)', short: 'TIS', icon: IconSterileMale, color: '#DB2777', targets: isCherry, cost: 'Technologie de pointe · zéro résidu', note: 'Réduit les pontes fertiles de fin mars à mi-septembre' },
 ];
 
 /** Index précalculés : levier par clé et nombre de leviers applicables par type de case. */
@@ -26,10 +24,10 @@ const TARGET_COUNT: Partial<Record<CellType, number>> = {};
 for (const t of ['forest', 'early-cherry', 'season-cherry', 'late-cherry'] as CellType[]) TARGET_COUNT[t] = LEVERS.filter(l => l.targets(t)).length;
 
 const CLIMATES = [
-  { id: 'mild-winter', label: 'Hiver doux', icon: Sun, desc: 'Survie hivernale élevée, pression précoce' },
-  { id: 'harsh-winter', label: 'Hiver rigoureux', icon: Snowflake, desc: 'Mortalité hivernale élevée' },
-  { id: 'humid-spring', label: 'Printemps humide', icon: CloudRain, desc: 'Ponte ↑, véraison retardée, traitements lessivés' },
-  { id: 'dry-summer', label: 'Été caniculaire', icon: Thermometer, desc: 'Ponte freinée et surmortalité > 28 °C' },
+  { id: 'mild-winter', label: 'Hiver doux', icon: IconMildWinter, desc: 'Survie hivernale élevée, pression précoce' },
+  { id: 'harsh-winter', label: 'Hiver rigoureux', icon: IconHarshWinter, desc: 'Mortalité hivernale élevée' },
+  { id: 'humid-spring', label: 'Printemps humide', icon: IconHumidSpring, desc: 'Ponte ↑, véraison retardée, traitements lessivés' },
+  { id: 'dry-summer', label: 'Été caniculaire', icon: IconHeat, desc: 'Ponte freinée et surmortalité > 28 °C' },
 ] as const;
 
 export function SimulationSettings() {
@@ -45,13 +43,13 @@ export function SimulationSettings() {
           <Segmented value={String(simParams.durationYears)} onChange={v => setSimParams({ durationYears: +v })} options={[{ v: '1', l: '1 an' }, { v: '2', l: '2 ans' }, { v: '3', l: '3 ans' }]} />
         </Field>
       </div>
-      <Field label="Profil climatique" icon={Thermometer}>
+      <Field label="Profil climatique" icon={IconClimate}>
         <div className="grid grid-cols-2 gap-1.5">
           {CLIMATES.map(c => (
-            <button key={c.id} onClick={() => setSimParams({ climateProfile: c.id })}
-              className={cn('flex items-start gap-2 rounded-lg border p-2 text-left transition-all',
+            <button key={c.id} onClick={() => setSimParams({ climateProfile: c.id })} data-on={simParams.climateProfile === c.id}
+              className={cn('ico-host press flex items-start gap-2 rounded-lg border p-2 text-left transition-all',
                 simParams.climateProfile === c.id ? 'border-slate-900 bg-slate-900 text-white shadow' : 'border-slate-200 bg-white hover:border-slate-300')}>
-              <c.icon className="mt-0.5 h-4 w-4 shrink-0" />
+              <c.icon className="mt-0.5 h-5 w-5 shrink-0" />
               <span><span className="block text-xs font-bold">{c.label}</span><span className={cn('block text-[10px]', simParams.climateProfile === c.id ? 'text-slate-300' : 'text-slate-500')}>{c.desc}</span></span>
             </button>
           ))}
@@ -171,10 +169,10 @@ export function LeverMatrix() {
           {LEVERS.map(l => {
             const on = allOn(l.key);
             return (
-              <button key={l.key} onClick={() => applyLeverToAll({ [l.key]: !on } as Partial<LeverConfig>, l.key === 'parasitoids' ? 'all' : 'cherry')}
-                className={cn('flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[11px] font-semibold transition-all', on ? 'border-transparent text-white shadow' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300')}
+              <button key={l.key} onClick={() => applyLeverToAll({ [l.key]: !on } as Partial<LeverConfig>, l.key === 'parasitoids' ? 'all' : 'cherry')} data-on={on}
+                className={cn('ico-host press flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[11px] font-semibold transition-all', on ? 'border-transparent text-white shadow' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300')}
                 style={on ? { backgroundColor: l.color } : undefined}>
-                <l.icon className="h-3.5 w-3.5" /> {l.short}
+                <l.icon className="h-4 w-4" /> {l.short}
               </button>
             );
           })}
@@ -189,10 +187,10 @@ export function LeverMatrix() {
           <div key={p.id} className={cn('overflow-hidden rounded-xl border bg-white transition-shadow', p.id === selectedParcelId ? 'border-slate-900 shadow-md' : 'border-slate-200')}>
             <button className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-50" onClick={() => { setOpen(expanded ? null : p.id); selectParcel(p.id); }}>
               <span className={cn('h-4 w-4 rounded', p.type === 'forest' && 'hatch')} style={{ backgroundColor: p.color }} />
-              {p.type === 'forest' ? <Trees className="h-3.5 w-3.5 text-slate-400" /> : <Cherry className="h-3.5 w-3.5 text-slate-400" />}
+              {p.type === 'forest' ? <IconForest className="h-3.5 w-3.5 text-slate-400" /> : <IconCherry className="h-3.5 w-3.5 text-slate-400" />}
               <span className="flex-1 truncate text-xs font-bold text-slate-800">{p.name}</span>
               <div className="flex gap-0.5">
-                {LEVERS.map(l => lv[l.key] ? <span key={l.key} title={l.short} className="flex h-5 w-5 items-center justify-center rounded-md text-white" style={{ backgroundColor: l.color }}><l.icon className="h-3 w-3" /></span> : null)}
+                {LEVERS.map(l => lv[l.key] ? <span key={l.key} title={l.short} className="flex h-5 w-5 items-center justify-center rounded-md text-white" style={{ backgroundColor: l.color }}><l.icon className="h-3.5 w-3.5" /></span> : null)}
               </div>
               <span className="text-[10px] text-slate-400">{n}/{TARGET_COUNT[p.type] ?? 0}</span>
               <ChevronDown className={cn('h-4 w-4 text-slate-400 transition-transform', expanded && 'rotate-180')} />
@@ -202,14 +200,14 @@ export function LeverMatrix() {
                 const allowed = l.targets(p.type);
                 const on = !!lv[l.key];
                 return (
-                  <button key={l.key} disabled={!allowed} onClick={() => updateLever(p.id, { [l.key]: !on } as Partial<LeverConfig>)}
+                  <button key={l.key} disabled={!allowed} onClick={() => updateLever(p.id, { [l.key]: !on } as Partial<LeverConfig>)} data-on={on}
                     title={allowed ? `${l.label} — ${l.note}` : 'Non applicable à ce type de parcelle'}
-                    className={cn('flex flex-col items-center gap-1 rounded-lg border py-1.5 text-[10px] font-semibold transition-all',
+                    className={cn('ico-host press flex flex-col items-center gap-1 rounded-lg border py-1.5 text-[10px] font-semibold transition-all',
                       !allowed && 'cursor-not-allowed border-transparent bg-slate-50 text-slate-300',
                       allowed && !on && 'border-slate-200 text-slate-600 hover:border-slate-400',
-                      on && 'border-transparent text-white shadow')}
+                      on && 'lever-pop border-transparent text-white shadow')}
                     style={on ? { backgroundColor: l.color } : undefined}>
-                    <l.icon className="h-4 w-4" /> {l.short}
+                    <l.icon className="h-5 w-5" /> {l.short}
                   </button>
                 );
               })}

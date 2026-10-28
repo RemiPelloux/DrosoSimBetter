@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import { Toaster, GlobalDropZone } from "@/components/AppHeader";
+import { MotionProvider } from "@/components/Motion";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,9 +33,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {children}
-        <Toaster />
-        <GlobalDropZone />
+        <MotionProvider>
+          {children}
+          <Toaster />
+          <GlobalDropZone />
+        </MotionProvider>
       </body>
     </html>
   );

@@ -11,9 +11,10 @@ import { Logo, FlyingFlies, Drosophila, CherryArt, LifeCycleDiagram } from '@/co
 import { CountUp, Grain, Contours, IsoOrchard, HillsBackdrop, RingGauge, Sparkline } from '@/components/art';
 import { cn } from '@/lib/utils';
 import {
-  ArrowRight, PlayCircle, Paintbrush, SlidersHorizontal, BarChart3, Share2, ShieldCheck, Tractor, Users, FlaskConical,
-  Check, X, Sparkles, MousePointerClick, Timer, Trophy, Bug, Leaf, BookOpen, Zap,
+  ArrowRight, PlayCircle, Paintbrush, SlidersHorizontal, BarChart3, Share2, Tractor, Users, FlaskConical,
+  Check, X, Sparkles, MousePointerClick, Timer, Trophy, Leaf, BookOpen, Zap,
 } from 'lucide-react';
+import { IconNet, IconFly } from '@/components/icons';
 
 // --------------------------------------------------------------- Démo réelle (calculée par le moteur)
 const DEMO_GRID = buildTemplate('mixed');
@@ -170,9 +171,9 @@ export default function LandingPage() {
             <SectionTitle n="03" kicker="Sous le capot" title={<>Un modèle biologique <em className="text-emerald-700">transparent</em></>} align="left" />
             <p className="mt-6 text-lg leading-relaxed text-slate-600">Chaque jour, sur 400 cases : température, ponte selon la maturité des fruits, développement en degrés-jours, mortalité, dispersion vers les vergers attractifs. Chaque stratégie est simulée intégralement.</p>
             <div className="mt-8 grid grid-cols-2 gap-3">
-              {[['Équations documentées', BookOpen], ['Effet de chaque levier', ShieldCheck], ['Économie détaillée', Leaf], ['Limites assumées', Bug]].map(([t, I]) => {
+              {[['Équations documentées', BookOpen], ['Effet de chaque levier', IconNet], ['Économie détaillée', Leaf], ['Limites assumées', IconFly]].map(([t, I]) => {
                 const Icon = I as React.ElementType;
-                return <div key={t as string} className="flex items-center gap-3 rounded-2xl border border-white bg-white p-4 shadow-sm"><Icon className="h-5 w-5 text-emerald-700" /><span className="text-sm font-semibold text-slate-700">{t as string}</span></div>;
+                return <div key={t as string} className="ico-host flex items-center gap-3 rounded-2xl border border-white bg-white p-4 shadow-sm transition-shadow hover:shadow-md"><Icon className="h-5 w-5 text-emerald-700" /><span className="text-sm font-semibold text-slate-700">{t as string}</span></div>;
               })}
             </div>
             <div className="mt-8 flex items-center gap-5">

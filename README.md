@@ -178,7 +178,7 @@ DrosoSimBetter/
 │   │   ├── docs-assets/        médias de docs/assets servis à l'application
 │   │   ├── not-found.tsx       page 404
 │   │   └── icon.svg            icône d'onglet
-│   ├── components/             éditeur, leviers, graphiques, illustrations SVG
+│   ├── components/             éditeur, leviers, graphiques, icônes et illustrations SVG maison
 │   └── lib/
 │       ├── engine.ts           ⭐ modèle biologique, leviers, économie (pur, sans dépendance)
 │       ├── backend.ts          contrat et backends (local, HTTP, WebSocket)

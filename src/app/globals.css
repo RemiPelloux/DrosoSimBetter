@@ -165,3 +165,64 @@ html { scroll-behavior: smooth; }
 .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.25rem 0.125rem; }
 .katex-display > .katex { white-space: nowrap; }
 .prose .katex { font-size: 1.02em; }
+
+/* ---------------------------------------------------------------- Icônes animées
+   Les parties `ico-*` s'animent au survol d'un `.ico-host`, ou en continu
+   (plus lentement) quand il porte data-on="true". */
+@keyframes ico-flutter { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-14deg); } }
+@keyframes ico-flutter-r { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(14deg); } }
+@keyframes ico-fall { 0% { transform: translateY(-2px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(3px); opacity: 0; } }
+@keyframes ico-rain { 0% { transform: translateY(-1.5px); opacity: .2; } 50% { opacity: 1; } 100% { transform: translateY(2px); opacity: .2; } }
+@keyframes ico-spin { to { transform: rotate(60deg); } }
+@keyframes ico-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.75); } }
+@keyframes ico-heat { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(1.5px); } }
+@keyframes ico-draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+@keyframes ico-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+
+.ico-wing, .ico-wing-r { transform-origin: 12px 11px; transform-box: view-box; }
+.ico-rays, .ico-spin, .ico-spark { transform-origin: center; transform-box: fill-box; }
+.ico-rays { transform-origin: 10px 10px; transform-box: view-box; }
+.ico-spin { transform-origin: 12px 12px; transform-box: view-box; }
+.ico-drop, .ico-drop-2, .ico-rain, .ico-dots, .ico-heat { transform-box: view-box; }
+
+.ico-host:hover .ico-wing { animation: ico-flutter .35s ease-in-out infinite; }
+.ico-host:hover .ico-wing-r { animation: ico-flutter-r .35s ease-in-out infinite; }
+.ico-host:hover .ico-dots { animation: ico-fall .9s ease-in infinite; }
+.ico-host:hover .ico-drop { animation: ico-bounce .8s ease-in-out infinite; }
+.ico-host:hover .ico-drop-2 { animation: ico-bounce .8s ease-in-out .2s infinite; }
+.ico-host:hover .ico-rain { animation: ico-rain .9s linear infinite; }
+.ico-host:hover .ico-spin { animation: ico-spin 1.2s ease-in-out infinite alternate; }
+.ico-host:hover .ico-rays { animation: ico-pulse 1.2s ease-in-out infinite; }
+.ico-host:hover .ico-spark { animation: ico-pulse .8s ease-in-out infinite; }
+.ico-host:hover .ico-heat { animation: ico-heat 1s ease-in-out infinite; }
+.ico-host:hover .ico-mesh { stroke-dasharray: 24; animation: ico-draw .6s ease-out forwards; }
+
+.ico-host[data-on="true"] .ico-wing { animation: ico-flutter 1.6s ease-in-out infinite; }
+.ico-host[data-on="true"] .ico-wing-r { animation: ico-flutter-r 1.6s ease-in-out infinite; }
+.ico-host[data-on="true"] .ico-dots { animation: ico-fall 2.4s ease-in infinite; }
+.ico-host[data-on="true"] .ico-spark { animation: ico-pulse 2.2s ease-in-out infinite; }
+.ico-host[data-on="true"] .ico-rain { animation: ico-rain 2.2s linear infinite; }
+.ico-host[data-on="true"] .ico-heat { animation: ico-heat 2.4s ease-in-out infinite; }
+.ico-host[data-on="true"] .ico-rays { animation: ico-pulse 3s ease-in-out infinite; }
+
+/* ---------------------------------------------------------------- Micro-interactions */
+@keyframes cell-pop { 0% { transform: scale(.55); opacity: .4; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+.cell-pop { animation: cell-pop .28s cubic-bezier(.2,.9,.3,1.2) both; }
+
+@keyframes lever-pop { 0% { transform: scale(.92); } 60% { transform: scale(1.06); } 100% { transform: scale(1); } }
+.lever-pop { animation: lever-pop .32s cubic-bezier(.2,.9,.3,1.2); }
+
+@keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+.shimmer { background: linear-gradient(100deg, #f1f5f9 40%, #ffffff 50%, #f1f5f9 60%); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
+
+@keyframes live-ring { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(2.2); opacity: 0; } }
+.live-ring::before { content: ''; position: absolute; inset: 0; border-radius: 9999px; background: currentColor; animation: live-ring 1.1s ease-out infinite; }
+
+.press { transition: transform .12s ease, box-shadow .12s ease; }
+.press:active { transform: scale(.97); }
+
+/* ---------------------------------------------------------------- Mouvement réduit */
+@media (prefers-reduced-motion: reduce) {
+  .ico-host:hover [class*="ico-"], .ico-host[data-on="true"] [class*="ico-"], .cell-pop, .lever-pop, .shimmer, .live-ring::before { animation: none !important; }
+  html { scroll-behavior: auto; }
+}

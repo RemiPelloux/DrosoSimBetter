@@ -7,8 +7,9 @@ import { TYPE_LABEL, isCherry } from '@/lib/engine';
 import { cn } from '@/lib/utils';
 import {
   Paintbrush, Square, PaintBucket, Eraser, MousePointer2, Trash2, Scissors, Pencil, Check,
-  LayoutTemplate, Trees, Cherry, X, Maximize2, Minimize2,
+  LayoutTemplate, X, Maximize2, Minimize2,
 } from 'lucide-react';
+import { IconForest, IconCherry } from '@/components/icons';
 
 const NC = GRID_N * GRID_N;
 export const CELL_BG: Record<CellType, string> = {
@@ -246,7 +247,7 @@ export function GridEditor({ compact = false, variant = 'panel' }: { compact?: b
     ].filter(Boolean).join(',') : '';
     const selected = pid && pid === selectedParcelId;
     return (
-      <div key={i} className={cn('relative border-[0.5px] border-white/40', type === 'forest' && 'hatch')}
+      <div key={`${i}-${type}`} className={cn('relative border-[0.5px] border-white/40', type === 'forest' && 'hatch', type !== 'neutral' && 'cell-pop')}
         style={{ backgroundColor: CELL_BG[type], boxShadow: b || undefined, opacity: preview?.has(i) ? 0.85 : 1 }}>
         {selected && <div className="pointer-events-none absolute inset-0 bg-white/30" />}
       </div>
@@ -314,10 +315,12 @@ export function GridEditor({ compact = false, variant = 'panel' }: { compact?: b
           {PALETTE.map((t, i) => {
             const on = activeCellType === t && activeTool !== 'eraser';
             return (
-              <button key={t} onClick={() => setActiveCellType(t)} title={`${TYPE_LABEL[t]} (touche ${i + 1})`}
-                className={cn('flex min-w-0 flex-col items-center gap-1 rounded-xl border px-1.5 py-1.5 text-center transition-all @xl:flex-row @xl:gap-2 @xl:px-2 @xl:text-left',
+              <button key={t} onClick={() => setActiveCellType(t)} title={`${TYPE_LABEL[t]} (touche ${i + 1})`} data-on={on}
+                className={cn('ico-host press flex min-w-0 flex-col items-center gap-1 rounded-xl border px-1.5 py-1.5 text-center transition-all @xl:flex-row @xl:gap-2 @xl:px-2 @xl:text-left',
                   on ? 'border-slate-900 bg-white shadow-md ring-1 ring-slate-900' : 'border-slate-200 bg-white hover:border-slate-300')}>
-                <span className={cn('h-6 w-6 shrink-0 rounded-lg shadow-inner', t === 'forest' && 'hatch')} style={{ backgroundColor: CELL_BG[t] }} />
+                <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white shadow-inner', t === 'forest' && 'hatch')} style={{ backgroundColor: CELL_BG[t] }}>
+                  {t === 'forest' ? <IconForest className="h-4.5 w-4.5" /> : <IconCherry className="h-4.5 w-4.5" />}
+                </span>
                 <span className="min-w-0 leading-tight">
                   <span className="block text-[11px] font-bold text-slate-800">{SHORT[t]}</span>
                   <span className="hidden text-[9px] text-slate-400 @3xl:block">touche {i + 1}</span>
@@ -422,7 +425,7 @@ export function GridEditor({ compact = false, variant = 'panel' }: { compact?: b
               <li key={p.id} onClick={() => selectParcel(p.id === selectedParcelId ? null : p.id)}
                 className={cn('flex cursor-pointer items-center gap-2 px-3 py-2 text-xs hover:bg-slate-50', p.id === selectedParcelId && 'bg-slate-100')}>
                 <span className={cn('h-4 w-4 shrink-0 rounded', p.type === 'forest' && 'hatch')} style={{ backgroundColor: p.color }} />
-                {p.type === 'forest' ? <Trees className="h-3.5 w-3.5 text-slate-400" /> : isCherry(p.type) ? <Cherry className="h-3.5 w-3.5 text-slate-400" /> : null}
+                {p.type === 'forest' ? <IconForest className="h-3.5 w-3.5 text-slate-400" /> : isCherry(p.type) ? <IconCherry className="h-3.5 w-3.5 text-slate-400" /> : null}
                 {editing === p.id ? (
                   <form className="flex flex-1 gap-1" onSubmit={e => { e.preventDefault(); renameParcel(p.id, draft.trim() || p.name); setEditing(null); }} onClick={e => e.stopPropagation()}>
                     <input autoFocus value={draft} onChange={e => setDraft(e.target.value)} onBlur={() => { renameParcel(p.id, draft.trim() || p.name); setEditing(null); }}

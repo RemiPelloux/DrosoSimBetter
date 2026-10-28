@@ -11,7 +11,8 @@ icon: cpu
 |---|---|---|
 | Framework | **Next.js 16** (App Router) + **React 19** + **TypeScript** | pages statiques, hébergeables sur n'importe quel CDN ou VPS |
 | Style | **Tailwind CSS 4**, palette haute luminosité (Slate-50 / blanc / Slate-200) | lisible en plein soleil sur tablette |
-| Animations | **Framer Motion** | transitions, onboarding, illustrations SVG animées |
+| Animations | **Framer Motion** + animations CSS | transitions de page, onboarding, illustrations ; micro-interactions (icônes animées au survol, cellules qui « claquent », badge temps réel) en CSS pur ; tout respecte `prefers-reduced-motion` |
+| Icônes | **Lucide** (interface) + **SVG maison** (`icons.tsx` : leviers, climats, parcelles, drosophile) | vocabulaire agronomique reconnaissable à petite taille |
 | État | **Zustand** + **zundo** (historique) + `persist` (localStorage) | annuler/rétablir natif, sauvegarde automatique |
 | Graphiques | **Recharts 3** | `ReferenceArea` / `ReferenceLine` pour la phénologie et les interventions |
 | Calcul | **TypeScript pur dans un Web Worker** | aucun serveur, calcul hors du fil d'affichage |
@@ -29,6 +30,7 @@ src/
 │   ├── simulator/page.tsx   Cockpit : éditeur | paramètres & leviers | aperçu temps réel
 │   ├── results/page.tsx     Résultats, comparateur, Fiche Conseil
 │   ├── */layout.tsx         Métadonnées (titre, description) des pages client
+│   ├── template.tsx         Transition d'opacité entre les pages
 │   ├── not-found.tsx        Page 404
 │   └── docs/                Cette documentation
 ├── components/
@@ -36,6 +38,8 @@ src/
 │   ├── ControlPanel.tsx     Paramètres, stratégies, matrice des leviers, coûts
 │   ├── charts.tsx           Tous les graphiques
 │   ├── AppHeader.tsx        En-tête, raccourcis globaux, toasts, partage
+│   ├── icons.tsx            Icônes SVG sur mesure (leviers, climats, parcelles), animables en CSS
+│   ├── Motion.tsx           Fournisseur framer-motion (respect de « réduire les animations »)
 │   └── illustrations.tsx    SVG sur mesure (drosophile, logo, schémas)
 ├── lib/
 │   ├── engine.ts            Moteur de simulation (pur, sans dépendance)

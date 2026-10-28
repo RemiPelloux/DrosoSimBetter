@@ -94,7 +94,7 @@ export const PHENOLOGY = {
    mort += trapK[c];                             // dans la section « adultes » de la boucle
    ```
 3. **Coût** : ajoutez le poste dans le calcul des coûts (`costs.bio += …`) et, si besoin, un champ dans `LeverCosts` et `defaultCosts`.
-4. **Interface** : ajoutez une entrée dans `LEVERS` (`ControlPanel.tsx`) — libellé, icône Lucide, couleur, parcelles cibles — puis un bloc de réglages dans `AdvancedLevers`.
+4. **Interface** : ajoutez une entrée dans `LEVERS` (`ControlPanel.tsx`) — libellé, icône (une icône sur mesure dans `src/components/icons.tsx`, ou une icône Lucide), couleur, parcelles cibles — puis un bloc de réglages dans `AdvancedLevers`. Pour une icône animée au survol, marquez la partie mobile d'une classe `ico-*` et ajoutez la règle correspondante dans `globals.css`.
 5. **Événements** (optionnel) : poussez `{ day, type: 'trap', parcelId }` dans `events` et ajoutez une entrée dans `EVENT_META` (`charts.tsx`).
 6. **Compatibilité** : les anciens projets restent lisibles, car `loadProject` complète les leviers manquants avec `defaultLeverConfig`.
 

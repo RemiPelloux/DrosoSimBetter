@@ -16,9 +16,10 @@ import { dayLabel, isCherry, PHENOLOGY, type StrategyResult } from '@/lib/engine
 import { cn } from '@/lib/utils';
 import { projectPayload } from '@/lib/projectIO';
 import { BuzzingFly, FlyingFlies } from '@/components/illustrations';
+import { IconFly, IconClimate, IconHarvest } from '@/components/icons';
 import { CountUp, RingGauge, Sparkline, Chapter, Grain, Contours, IsoOrchard, HillsBackdrop } from '@/components/art';
 import {
-  ArrowLeft, Trophy, TrendingUp, Euro, Bug, Leaf, Activity, BarChart3, Layers, Columns3, Map as MapIcon,
+  ArrowLeft, Trophy, TrendingUp, Euro, Activity, BarChart3, Layers, Columns3, Map as MapIcon,
   Lightbulb, AlertTriangle, CheckCircle2, Info, ChevronDown, Printer, Settings2, Clock, Users, Radar as RadarIcon,
 } from 'lucide-react';
 
@@ -122,7 +123,7 @@ export default function ResultsPage() {
             chips={[
               { icon: MapIcon, label: `${parcels.length} parcelles · ${cherryHa.toFixed(2)} ha de cerisiers` },
               { icon: Clock, label: `${simParams.durationYears} an${simParams.durationYears > 1 ? 's' : ''} · départ ${simParams.startSeason === 'spring' ? 'printemps' : 'automne'}` },
-              { icon: Leaf, label: out?.climate ? `${climateLabel} · ${Math.round(out.climate.tMin)} → ${Math.round(out.climate.tMax)} °C · ${out.climate.degreeDays.toLocaleString('fr-FR')} DJ` : climateLabel },
+              { icon: IconClimate, label: out?.climate ? `${climateLabel} · ${Math.round(out.climate.tMin)} → ${Math.round(out.climate.tMax)} °C · ${out.climate.degreeDays.toLocaleString('fr-FR')} DJ` : climateLabel },
               { icon: Euro, label: `${economics.yieldTPerHa} t/ha · ${economics.pricePerKg.toFixed(2)} €/kg` },
             ]}
             settingsOpen={showSettings} onToggleSettings={() => setShowSettings(v => !v)} />
@@ -196,7 +197,7 @@ export default function ResultsPage() {
                 <Card className="lg:col-span-3" title="Carte de pression maximale" icon={MapIcon} subtitle="Pic de femelles/ha par case, échelle commune au témoin — les drosophiles survolent les zones les plus touchées" right={<FocusPicker results={shown.results} value={focus?.id} onChange={setFocusId} color={color} />}>
                   {focus && <HeatPanel focus={focus} base={base} grid={grid} />}
                 </Card>
-                <Card className="lg:col-span-2" title="Fruits sains au fil du temps" icon={Leaf} subtitle="% de fruits indemnes (cerisiers), pondéré par la surface">
+                <Card className="lg:col-span-2" title="Fruits sains au fil du temps" icon={IconHarvest} subtitle="% de fruits indemnes (cerisiers), pondéré par la surface">
                   <HealthyFruitChart out={shown} parcels={parcels} strategies={strategies} height={340} />
                   <StrategyLegend results={shown.results} strategies={strategies} />
                 </Card>
@@ -391,7 +392,7 @@ function StrategyCard({ r, base, color, best, delay, onFocus, focused }: { r: St
       </div>
       <div className="relative mt-4 rounded-2xl bg-slate-50 p-3">
         <div className="mb-1 flex items-center justify-between text-[10px] font-semibold text-slate-500">
-          <span className="flex items-center gap-1"><Bug className="h-3 w-3" /> Pression sur cerisiers</span>
+          <span className="flex items-center gap-1"><IconFly className="h-3.5 w-3.5" /> Pression sur cerisiers</span>
           <span>pic <b className="text-slate-800">{(r.peakDensity / 1000).toFixed(1)}k</b>/ha{!r.isBaseline && <b className={cn('ml-1', peakDelta < 0 ? 'text-emerald-600' : 'text-rose-600')}>{peakDelta > 0 ? '+' : ''}{peakDelta} %</b>}</span>
         </div>
         <Sparkline data={spark} color={c} width={300} height={38} className="w-full" />
@@ -620,8 +621,8 @@ function PhenologyNote() {
 // ======================================================================= Atoms
 function Card({ title, icon: Icon, subtitle, children, right, className }: { title: string; icon: React.ElementType; subtitle?: string; children: React.ReactNode; right?: React.ReactNode; className?: string }) {
   return (
-    <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-      className={cn('break-inside-avoid rounded-[28px] border border-white bg-white/90 p-5 shadow-[0_30px_60px_-35px_rgba(2,44,34,.3)] backdrop-blur md:p-6', className)}>
+    <motion.section initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-40px' }} transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      className={cn('ico-host break-inside-avoid rounded-[28px] border border-white bg-white/90 p-5 shadow-[0_30px_60px_-35px_rgba(2,44,34,.3)] backdrop-blur transition-shadow duration-300 hover:shadow-[0_34px_70px_-30px_rgba(2,44,34,.4)] md:p-6', className)}>
       <div className="mb-4 flex items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-800 ring-1 ring-emerald-200/60"><Icon className="h-5 w-5" /></span>
         <div className="min-w-0 flex-1"><h3 className="font-display text-lg font-semibold text-slate-900">{title}</h3>{subtitle && <p className="text-[11px] text-slate-500">{subtitle}</p>}</div>
@@ -642,5 +643,14 @@ function FocusPicker({ results, value, onChange, color }: { results: StrategyRes
   );
 }
 function SkeletonResults() {
-  return <div className="grid gap-4 md:grid-cols-3"><div className="col-span-full flex items-center justify-center gap-3 py-6 text-sm font-semibold text-slate-500"><BuzzingFly size={40} /> Simulation des stratégies en cours…</div>{Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-44 animate-pulse rounded-2xl bg-slate-200/60" />)}</div>;
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-center gap-3 py-6 text-sm font-semibold text-slate-500"><BuzzingFly size={40} /> Simulation en cours…</div>
+      <div className="grid gap-4 md:grid-cols-3">
+        {[0, 1, 2].map(k => <div key={k} className="shimmer h-28 rounded-2xl" style={{ animationDelay: `${k * 0.15}s` }} />)}
+        <div className="shimmer col-span-full h-72 rounded-3xl" />
+        <div className="shimmer h-56 rounded-3xl md:col-span-2" /><div className="shimmer h-56 rounded-3xl" />
+      </div>
+    </div>
+  );
 }

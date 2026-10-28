@@ -254,7 +254,7 @@ export function LiveBadge({ running, ms, source }: { running: boolean; ms?: numb
   const label = fallback ? 'Secours local' : remote ? source!.label.split(' · ')[0] : 'Temps réel';
   return (
     <span title={source?.error ?? source?.label} className={cn('flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold', tone)}>
-      {running ? <Loader2 className="h-3 w-3 animate-spin" /> : <span className={cn('h-1.5 w-1.5 animate-pulse rounded-full', dot)} />}
+      {running ? <Loader2 className="h-3 w-3 animate-spin" /> : <span className={cn('relative h-1.5 w-1.5 rounded-full', dot, !fallback && 'live-ring text-emerald-500', remote && 'text-sky-500')} />}
       {running ? 'Calcul…' : `${label}${ms !== undefined ? ` · ${ms.toFixed(0)} ms` : ''}`}
     </span>
   );

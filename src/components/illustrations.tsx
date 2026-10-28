@@ -130,8 +130,8 @@ export function LifeCycleDiagram() {
       <ArrowDefs id={id} />
       <motion.circle cx="300" cy="170" r="118" fill="none" stroke="#CBD5E1" strokeWidth={2} strokeDasharray="6 8"
         animate={{ strokeDashoffset: [0, -56] }} transition={{ duration: 3, repeat: Infinity, ease: 'linear' }} />
-      <text x="300" y="160" textAnchor="middle" fontSize="15" fontWeight="800" fill="#0F172A">Compartiment L</text>
-      <text x="300" y="180" textAnchor="middle" fontSize="11" fill="#475569">(œufs + larves + pupes)</text>
+      <text x="300" y="160" textAnchor="middle" fontSize="15" fontWeight="800" fill="#0F172A">Immatures S₁ → S₂ → S₃</text>
+      <text x="300" y="180" textAnchor="middle" fontSize="11" fill="#475569">trois sous-stades (délai gamma)</text>
       <text x="300" y="198" textAnchor="middle" fontSize="11" fill="#475569">≈ 210 degrés-jours &gt; 8 °C</text>
       {[[360, 70, 500, 140], [500, 210, 360, 280], [240, 280, 100, 210], [100, 135, 240, 65]].map(([x1, y1, x2, y2], i) => (
         <path key={i} d={`M${x1} ${y1} Q ${(x1 + x2) / 2 + (i % 2 ? -30 : 30)} ${(y1 + y2) / 2 + (i < 2 ? 0 : 0)} ${x2} ${y2}`} stroke="#475569" strokeWidth={2} fill="none" markerEnd={`url(#${id})`} />
@@ -144,8 +144,8 @@ export function LifeCycleDiagram() {
           <text x={s.x - 34} y={s.y + 14} fontSize="10" fill="#475569">{s.s}</text>
         </motion.g>
       ))}
-      <text x="440" y="92" fontSize="11" fill="#B45309" fontWeight="700">ponte × survie larvaire</text>
-      <text x="40" y="92" fontSize="11" fill="#15803D" fontWeight="700">émergence = L × dév(T)</text>
+      <text x="440" y="92" fontSize="11" fill="#B45309" fontWeight="700">ponte × survie des œufs</text>
+      <text x="40" y="92" fontSize="11" fill="#15803D" fontWeight="700">émergence = 3·δ(T) × S₃</text>
     </svg>
   );
 }
@@ -154,12 +154,12 @@ export function LifeCycleDiagram() {
 export function DailyStepDiagram() {
   const id = useId().replace(/:/g, '');
   const steps = [
-    { t: '1. Climat', d: 'T(j), aptitude ponte, développement', c: '#DBEAFE' },
+    { t: '1. Climat', d: 'tables : T(j), ponte, développement, froid, chaleur', c: '#DBEAFE' },
     { t: '2. Traitements', d: 'déclenchement calendaire / seuil, DAR', c: '#FEF3C7' },
-    { t: '3. Attractivité', d: 'fruits, résidus, filets actifs', c: '#FCE7F3' },
-    { t: '4. Dynamique locale', d: 'ponte → dégâts → L → émergence → mortalité', c: '#DCFCE7' },
-    { t: '5. Dispersion', d: '8 voisines, pondérée, refoulement filets', c: '#EDE9FE' },
-    { t: '6. Bilan du jour', d: 'pics, récolte, séries (tous les 3 j)', c: '#F1F5F9' },
+    { t: '3. Ressource & capacité', d: 'fruits, résidus, K du jour, filets actifs', c: '#FCE7F3' },
+    { t: '4. Dynamique locale', d: 'ponte → dégâts → S₁ S₂ S₃ → émergence → mortalité', c: '#DCFCE7' },
+    { t: '5. Dispersion', d: '8 voisines, pondérée, filets symétriques', c: '#EDE9FE' },
+    { t: '6. Bilan du jour', d: 'récolte, pics, séries (tous les 3 j)', c: '#F1F5F9' },
   ];
   return (
     <svg viewBox="-44 0 764 236" className="w-full" role="img" aria-label="Pas de temps journalier">

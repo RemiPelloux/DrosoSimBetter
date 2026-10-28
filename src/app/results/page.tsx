@@ -101,7 +101,7 @@ export default function ResultsPage() {
   return (
     <div className="min-h-screen bg-[#F6F4EE]">
       <AppHeader title="Résultats & comparateur" subtitle="Bilan technico-économique multi-stratégies" step={2} onCsv={exportCsv}
-        right={<button onClick={() => window.print()} className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white hover:bg-slate-800"><Printer className="h-4 w-4" /> <span className="hidden sm:inline">Fiche Conseil PDF</span></button>} />
+        right={<button onClick={() => window.print()} aria-label="Fiche Conseil PDF" className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white hover:bg-slate-800"><Printer className="h-4 w-4" /> <span className="hidden sm:inline">Fiche Conseil PDF</span></button>} />
 
       {/* En-tête impression */}
       <div className="hidden px-6 pt-4 print:block">
@@ -205,7 +205,7 @@ export default function ResultsPage() {
 
             <Chapter id="leviers" n="06" kicker="Décision" title={<>Leviers, coûts & <em className="text-emerald-700">conseils</em></>}>
               <div className="space-y-6">
-                <Card title="Leviers retenus par stratégie" icon={Layers} subtitle="Récapitulatif complet — rien n'est tronqué">
+                <Card title="Leviers retenus par stratégie" icon={Layers} subtitle="Leviers actifs par parcelle et récolte saine correspondante">
                   <LeverTable strategies={strategies.filter(s => shown.results.some(r => r.id === s.id))} parcels={parcels} results={shown.results} haPerCell={haPerCell} />
                 </Card>
                 <div className="grid gap-6 lg:grid-cols-2">
@@ -288,13 +288,15 @@ function Hero({ best, net, base, count, color, grid, chips, running, ms, source,
           </motion.h2>
           {best && (
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="mt-5 max-w-xl text-lg leading-relaxed text-emerald-50/80">
-              préserve <b className="text-white">{best.globalHarvest.toFixed(0)} %</b> de la récolte, soit <b className="text-white">{gainPts >= 0 ? '+' : ''}{gainPts.toFixed(0)} points</b> de plus que sans protection, pour un bilan net de <b className={net >= 0 ? 'text-emerald-300' : 'text-rose-300'}>{fmtEur(net)}</b> par an.
+              {best.totalCost === 0 && Math.abs(gainPts) < 0.5
+                ? <>n&apos;active encore aucun levier : ses résultats sont ceux du témoin, <b className="text-white">{best.globalHarvest.toFixed(0)} %</b> de récolte saine. Ajoutez un filet, une prophylaxie ou un traitement depuis l&apos;éditeur.</>
+                : <>préserve <b className="text-white">{best.globalHarvest.toFixed(0)} %</b> de la récolte, soit <b className="text-white">{gainPts >= 0 ? '+' : '−'}{Math.abs(gainPts).toFixed(0)} point{Math.abs(gainPts) >= 2 ? 's' : ''}</b> {gainPts >= 0 ? 'de plus' : 'de moins'} que sans protection, pour un bilan net de <b className={net >= 0 ? 'text-emerald-300' : 'text-rose-300'}>{fmtEur(net)}</b> par an.</>}
             </motion.p>
           )}
           <div className="mt-8 grid grid-cols-3 gap-3">
             <HeroStat label="Récolte préservée" delay={0.4}><CountUp value={best?.globalHarvest ?? base.globalHarvest} suffix=" %" /><span className="mt-1 block text-[11px] font-medium text-emerald-100/60">témoin {base.globalHarvest.toFixed(0)} %</span></HeroStat>
             <HeroStat label="Bilan net / an" delay={0.5}><CountUp value={best ? net : 0} suffix=" €" signed /><span className="mt-1 block text-[11px] font-medium text-emerald-100/60">coût {fmtEur(best?.totalCost ?? 0)}</span></HeroStat>
-            <HeroStat label="Pic de femelles" delay={0.6}><CountUp value={(best ?? base).peakDensity / 1000} decimals={1} suffix=" k" /><span className="mt-1 block text-[11px] font-medium text-emerald-100/60">témoin {(base.peakDensity / 1000).toFixed(0)} k /ha</span></HeroStat>
+            <HeroStat label="Pic de femelles" delay={0.6}><CountUp value={(best ?? base).peakDensity / 1000} decimals={1} suffix="k" /><span className="mt-1 block text-[11px] font-medium text-emerald-100/60">témoin {(base.peakDensity / 1000).toFixed(0)} k /ha</span></HeroStat>
           </div>
           <div className="mt-6 flex flex-wrap gap-2">
             {chips.map(c => <span key={c.label} className="flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-emerald-50/80 ring-1 ring-white/10"><c.icon className="h-3.5 w-3.5 text-emerald-300" />{c.label}</span>)}
@@ -326,7 +328,7 @@ function HeroStat({ label, children, delay }: { label: string; children: React.R
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
       className="rounded-2xl bg-white/[.07] p-4 ring-1 ring-white/15 backdrop-blur-md">
       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-200/70">{label}</p>
-      <p className="font-display mt-1 text-3xl font-semibold md:text-4xl">{children}</p>
+      <p className="font-display mt-1 text-2xl font-semibold sm:text-3xl md:text-4xl">{children}</p>
     </motion.div>
   );
 }
@@ -527,6 +529,7 @@ function CostTable({ results, base, color }: { results: StrategyResult[]; base: 
 }
 
 function Recommendations({ results, base, parcels }: { results: StrategyResult[]; base: StrategyResult; parcels: import('@/lib/store').Parcel[] }) {
+  const strategies = useGridStore(s => s.strategies);
   const recs: { tone: 'good' | 'warn' | 'info'; text: React.ReactNode }[] = [];
   const strats = results.filter(r => !r.isBaseline);
   const cherry = parcels.filter(p => isCherry(p.type));
@@ -539,7 +542,11 @@ function Recommendations({ results, base, parcels }: { results: StrategyResult[]
   if (strats.length) {
     const byNet = [...strats].sort((a, b) => (b.revenue - b.totalCost) - (a.revenue - a.totalCost));
     const top = byNet[0];
-    recs.push({ tone: 'good', text: <><b>{top.name}</b> offre le meilleur bilan économique ({fmtEur(top.revenue - base.revenue - top.totalCost)} / an vs témoin).</> });
+    const topNet = top.revenue - base.revenue - top.totalCost;
+    const hasLevers = parcels.some(p => { const l = strategies.find(s => s.id === top.id)?.leversByParcel[p.id]; return l && (l.netting || l.prophylaxis || l.treatment || l.parasitoids || l.tis); });
+    if (!hasLevers) recs.push({ tone: 'info', text: <><b>{top.name}</b> n&apos;active aucun levier : ses résultats sont identiques au témoin. Ajoutez un filet, une prophylaxie ou un traitement depuis l&apos;éditeur.</> });
+    else if (strats.length === 1) recs.push({ tone: topNet >= 0 ? 'good' : 'warn', text: <><b>{top.name}</b> dégage un bilan de {fmtEur(topNet)} / an par rapport au témoin{topNet >= 0 ? '' : ' : les leviers coûtent plus que la récolte sauvée'}.</> });
+    else recs.push({ tone: 'good', text: <><b>{top.name}</b> offre le meilleur bilan économique ({fmtEur(topNet)} / an vs témoin).</> });
     const green = [...strats].sort((a, b) => a.ift - b.ift || b.globalHarvest - a.globalHarvest)[0];
     if (green.id !== top.id && green.ift < top.ift) recs.push({ tone: 'info', text: <>Pour réduire l&apos;IFT, <b>{green.name}</b> (IFT {green.ift.toFixed(1)}) préserve {green.globalHarvest.toFixed(0)} % de la récolte.</> });
     strats.forEach(s => { if (s.revenue - base.revenue - s.totalCost < 0) recs.push({ tone: 'warn', text: <><b>{s.name}</b> coûte plus qu&apos;elle ne rapporte ({fmtEur(s.revenue - base.revenue - s.totalCost)} / an) : ciblez les leviers sur les parcelles les plus exposées.</> }); });
@@ -578,23 +585,24 @@ function Hypotheses() {
       {open && (
         <div className="grid gap-4 border-t border-slate-100 p-4 text-xs leading-relaxed text-slate-600 md:grid-cols-2">
           <div>
-            <p className="mb-1 font-bold text-slate-800">Dynamique (pas journalier, grille 20×20)</p>
+            <p className="mb-1 font-bold text-slate-800">Dynamique (modèle v2, pas journalier, grille 20×20)</p>
             <ul className="list-disc space-y-1 pl-4">
-              <li>Compartiments par case : immatures L (œuf→pupe, ~210 degrés-jours au-dessus de 8 °C) et femelles adultes A.</li>
-              <li>Ponte = 6 œufs/j × aptitude thermique (optimum 20-26 °C, arrêt &gt; 33 °C) × ressource fruitière × densité-dépendance.</li>
-              <li>Mortalité adulte 2,8 %/j, majorée par le froid (selon profil d&apos;hiver), la chaleur &gt; 30 °C et les zones non cultivées.</li>
-              <li>Dispersion : 12 %/j (3 % par temps froid) vers les 8 voisines, pondérée par l&apos;attractivité (cerisiers en véraison ×3).</li>
+              <li>Par case : femelles adultes A et trois sous-stades immatures (œufs → larves → pupes, ~210 degrés-jours au-dessus de 8 °C, délai de développement réaliste).</li>
+              <li>Ponte = 8 œufs/j × aptitude thermique (optimum 20-26 °C, arrêt &gt; 33 °C) × ressource fruitière × densité-dépendance, avec une capacité d&apos;accueil proportionnelle aux fruits disponibles le jour même.</li>
+              <li>Mortalité adulte 2,8 %/j, majorée progressivement par le froid (&lt; 6 °C, selon le profil d&apos;hiver, ÷ 2 à l&apos;abri des espaces naturels), la chaleur (&gt; 28 °C), le surpeuplement et les zones non cultivées.</li>
+              <li>Climat : sinusoïde annuelle + variabilité synoptique déterministe (± 3 °C) ; véraison pilotée par les degrés-jours cumulés, donc décalée selon le profil.</li>
+              <li>Dispersion : 12 %/j (3 % par temps froid) vers les 8 voisines, pondérée par l&apos;attractivité (cerisiers en véraison ×3) ; les filets freinent l&apos;entrée et la sortie.</li>
               <li>Fruits sains : décroissance exponentielle avec les œufs pondus pendant la fenêtre véraison → récolte.</li>
             </ul>
           </div>
           <div>
             <p className="mb-1 font-bold text-slate-800">Leviers</p>
             <ul className="list-disc space-y-1 pl-4">
-              <li><b>Filet</b> : accès aux fruits −95 % (monorang) / −85 % (monoparcelle) et immigration −67/−60 %.</li>
-              <li><b>Traitement</b> : mortalité +32 %/j pendant 7 j (chimie) ou +16 %/j pendant 4 j (biocontrôle), rémanence −40 % si printemps humide, DAR 3 j.</li>
-              <li><b>Prophylaxie</b> : fruits résiduels = 1 − taux de récolte ; ×0,25 si destruction des fruits au sol.</li>
-              <li><b>Parasitoïdes</b> : survie larvaire jusqu&apos;à −38 % (×1,4 en dose renforcée), installation progressive sur 3 ans.</li>
-              <li><b>TIS</b> : fécondité fertile ÷ (1 + 0,12 × ratio) de mars à septembre.</li>
+              <li><b>Filet</b> : accès aux fruits −95 % (monorang) / −85 % (monoparcelle), mouvements à travers le filet −67/−60 % dans les deux sens.</li>
+              <li><b>Traitement</b> : mortalité adulte +32 %/j pendant 7 j (chimie) ou +16 %/j pendant 4 j (biocontrôle), rémanence −40 % si printemps humide, DAR 3 j ; coût et IFT calculés sur les passages réellement déclenchés.</li>
+              <li><b>Prophylaxie</b> : fruits résiduels = 1 − taux de récolte ; ×0,25 si destruction des fruits au sol ; réduit la capacité d&apos;accueil post-récolte.</li>
+              <li><b>Parasitoïdes</b> : jusqu&apos;à 38 % des larves parasitées (×1,4 en dose renforcée, plafond 75 %), installation progressive sur 3 ans.</li>
+              <li><b>TIS</b> : fécondité fertile ÷ (1 + 0,12 × ratio) de fin mars à mi-septembre.</li>
               <li>Économie : CA = surface × rendement × prix × % fruits sains. Coûts par défaut/ha/an (filet 2 600-3 800 €, MO 16 €/h incluant pose des filets et passages, phyto 85-150 €/passage, parasitoïdes 300-520 €, TIS 950 €) — tous modifiables dans « Hypothèses économiques ».</li>
             </ul>
             <p className="mt-2 italic text-slate-400">Modèle pédagogique d&apos;aide à la décision, non calibré sur données terrain : comparer les ordres de grandeur, pas les valeurs absolues.</p>

@@ -13,11 +13,11 @@ import {
 export type LeverKey = 'prophylaxis' | 'netting' | 'treatment' | 'parasitoids' | 'tis';
 
 export const LEVERS: { key: LeverKey; label: string; short: string; icon: React.ElementType; color: string; targets: (t: CellType) => boolean; cost: string; note: string }[] = [
-  { key: 'prophylaxis', label: 'Prophylaxie / Hygiène', short: 'Prophylaxie', icon: Sprout, color: '#0D9488', targets: isCherry, cost: 'Matériel faible · MO très élevée', note: 'Supprime la ressource résiduelle post-récolte' },
-  { key: 'netting', label: 'Filet insect-proof', short: 'Filet', icon: ShieldCheck, color: '#2563EB', targets: isCherry, cost: 'Investissement €€€ · IFT 0', note: 'Bloque l’accès aux fruits et l’immigration' },
-  { key: 'treatment', label: 'Protection phyto / Biocontrôle', short: 'Traitement', icon: SprayCan, color: '#D97706', targets: isCherry, cost: 'Coût €€ · IFT élevé (chimie) · DAR', note: 'Mortalité des adultes pendant la rémanence' },
-  { key: 'parasitoids', label: 'Lâchers de parasitoïdes', short: 'Parasitoïdes', icon: Bug, color: '#7C3AED', targets: t => t === 'forest' || isCherry(t), cost: 'Effet de fond · montée en puissance A2-A3', note: 'Ganaspis / Trichopria : survie larvaire réduite' },
-  { key: 'tis', label: 'TIS (mâles stériles)', short: 'TIS', icon: Dna, color: '#DB2777', targets: isCherry, cost: 'Technologie de pointe · zéro résidu', note: 'Réduit la fécondité fertile de mars à sept.' },
+  { key: 'prophylaxis', label: 'Prophylaxie / Hygiène', short: 'Prophylaxie', icon: Sprout, color: '#0D9488', targets: isCherry, cost: 'Matériel faible · MO très élevée', note: 'Réduit les fruits résiduels et la population qui hiverne' },
+  { key: 'netting', label: 'Filet insect-proof', short: 'Filet', icon: ShieldCheck, color: '#2563EB', targets: isCherry, cost: 'Investissement €€€ · IFT 0', note: 'Bloque l’accès aux fruits et filtre les mouvements' },
+  { key: 'treatment', label: 'Protection phyto / Biocontrôle', short: 'Traitement', icon: SprayCan, color: '#D97706', targets: isCherry, cost: 'Coût €€ · IFT élevé (chimie) · DAR', note: 'Mortalité des adultes pendant la rémanence · coût sur passages réels' },
+  { key: 'parasitoids', label: 'Lâchers de parasitoïdes', short: 'Parasitoïdes', icon: Bug, color: '#7C3AED', targets: t => t === 'forest' || isCherry(t), cost: 'Effet de fond · montée en puissance A2-A3', note: 'Ganaspis / Trichopria : larves parasitées, effet cumulatif' },
+  { key: 'tis', label: 'TIS (mâles stériles)', short: 'TIS', icon: Dna, color: '#DB2777', targets: isCherry, cost: 'Technologie de pointe · zéro résidu', note: 'Réduit les pontes fertiles de fin mars à mi-septembre' },
 ];
 
 /** Index précalculés : levier par clé et nombre de leviers applicables par type de case. */
@@ -26,10 +26,10 @@ const TARGET_COUNT: Partial<Record<CellType, number>> = {};
 for (const t of ['forest', 'early-cherry', 'season-cherry', 'late-cherry'] as CellType[]) TARGET_COUNT[t] = LEVERS.filter(l => l.targets(t)).length;
 
 const CLIMATES = [
-  { id: 'mild-winter', label: 'Hiver doux', icon: Sun, desc: 'Forte survie hivernale' },
+  { id: 'mild-winter', label: 'Hiver doux', icon: Sun, desc: 'Survie hivernale élevée, pression précoce' },
   { id: 'harsh-winter', label: 'Hiver rigoureux', icon: Snowflake, desc: 'Mortalité hivernale élevée' },
-  { id: 'humid-spring', label: 'Printemps humide', icon: CloudRain, desc: 'Ponte ↑, lessivage des traitements' },
-  { id: 'dry-summer', label: 'Été caniculaire', icon: Thermometer, desc: 'Ponte ralentie > 30 °C' },
+  { id: 'humid-spring', label: 'Printemps humide', icon: CloudRain, desc: 'Ponte ↑, véraison retardée, traitements lessivés' },
+  { id: 'dry-summer', label: 'Été caniculaire', icon: Thermometer, desc: 'Ponte freinée et surmortalité > 28 °C' },
 ] as const;
 
 export function SimulationSettings() {

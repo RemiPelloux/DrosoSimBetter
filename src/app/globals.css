@@ -160,3 +160,8 @@
 
 .font-display { font-family: var(--font-display), Georgia, serif; font-variation-settings: 'SOFT' 50; }
 html { scroll-behavior: smooth; }
+
+/* Formules KaTeX : défilement horizontal des grandes équations sur petits écrans, jamais de débordement de page */
+.katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.25rem 0.125rem; }
+.katex-display > .katex { white-space: nowrap; }
+.prose .katex { font-size: 1.02em; }

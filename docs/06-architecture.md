@@ -28,6 +28,8 @@ src/
 │   ├── page.tsx             Accueil (hero animé, démo, personas)
 │   ├── simulator/page.tsx   Cockpit : éditeur | paramètres & leviers | aperçu temps réel
 │   ├── results/page.tsx     Résultats, comparateur, Fiche Conseil
+│   ├── */layout.tsx         Métadonnées (titre, description) des pages client
+│   ├── not-found.tsx        Page 404
 │   └── docs/                Cette documentation
 ├── components/
 │   ├── GridEditor.tsx       Éditeur 20×20 (outils, menu, plein écran, mini-cartes)

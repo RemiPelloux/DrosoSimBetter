@@ -405,7 +405,7 @@ export function GridEditor({ compact = false, variant = 'panel' }: { compact?: b
             <span className={cn('h-2.5 w-2.5 rounded-sm', hoverInfo.type === 'forest' && 'hatch')} style={{ backgroundColor: CELL_BG[hoverInfo.type] }} />
             {hoverInfo.parcel ? <b className="truncate text-slate-700">{hoverInfo.parcel.name} · {(hoverInfo.parcel.area * haPerCell).toFixed(2)} ha</b> : 'Zone neutre'}
           </span>
-        ) : <span className="truncate"><b>Glisser</b> pour peindre · <b>clic droit</b> pour gommer</span>}
+        ) : <span className="truncate"><b>Glisser</b> pour peindre · <span className="hidden sm:inline"><b>clic droit</b> pour gommer</span><span className="sm:hidden">outil <b>Gomme</b> pour effacer</span></span>}
         <span className="shrink-0 rounded-md bg-white px-1.5 py-0.5 font-mono text-[10px] text-slate-600 ring-1 ring-slate-200">{(paintedCells * haPerCell).toFixed(2)} ha</span>
       </div>
 

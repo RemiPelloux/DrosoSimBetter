@@ -176,6 +176,7 @@ DrosoSimBetter/
 │   │   ├── results/            résultats, comparateur, Fiche Conseil
 │   │   ├── docs/               documentation intégrée (/docs)
 │   │   ├── docs-assets/        médias de docs/assets servis à l'application
+│   │   ├── not-found.tsx       page 404
 │   │   └── icon.svg            icône d'onglet
 │   ├── components/             éditeur, leviers, graphiques, illustrations SVG
 │   └── lib/

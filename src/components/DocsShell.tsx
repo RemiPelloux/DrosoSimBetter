@@ -74,11 +74,11 @@ export function DocsShell({ doc, nav }: { doc: Doc; nav: DocMeta[] }) {
     <div className="min-h-screen bg-slate-50">
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-3 px-4">
-          <button className="rounded-lg p-2 hover:bg-slate-100 lg:hidden" onClick={() => setOpen(true)}><Menu className="h-5 w-5" /></button>
-          <Link href="/" className="flex items-center gap-2"><Logo size={34} /><span className="text-base font-extrabold tracking-tight text-slate-900">DrosoSim<span className="text-emerald-700">Next</span></span></Link>
-          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800">Documentation</span>
+          <button className="rounded-lg p-2 hover:bg-slate-100 lg:hidden" onClick={() => setOpen(true)} aria-label="Ouvrir le sommaire" title="Sommaire"><Menu className="h-5 w-5" /></button>
+          <Link href="/" className="flex min-w-0 items-center gap-2"><Logo size={34} /><span className="truncate text-base font-extrabold tracking-tight text-slate-900">DrosoSim<span className="text-emerald-700">Next</span></span></Link>
+          <span className="hidden rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 sm:inline">Documentation</span>
           <div className="ml-auto flex items-center gap-2">
-            <Link href="/simulator" className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white hover:bg-slate-800">Ouvrir le simulateur <ArrowUpRight className="h-3.5 w-3.5" /></Link>
+            <Link href="/simulator" className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white hover:bg-slate-800"><span className="hidden sm:inline">Ouvrir le </span>simulateur <ArrowUpRight className="h-3.5 w-3.5" /></Link>
           </div>
         </div>
       </header>
@@ -86,7 +86,7 @@ export function DocsShell({ doc, nav }: { doc: Doc; nav: DocMeta[] }) {
       {open && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 lg:hidden" onClick={() => setOpen(false)}>
           <motion.div initial={{ x: -300 }} animate={{ x: 0 }} className="h-full w-72 bg-slate-50 p-4" onClick={e => e.stopPropagation()}>
-            <button className="mb-3 rounded-lg p-1.5 hover:bg-slate-200" onClick={() => setOpen(false)}><X className="h-5 w-5" /></button>
+            <button className="mb-3 rounded-lg p-1.5 hover:bg-slate-200" onClick={() => setOpen(false)} aria-label="Fermer le sommaire"><X className="h-5 w-5" /></button>
             {Sidebar}
           </motion.div>
         </div>

@@ -64,7 +64,7 @@ function ExportMenu() {
   const [open, setOpen] = useState(false);
   return (
     <div className="relative" onMouseLeave={() => setOpen(false)}>
-      <HBtn outline onClick={() => setOpen(v => !v)} title="Exporter le projet (Ctrl+S = JSON)"><Download className="h-4 w-4" /><span className="hidden lg:inline">Exporter</span><ChevronDown className="h-3 w-3" /></HBtn>
+      <HBtn outline onClick={() => setOpen(v => !v)} title="Exporter le projet (Ctrl+S = JSON)" label="Exporter"><Download className="h-4 w-4" /><span className="hidden lg:inline">Exporter</span><ChevronDown className="h-3 w-3" /></HBtn>
       <AnimatePresence>
         {open && (
           <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
@@ -102,7 +102,7 @@ function ImportMenu() {
   return (
     <div className="relative" onMouseLeave={() => setOpen(false)}>
       <input ref={fileRef} type="file" className="hidden" onChange={async e => { const f = e.target.files?.[0]; if (f) await runImport(f); e.target.value = ''; }} />
-      <HBtn outline onClick={() => setOpen(v => !v)} title="Importer un projet (tout format exporté)"><Upload className="h-4 w-4" /><span className="hidden lg:inline">Importer</span><ChevronDown className="h-3 w-3" /></HBtn>
+      <HBtn outline onClick={() => setOpen(v => !v)} title="Importer un projet (tout format exporté)" label="Importer"><Upload className="h-4 w-4" /><span className="hidden lg:inline">Importer</span><ChevronDown className="h-3 w-3" /></HBtn>
       <AnimatePresence>
         {open && (
           <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="absolute right-0 top-full z-50 w-72 pt-1">
@@ -185,11 +185,11 @@ export function AppHeader({ title, subtitle, step, right, onCsv }: { title: stri
   return (
     <header className="no-print sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-[1920px] items-center gap-3 px-4">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="Accueil DrosoSim Next">
           <Logo size={36} />
           <span className="hidden text-base font-extrabold tracking-tight text-slate-900 xl:block">DrosoSim<span className="text-emerald-700">Next</span></span>
         </Link>
-        <div className="h-8 w-px bg-slate-200" />
+        <div className="hidden h-8 w-px bg-slate-200 sm:block" />
         <div className="hidden min-w-0 sm:block">
           <h1 className="truncate text-sm font-bold text-slate-900">{title}</h1>
           {subtitle && <p className="truncate text-[11px] text-slate-500">{subtitle}</p>}
@@ -200,19 +200,19 @@ export function AppHeader({ title, subtitle, step, right, onCsv }: { title: stri
             <Link href="/results" className={cn('rounded-full px-3 py-1 text-[11px] font-bold', step === 2 ? 'bg-white text-slate-900 shadow' : 'text-slate-500 hover:text-slate-800')}>2 · Résultats</Link>
           </div>
         )}
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex min-w-0 items-center gap-1.5">
           <div className="flex items-center rounded-lg bg-slate-100 p-0.5">
-            <HBtn onClick={undo} disabled={!canUndo} title="Annuler (Ctrl+Z)"><Undo2 className="h-4 w-4" /><span className="hidden 2xl:inline">Annuler</span></HBtn>
-            <HBtn onClick={redo} disabled={!canRedo} title="Rétablir (Ctrl+Y)"><Redo2 className="h-4 w-4" /><span className="hidden 2xl:inline">Rétablir</span></HBtn>
+            <HBtn onClick={undo} disabled={!canUndo} title="Annuler (Ctrl+Z)" label="Annuler"><Undo2 className="h-4 w-4" /><span className="hidden 2xl:inline">Annuler</span></HBtn>
+            <HBtn onClick={redo} disabled={!canRedo} title="Rétablir (Ctrl+Y)" label="Rétablir"><Redo2 className="h-4 w-4" /><span className="hidden 2xl:inline">Rétablir</span></HBtn>
           </div>
-          <Link href="/docs/presentation" title="Documentation" className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><BookOpen className="h-4 w-4" /><span className="hidden 2xl:inline">Docs</span></Link>
+          <Link href="/docs/presentation" title="Documentation" aria-label="Documentation" className="hidden items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:flex"><BookOpen className="h-4 w-4" /><span className="hidden 2xl:inline">Docs</span></Link>
           <ImportMenu />
           <ExportMenu />
-          {onCsv && <HBtn outline onClick={onCsv} title="Exporter les séries temporelles en CSV (projet inclus, rechargeable)"><FileSpreadsheet className="h-4 w-4" /><span className="hidden lg:inline">Séries CSV</span></HBtn>}
-          <HBtn outline onClick={share} title="Copier un lien de partage"><Share2 className="h-4 w-4" /><span className="hidden lg:inline">Partager</span></HBtn>
-          <HBtn outline onClick={() => { if (confirm('Réinitialiser tout le projet ?')) { useGridStore.getState().resetProject(); toast('Projet réinitialisé'); } }} title="Réinitialiser le projet"><RotateCcw className="h-4 w-4" /><span className="hidden 2xl:inline">Réinitialiser</span></HBtn>
+          {onCsv && <HBtn outline hideBelowSm onClick={onCsv} title="Exporter les séries temporelles en CSV (projet inclus, rechargeable)" label="Séries CSV"><FileSpreadsheet className="h-4 w-4" /><span className="hidden lg:inline">Séries CSV</span></HBtn>}
+          <HBtn outline onClick={share} title="Copier un lien de partage" label="Partager"><Share2 className="h-4 w-4" /><span className="hidden lg:inline">Partager</span></HBtn>
+          <HBtn outline hideBelowSm onClick={() => { if (confirm('Réinitialiser tout le projet ?')) { useGridStore.getState().resetProject(); toast('Projet réinitialisé'); } }} title="Réinitialiser le projet" label="Réinitialiser"><RotateCcw className="h-4 w-4" /><span className="hidden 2xl:inline">Réinitialiser</span></HBtn>
           {right ?? (
-            <Link href="/results?print=1" className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white hover:bg-slate-800">
+            <Link href="/results?print=1" aria-label="Export PDF" className="flex shrink-0 items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white hover:bg-slate-800">
               <FileText className="h-4 w-4" /> <span className="hidden sm:inline">Export PDF</span>
             </Link>
           )}
@@ -222,10 +222,11 @@ export function AppHeader({ title, subtitle, step, right, onCsv }: { title: stri
   );
 }
 
-function HBtn({ children, onClick, disabled, title, outline }: { children: React.ReactNode; onClick: () => void; disabled?: boolean; title: string; outline?: boolean }) {
+function HBtn({ children, onClick, disabled, title, label, outline, hideBelowSm }: { children: React.ReactNode; onClick: () => void; disabled?: boolean; title: string; label?: string; outline?: boolean; hideBelowSm?: boolean }) {
   return (
-    <button onClick={onClick} disabled={disabled} title={title}
-      className={cn('flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-35',
+    <button onClick={onClick} disabled={disabled} title={title} aria-label={label ?? title}
+      className={cn('items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-35',
+        hideBelowSm ? 'hidden sm:flex' : 'flex',
         outline ? 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50' : 'text-slate-700 hover:bg-white')}>
       {children}
     </button>

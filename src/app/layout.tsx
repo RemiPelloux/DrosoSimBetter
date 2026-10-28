@@ -20,8 +20,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DrosoSim Next - Simulateur Agronomique",
-  description: "Plateforme SaaS de simulation et d'aide à la décision agronomique pour la protection intégrée des vergers contre Drosophila suzukii.",
+  title: { default: "DrosoSim Next — Simulateur de protection des vergers contre Drosophila suzukii", template: "%s — DrosoSim Next" },
+  description: "Simulateur pédagogique d'aide à la décision : dessinez votre verger de cerisiers, combinez filets, prophylaxie, traitements, parasitoïdes et TIS, comparez les stratégies au témoin sur 1 à 3 ans (récolte saine, bilan économique, IFT).",
+  applicationName: "DrosoSim Next",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

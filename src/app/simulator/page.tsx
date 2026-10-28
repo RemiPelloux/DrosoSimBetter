@@ -201,7 +201,7 @@ function Onboarding() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
       <motion.div initial={{ scale: 0.92, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl">
-        <button onClick={finish} className="absolute right-4 top-4 z-10 rounded-full p-1.5 text-slate-400 hover:bg-slate-100"><X className="h-4 w-4" /></button>
+        <button onClick={finish} aria-label="Passer la visite guidée" title="Passer" className="absolute right-4 top-4 z-10 rounded-full p-1.5 text-slate-400 hover:bg-slate-100"><X className="h-4 w-4" /></button>
         <div className="relative h-36 overflow-hidden bg-gradient-to-br from-emerald-600 to-emerald-900">
           <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 20% 30%, #fbbf24 0 8px, transparent 9px), radial-gradient(circle at 70% 60%, #f43f5e 0 10px, transparent 11px), radial-gradient(circle at 45% 80%, #fff 0 4px, transparent 5px)' }} />
           <FlyingFlies count={3} />
@@ -221,7 +221,7 @@ function Onboarding() {
             </motion.div>
           </AnimatePresence>
           <div className="mt-6 flex items-center justify-between">
-            <div className="flex gap-1.5">{STEPS.map((_, k) => <button key={k} onClick={() => setI(k)} className={cn('h-2 rounded-full transition-all', k === i ? 'w-6 bg-emerald-700' : 'w-2 bg-slate-200')} />)}</div>
+            <div className="flex gap-1.5">{STEPS.map((_, k) => <button key={k} onClick={() => setI(k)} aria-label={`Étape ${k + 1}`} aria-current={k === i ? 'step' : undefined} className={cn('h-2 rounded-full transition-all', k === i ? 'w-6 bg-emerald-700' : 'w-2 bg-slate-200')} />)}</div>
             <div className="flex gap-2">
               <button onClick={finish} className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100">Passer</button>
               <button onClick={() => (i < STEPS.length - 1 ? setI(i + 1) : finish())} className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800">

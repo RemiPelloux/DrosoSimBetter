@@ -9,7 +9,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const d = getDocs().find(x => x.slug === slug);
-  return { title: d ? `${d.title} — Documentation DrosoSim Next` : 'Documentation' };
+  return { title: d ? `${d.title} · Documentation` : 'Documentation', description: d ? `Documentation DrosoSim Next, chapitre ${d.order} : ${d.title}.` : undefined };
 }
 
 export default async function DocPage({ params }: { params: Promise<{ slug: string }> }) {

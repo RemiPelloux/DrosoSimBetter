@@ -82,6 +82,7 @@ Cliquez sur **« Voir la démo »** pour charger un verger d'exemple avec trois 
 | `npm run test:e2e` | parcours navigateur (16 vérifications ; serveur démarré automatiquement, build et Chromium requis) |
 | `npm run docs:media` | régénère captures, démo GIF et MP4 de ce README |
 | `npm run backend:node` / `backend:python` | backends d'exemple sur les ports 8787 / 8788 |
+| `bash scripts/fix-node-mac.sh` | (macOS) répare Node.js via nvm : keg Homebrew cassé, `PATH` mort, conda |
 
 Détails : [`scripts/README.md`](scripts/README.md) · configuration d'un backend : copier [`.env.example`](.env.example) en `.env.local`.
 

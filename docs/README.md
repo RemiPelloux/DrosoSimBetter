@@ -14,6 +14,7 @@ La documentation est aussi consultable **dans l'application**, sur `/docs`, avec
 | 8 | [Analyse du DrosoSim institutionnel](08-drososim-institutionnel.md) | chercheurs | modèle de drososim.fr (code client et publications) |
 | 9 | [Brancher son backend](09-backend.md) | développeurs, chercheurs | contrat d'échange, HTTP, WebSocket, exemples |
 | 10 | [Modifier le code](10-developpement.md) | développeurs | carte du code, recettes, conventions, déploiement |
+| 11 | [Spécification du moteur](11-modele-mathematique.md) | chercheurs, développeurs | toutes les équations, constantes, unités et sorties, pour réimplémenter ou calibrer |
 
 ## Organisation du dossier
 
@@ -24,4 +25,4 @@ docs/
 └── assets/            médias du README et des chapitres (régénérés par npm run docs:media)
 ```
 
-Pour ajouter un chapitre : créez `11-mon-sujet.md` avec un en-tête `title` / `icon`. Il apparaît automatiquement dans la navigation, sur la page `/docs/mon-sujet`.
+Pour ajouter un chapitre : créez `12-mon-sujet.md` avec un en-tête `title` / `icon`. Il apparaît automatiquement dans la navigation, sur la page `/docs/mon-sujet`.

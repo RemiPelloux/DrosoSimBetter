@@ -218,6 +218,7 @@ Disponible dans l'application sur **`/docs`** (formules KaTeX, schémas animés)
 | 8 | [Analyse du DrosoSim institutionnel](docs/08-drososim-institutionnel.md) | modèle de drososim.fr |
 | 9 | [Brancher son backend](docs/09-backend.md) | contrat, HTTP, WebSocket, exemples |
 | 10 | [Modifier le code](docs/10-developpement.md) | recettes, conventions, déploiement |
+| 11 | [Spécification du moteur](docs/11-modele-mathematique.md) | toutes les équations et constantes |
 
 ## ☁️ Déployer
 

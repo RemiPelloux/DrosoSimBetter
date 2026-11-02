@@ -3,7 +3,7 @@
 // Tous les formats exportés embarquent le projet complet et sont rechargeables.
 // =============================================================================
 import LZString from 'lz-string';
-import { useGridStore, GRID_N } from './store';
+import { gridStore, GRID_N } from './store';
 import type { CellType } from './engine';
 
 export type ExportFormat = 'json' | 'drososim' | 'csv' | 'png' | 'txt';
@@ -14,7 +14,7 @@ const NC = GRID_N * GRID_N;
 const stamp = () => new Date().toISOString().slice(0, 10);
 
 /** Projet complet (JSON) */
-export const projectJSON = () => useGridStore.getState().saveProject();
+export const projectJSON = () => gridStore.getState().saveProject();
 /** Projet compressé, sûr pour URL et fichiers texte */
 export const projectPayload = () => LZString.compressToEncodedURIComponent(projectJSON());
 
@@ -34,7 +34,7 @@ export async function exportProject(format: ExportFormat, extraCsv?: string) {
     case 'drososim':
       return download(`${name}.drososim`, `${MARKER}:${projectPayload()}`, 'text/plain');
     case 'txt': {
-      const link = `${window.location.origin}/simulator?sim=${useGridStore.getState().toShareString()}`;
+      const link = `${window.location.origin}/simulator?sim=${gridStore.getState().toShareString()}`;
       return download(`${name}-lien.txt`, `Lien de partage DrosoSim Next\n${link}\n\n${MARKER}:${projectPayload()}\n`, 'text/plain');
     }
     case 'csv':
@@ -46,7 +46,7 @@ export async function exportProject(format: ExportFormat, extraCsv?: string) {
 
 /** CSV lisible (grille + stratégies) + ligne de projet embarqué pour rechargement */
 export function projectCSV(extra?: string) {
-  const s = useGridStore.getState();
+  const s = gridStore.getState();
   const code: Record<CellType, string> = { neutral: '.', forest: 'F', 'early-cherry': 'P', 'season-cherry': 'S', 'late-cherry': 'T' };
   const rows: string[] = [];
   rows.push('DrosoSim Next — projet exporté le ' + new Date().toLocaleString('fr-FR'));
@@ -69,7 +69,7 @@ export function projectCSV(extra?: string) {
 
 /** Image PNG du verger avec le projet embarqué dans un bloc tEXt */
 export async function projectPNG(): Promise<Blob> {
-  const s = useGridStore.getState();
+  const s = gridStore.getState();
   const COL: Record<CellType, string> = { neutral: '#F1F5F9', forest: '#15803D', 'early-cherry': '#D97706', 'season-cherry': '#E11D48', 'late-cherry': '#991B1B' };
   const cell = 28, pad = 32, head = 70, foot = 46;
   const W = GRID_N * cell + pad * 2, H = GRID_N * cell + pad * 2 + head + foot;
@@ -106,7 +106,7 @@ export async function importFile(file: File): Promise<ImportResult> {
 export function importText(text: string, sourceName = 'texte'): ImportResult {
   const t = text.trim();
   const ext = sourceName.split('.').pop()?.toLowerCase() ?? '';
-  const store = useGridStore.getState();
+  const store = gridStore.getState();
 
   // 1. JSON (projet complet, ancien format court, ou objet partiel)
   if (t.startsWith('{') || t.startsWith('[')) {
@@ -142,7 +142,7 @@ export function importText(text: string, sourceName = 'texte'): ImportResult {
 function fromPayload(payload: string, format: string): ImportResult {
   try {
     const json = LZString.decompressFromEncodedURIComponent(payload);
-    if (json && useGridStore.getState().loadProject(json)) return ok(format);
+    if (json && gridStore.getState().loadProject(json)) return ok(format);
   } catch { /* ignore */ }
   return { ok: false, format, message: `Le contenu ${format} est illisible ou corrompu.` };
 }
@@ -176,7 +176,7 @@ function parseGridTable(t: string): CellType[] | null {
 function applyGrid(raw: unknown[], format: string): ImportResult {
   const cells = raw.map(toType);
   if (cells.length !== NC || !cells.every(Boolean)) return { ok: false, format, message: 'Grille invalide (400 cases attendues).' };
-  useGridStore.getState().setGrid(cells as CellType[]);
+  gridStore.getState().setGrid(cells as CellType[]);
   return { ok: true, format, message: `Grille chargée depuis ${format} (stratégies conservées)` };
 }
 

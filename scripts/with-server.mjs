@@ -6,11 +6,11 @@ import fs from 'node:fs';
 
 const script = process.argv[2];
 if (!script) { console.error('Usage : node scripts/with-server.mjs <script>'); process.exit(2); }
-if (!fs.existsSync('.next/BUILD_ID')) { console.error('✗ Aucun build trouvé : lancez d’abord « npm run build ».'); process.exit(2); }
+if (!fs.existsSync('dist/browser/index.html')) { console.error('✗ Aucun build trouvé : lancez d’abord « npm run build ».'); process.exit(2); }
 
 const port = process.env.PORT ?? '3100';
 const url = `http://localhost:${port}`;
-const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', port], { stdio: ['ignore', 'pipe', 'pipe'] });
+const server = spawn(process.execPath, ['scripts/serve.mjs'], { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, PORT: port } });
 let log = '';
 server.stdout.on('data', d => (log += d)); server.stderr.on('data', d => (log += d));
 const stop = () => { if (!server.killed) server.kill('SIGTERM'); };

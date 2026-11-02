@@ -1,0 +1,56 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "cli": { "packageManager": "npm", "analytics": false },
+  "newProjectRoot": "projects",
+  "projects": {
+    "drososim": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "ds",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "src/main.ts",
+            "outputPath": "dist",
+            "index": "src/index.html",
+            "tsConfig": "tsconfig.app.json",
+            "webWorkerTsConfig": "tsconfig.worker.json",
+            "styles": ["src/styles.css"],
+            "loader": { ".md": "text" },
+            "allowedCommonJsDependencies": ["lz-string", "extend"],
+            "define": {
+              "SIM_BACKEND": "'local'",
+              "SIM_BACKEND_URL": "''"
+            },
+            "assets": [
+              { "glob": "**/*", "input": "public" },
+              { "glob": "**/*.{svg,png,jpg,gif,mp4}", "input": "docs/assets", "output": "docs-assets" }
+            ]
+          },
+          "configurations": {
+            "production": {
+              "outputHashing": "all",
+              "budgets": [
+                { "type": "initial", "maximumWarning": "1.5MB", "maximumError": "3MB" }
+              ]
+            },
+            "development": { "optimization": false, "extractLicenses": false, "sourceMap": true }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": { "port": 3000 },
+          "configurations": {
+            "production": { "buildTarget": "drososim:build:production" },
+            "development": { "buildTarget": "drososim:build:development" }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    }
+  }
+}

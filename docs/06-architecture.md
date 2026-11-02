@@ -9,15 +9,15 @@ icon: cpu
 
 | Couche | Choix | Raison |
 |---|---|---|
-| Framework | **Next.js 16** (App Router) + **React 19** + **TypeScript** | pages statiques, hébergeables sur n'importe quel CDN ou VPS |
+| Framework | **Angular 22** (composants autonomes, signaux, sans zone.js) + **TypeScript** | application statique, hébergeable sur n'importe quel CDN ou VPS |
 | Style | **Tailwind CSS 4**, palette haute luminosité (Slate-50 / blanc / Slate-200) | lisible en plein soleil sur tablette |
-| Animations | **Framer Motion** + animations CSS | transitions de page, onboarding, illustrations ; micro-interactions (icônes animées au survol, cellules qui « claquent », badge temps réel) en CSS pur ; tout respecte `prefers-reduced-motion` |
-| Icônes | **Lucide** (interface) + **SVG maison** (`icons.tsx` : leviers, climats, parcelles, drosophile) | vocabulaire agronomique reconnaissable à petite taille |
-| État | **Zustand** + **zundo** (historique) + `persist` (localStorage) | annuler/rétablir natif, sauvegarde automatique |
-| Graphiques | **Recharts 3** | `ReferenceArea` / `ReferenceLine` pour la phénologie et les interventions |
+| Animations | **moteur de Framer Motion** (`framer-motion/dom`, piloté par la directive `motion`) + animations CSS | transitions de page, onboarding, illustrations ; micro-interactions (icônes animées au survol, cellules qui « claquent », badge temps réel) en CSS pur ; tout respecte `prefers-reduced-motion` |
+| Icônes | **Lucide** (interface) + **SVG maison** (`icons.ts` : leviers, climats, parcelles, drosophile) | vocabulaire agronomique reconnaissable à petite taille |
+| État | **Zustand** (vanilla, exposé en signaux Angular) + historique façon **zundo** (`temporal.ts`) + `persist` (localStorage) | annuler/rétablir natif, sauvegarde automatique |
+| Graphiques | **SVG maison** (`chartkit.ts`, échelles et courbes **d3**) au rendu de Recharts | bandes de phénologie, lignes d'interventions, infobulles |
 | Calcul | **TypeScript pur dans un Web Worker** | aucun serveur, calcul hors du fil d'affichage |
 | Partage | **lz-string** + encodage RLE de la grille | liens d'environ 1,5 ko |
-| Documentation | **react-markdown**, **KaTeX** | formules mathématiques rendues dans l'application |
+| Documentation | **unified** (remark / rehype), **KaTeX** | formules mathématiques rendues dans l'application |
 
 L'application est **100 % côté client** : aucune donnée ne quitte le navigateur, sauf si l'utilisateur partage un lien ou un fichier.
 
@@ -26,31 +26,35 @@ L'application est **100 % côté client** : aucune donnée ne quitte le navigate
 ```
 src/
 ├── app/
-│   ├── page.tsx             Accueil (hero animé, démo, personas)
-│   ├── simulator/page.tsx   Cockpit : éditeur | paramètres & leviers | aperçu temps réel
-│   ├── results/page.tsx     Résultats, comparateur, Fiche Conseil
-│   ├── */layout.tsx         Métadonnées (titre, description) des pages client
-│   ├── template.tsx         Transition d'opacité entre les pages
-│   ├── not-found.tsx        Page 404
-│   └── docs/                Cette documentation
+│   ├── app.ts               Racine : transition d'opacité entre les pages, toasts, dépôt de fichiers
+│   ├── app.routes.ts        Routes, titres et descriptions des pages
+│   └── pages/
+│       ├── home.ts          Accueil (hero animé, démo, personas)
+│       ├── simulator.ts     Cockpit : éditeur | paramètres & leviers | aperçu temps réel
+│       ├── results.ts       Résultats, comparateur, Fiche Conseil
+│       ├── docs.ts          Cette documentation
+│       └── not-found.ts     Page 404
 ├── components/
-│   ├── GridEditor.tsx       Éditeur 20×20 (outils, menu, plein écran, mini-cartes)
-│   ├── ControlPanel.tsx     Paramètres, stratégies, matrice des leviers, coûts
-│   ├── charts.tsx           Tous les graphiques
-│   ├── AppHeader.tsx        En-tête, raccourcis globaux, toasts, partage
-│   ├── icons.tsx            Icônes SVG sur mesure (leviers, climats, parcelles), animables en CSS
-│   ├── Motion.tsx           Fournisseur framer-motion (respect de « réduire les animations »)
-│   └── illustrations.tsx    SVG sur mesure (drosophile, logo, schémas)
+│   ├── GridEditor.ts        Éditeur 20×20 (outils, menu, plein écran, mini-cartes)
+│   ├── ControlPanel.ts      Paramètres, stratégies, matrice des leviers, coûts
+│   ├── charts.ts            Tous les graphiques (chartkit.ts : axes, échelles, infobulles SVG)
+│   ├── AppHeader.ts         En-tête, raccourcis globaux, toasts, partage
+│   ├── DocsShell.ts         Mise en page de la documentation
+│   ├── icons.ts             Icônes SVG sur mesure (leviers, climats, parcelles), animables en CSS
+│   ├── art.ts, illustrations.ts  SVG sur mesure (drosophile, logo, verger isométrique, schémas)
+│   └── ui/                  Directives `motion` / `layoutId` (respect de « réduire les animations ») et icônes Lucide
 ├── lib/
 │   ├── engine.ts            Moteur de simulation (pur, sans dépendance)
 │   ├── backend.ts           Contrat + backends (local, HTTP, WebSocket)
 │   ├── projectIO.ts         Import / export universel (JSON, .drososim, PNG, CSV, TXT)
 │   ├── sim.worker.ts        Enveloppe Web Worker
-│   ├── useSimulation.ts     Hook temps réel
+│   ├── simulation.ts        Calcul temps réel (signaux)
+│   ├── temporal.ts          Historique annuler / rétablir (repris de zundo)
+│   ├── markdown.ts          Rendu Markdown + KaTeX de la documentation
 │   └── store.ts             État global, historique, persistance, partage
 docs/                        Sources Markdown de la documentation (+ assets/ : médias du README)
 examples/                    backend-node (référence), backend-python (squelette + FastAPI), requete-exemple.json
-scripts/                     test-engine.ts, test-e2e.mjs, docs-media.mjs, with-server.mjs, lib/harness.mjs
+scripts/                     test-engine.ts, test-e2e.mjs, docs-media.mjs, build.mjs, serve.mjs, with-server.mjs, lib/harness.mjs
 ```
 
 ## 3. Le moteur (`engine.ts`)
@@ -71,7 +75,7 @@ Le modèle (v2) est décrit dans *Le modèle biologique* et spécifié dans *Sp�
 
 ## 4. Calcul temps réel
 
-`useSimulation()` observe la grille, les stratégies, les paramètres et l'économie. À chaque changement :
+`injectSimulation()` observe la grille, les stratégies, les paramètres et l'économie. À chaque changement :
 1. un **délai de 60 ms** (350 ms pour un backend distant) regroupe les modifications rapides (un glissement de curseur, par exemple) ;
 2. la requête est envoyée au **backend configuré** (Web Worker local par défaut, ou serveur HTTP / WebSocket — voir *Brancher son backend*), avec un numéro de séquence ;
 3. seule la **dernière réponse** est prise en compte, pour qu'aucun résultat périmé ne s'affiche ;
@@ -79,7 +83,7 @@ Le modèle (v2) est décrit dans *Le modèle biologique* et spécifié dans *Sp�
 
 ## 5. État et historique
 
-- `zundo` conserve les **50 derniers états** de la partie « métier » (grille, noms, stratégies, paramètres, économie). Les changements d'outil, de mise en page ou de sélection ne polluent pas l'historique.
+- l'historique (`temporal.ts`, repris de zundo) conserve les **50 derniers états** de la partie « métier » (grille, noms, stratégies, paramètres, économie). Les changements d'outil, de mise en page ou de sélection ne polluent pas l'historique.
 - Un **geste de dessin complet** (trait, rectangle, remplissage) produit **une seule entrée** : le trait est d'abord prévisualisé localement, puis enregistré en une fois au relâchement.
 - `persist` enregistre le projet et les préférences d'interface (disposition des colonnes, taille du pinceau, onboarding) sous la clé `drososim-next-v2`.
 
@@ -104,8 +108,8 @@ Les leviers incomplets (anciennes versions) sont complétés avec les valeurs pa
 
 | Commande | Vérifie |
 |---|---|
-| `npm run lint` | ESLint sur tout le dépôt (règles React 19 / Next) |
-| `npm run typecheck` | génération des types de routes (`next typegen`) puis typage strict |
+| `npm run lint` | ESLint (typescript-eslint) sur tout le dépôt |
+| `npm run typecheck` | typage strict du code et des templates Angular (`ngc`), puis du Web Worker |
 | `npm run test:engine` | 25 vérifications : 48 scénarios sans NaN (grilles vide / forêt / mixte × saisons × climats × durées), une récolte par an, bornes, déterminisme, cohérence agronomique, phénologie thermique, coûts et IFT sur les passages réels, bornes de surpeuplement, effets cumulatifs des leviers de fond, budget de temps |
 | `npm run test:e2e` | 16 vérifications dans Chromium : accueil, visite guidée, dessin interpolé, annulation d'un trait entier, gomme, menu d'édition, leviers, lien de partage rejoué dans un navigateur vierge, résultats, mobile, zéro erreur console. Le serveur de production est démarré puis arrêté automatiquement. |
 | `npm run check` | lint + typage + tests du moteur (rapide, sans navigateur) |
@@ -118,4 +122,4 @@ Tous les tests sortent avec le code 1 en cas d'échec ; voir [`scripts/README.md
 ```bash
 npm ci && npm run build && npm start      # serveur Node (port 3000)
 ```
-Les trois pages sont pré-rendues statiquement. Derrière un reverse proxy (Caddy, Nginx), HTTP/3 et la compression Brotli/Zstd suffisent. Aucune base de données n'est nécessaire.
+Le build (`dist/browser`) est une application statique : n'importe quel serveur de fichiers convient, à condition de renvoyer `index.html` pour les routes de l'application (`scripts/serve.mjs` le fait). Derrière un reverse proxy (Caddy, Nginx), HTTP/3 et la compression Brotli/Zstd suffisent. Aucune base de données n'est nécessaire.

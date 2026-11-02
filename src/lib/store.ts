@@ -1,7 +1,8 @@
-import { create, useStore } from 'zustand';
-import { temporal } from 'zundo';
+import { createStore } from 'zustand/vanilla';
+import { signal, computed, type Signal } from '@angular/core';
+import { temporal, type TemporalState } from './temporal';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { useMemo } from 'react';
+import type { StoreApi } from 'zustand/vanilla';
 import LZString from 'lz-string';
 import {
   defaultLeverConfig, defaultCosts, detectParcels, isCherry,
@@ -130,7 +131,7 @@ function unrle(s: string): CellType[] | null {
 
 function sanitizeLevers(l: Partial<LeverConfig>): LeverConfig { return { ...defaultLeverConfig, ...l }; }
 
-export const useGridStore = create<GridState>()(
+export const gridStore = createStore<GridState>()(
   persist(
     temporal(
       (set, get) => ({
@@ -287,20 +288,36 @@ export const useGridStore = create<GridState>()(
       partialize: (s) => ({ grid: s.grid, parcelNames: s.parcelNames, strategies: s.strategies, activeStrategyId: s.activeStrategyId, simParams: s.simParams, economics: s.economics, onboardingDone: s.onboardingDone, layout: s.layout, brushSize: s.brushSize }),
     },
   ),
-);
+) as unknown as StoreApi<GridState> & { temporal: StoreApi<TemporalState<Persisted>> };
 
-// ---------------------------------------------------------------- Hooks dérivés
+// ---------------------------------------------------------------- Signaux Angular
+// Le store zustand (vanilla) reste la source de vérité : chaque changement est
+// recopié dans un signal, ce qui rend toutes les lectures réactives côté Angular.
 const PCOLOR: Record<CellType, string> = { neutral: '#F1F5F9', forest: '#15803D', 'early-cherry': '#D97706', 'late-cherry': '#991B1B', 'season-cherry': '#E11D48' };
 
-export function useParcels(): Parcel[] {
-  const grid = useGridStore(s => s.grid);
-  const names = useGridStore(s => s.parcelNames);
-  return useMemo(() => detectParcels(grid).map(p => ({ ...p, name: names[p.id] || p.name, area: p.cells.length, color: PCOLOR[p.type] })), [grid, names]);
+const stateSig = signal<GridState>(gridStore.getState());
+gridStore.subscribe(s => stateSig.set(s));
+const temporalSig = signal(gridStore.temporal.getState());
+gridStore.temporal.subscribe(s => temporalSig.set(s));
+
+/** Lecture réactive d'une tranche de l'état (équivalent de useGridStore(selector)). */
+export function select<T>(selector: (s: GridState) => T): Signal<T> {
+  return computed(() => selector(stateSig()));
 }
 
-export function useHistory() {
-  const past = useStore(useGridStore.temporal, s => s.pastStates.length);
-  const future = useStore(useGridStore.temporal, s => s.futureStates.length);
-  const { undo, redo } = useGridStore.temporal.getState();
-  return { canUndo: past > 0, canRedo: future > 0, undo: () => undo(), redo: () => redo(), past };
-}
+/** Parcelles détectées, avec nom personnalisé, surface et couleur (équivalent de useParcels). */
+export const parcelsSig: Signal<Parcel[]> = (() => {
+  const grid = select(s => s.grid);
+  const names = select(s => s.parcelNames);
+  const raw = computed(() => detectParcels(grid()));
+  return computed(() => { const n = names(); return raw().map(p => ({ ...p, name: n[p.id] || p.name, area: p.cells.length, color: PCOLOR[p.type] })); });
+})();
+
+/** Historique annuler / rétablir (équivalent de useHistory). */
+export const history = {
+  past: computed(() => temporalSig().pastStates.length),
+  canUndo: computed(() => temporalSig().pastStates.length > 0),
+  canRedo: computed(() => temporalSig().futureStates.length > 0),
+  undo: () => gridStore.temporal.getState().undo(),
+  redo: () => gridStore.temporal.getState().redo(),
+};

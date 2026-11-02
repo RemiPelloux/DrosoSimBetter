@@ -20,7 +20,7 @@ Prérequis : **Node.js ≥ 22** (fichier `.nvmrc` fourni : `nvm use`) et npm. Co
 | `npm run dev` | serveur de développement (rechargement à chaud) |
 | `npm run build` puis `npm start` | build de production puis serveur (port 3000) |
 | `npm run lint` | ESLint sur tout le dépôt |
-| `npm run typecheck` | types de routes (`next typegen`) puis vérification TypeScript |
+| `npm run typecheck` | vérification TypeScript du code et des templates Angular |
 | `npm run check` | lint + typage + tests du moteur : **à lancer avant chaque commit** |
 | `npm run test:engine` | tests du moteur (25 vérifications, sans navigateur) |
 | `npm run test:e2e` | parcours navigateur (16 vérifications ; build et Chromium requis) |
@@ -36,16 +36,16 @@ Détails et variables d'environnement des scripts : [`scripts/README.md`](../scr
 |---|---|---|
 | `src/lib/engine.ts` | modèle biologique, leviers, économie, phénologie, types | changer les équations ou paramètres, ajouter un levier |
 | `src/lib/backend.ts` | contrat et backends (local, HTTP, WS) | brancher un modèle externe |
-| `src/lib/useSimulation.ts` | relance du calcul à chaque modification | changer le délai, filtrer des stratégies |
+| `src/lib/simulation.ts` | relance du calcul à chaque modification | changer le délai, filtrer des stratégies |
 | `src/lib/store.ts` | état global (Zustand), historique, persistance, modèles, démo, partage | ajouter un champ au projet, un modèle de verger |
 | `src/lib/projectIO.ts` | import/export de tous les formats | ajouter un format |
-| `src/components/GridEditor.tsx` | éditeur 20×20 | outils de dessin, palette |
-| `src/components/ControlPanel.tsx` | paramètres, stratégies, matrice des leviers, coûts | interface des leviers |
-| `src/components/charts.tsx` | graphiques Recharts | ajouter ou modifier un graphique |
-| `src/components/art.tsx`, `illustrations.tsx` | SVG artistiques et animations | identité visuelle |
-| `src/app/page.tsx` | landing page | contenu marketing |
-| `src/app/simulator/page.tsx` | cockpit de simulation | disposition, onboarding |
-| `src/app/results/page.tsx` | page de résultats | sections, indicateurs |
+| `src/components/GridEditor.ts` | éditeur 20×20 | outils de dessin, palette |
+| `src/components/ControlPanel.ts` | paramètres, stratégies, matrice des leviers, coûts | interface des leviers |
+| `src/components/charts.ts`, `chartkit.ts` | graphiques SVG (rendu Recharts) | ajouter ou modifier un graphique |
+| `src/components/art.ts`, `illustrations.ts` | SVG artistiques et animations | identité visuelle |
+| `src/app/pages/home.ts` | landing page | contenu marketing |
+| `src/app/pages/simulator.ts` | cockpit de simulation | disposition, onboarding |
+| `src/app/pages/results.ts` | page de résultats | sections, indicateurs |
 | `docs/*.md` | cette documentation (rendue sur `/docs` ; seuls les fichiers numérotés sont des chapitres) | documenter vos changements |
 | `scripts/` | tests et génération des médias | ajouter une vérification |
 | `examples/` | backends d'exemple et requête de test | partir d'un squelette de backend |
@@ -94,30 +94,30 @@ export const PHENOLOGY = {
    mort += trapK[c];                             // dans la section « adultes » de la boucle
    ```
 3. **Coût** : ajoutez le poste dans le calcul des coûts (`costs.bio += …`) et, si besoin, un champ dans `LeverCosts` et `defaultCosts`.
-4. **Interface** : ajoutez une entrée dans `LEVERS` (`ControlPanel.tsx`) — libellé, icône (une icône sur mesure dans `src/components/icons.tsx`, ou une icône Lucide), couleur, parcelles cibles — puis un bloc de réglages dans `AdvancedLevers`. Pour une icône animée au survol, marquez la partie mobile d'une classe `ico-*` et ajoutez la règle correspondante dans `globals.css`.
-5. **Événements** (optionnel) : poussez `{ day, type: 'trap', parcelId }` dans `events` et ajoutez une entrée dans `EVENT_META` (`charts.tsx`).
+4. **Interface** : ajoutez une entrée dans `LEVERS` (`ControlPanel.ts`) — libellé, icône (une icône sur mesure dans `src/components/icons.ts`, ou une icône Lucide), couleur, parcelles cibles — puis un bloc de réglages dans `AdvancedLevers`. Pour une icône animée au survol, marquez la partie mobile d'une classe `ico-*` et ajoutez la règle correspondante dans `globals.css`.
+5. **Événements** (optionnel) : poussez `{ day, type: 'trap', parcelId }` dans `events` et ajoutez une entrée dans `EVENT_META` (`charts.ts`).
 6. **Compatibilité** : les anciens projets restent lisibles, car `loadProject` complète les leviers manquants avec `defaultLeverConfig`.
 
 ### Ajouter un type de case (exemple : « fraise »)
 
 1. Ajoutez la valeur dans le type `CellType` et les dictionnaires `TYPE_LABEL`, `TYPE_COLOR` (`engine.ts`).
 2. Définissez sa phénologie et son comportement dans la boucle (`kind`, ressource, capacité d'accueil).
-3. Ajoutez-la à la palette (`PALETTE`, `SHORT`, `CELL_BG` dans `GridEditor.tsx`).
+3. Ajoutez-la à la palette (`PALETTE`, `SHORT`, `CELL_BG` dans `GridEditor.ts`).
 4. Mettez à jour l'encodage RLE du partage (`CODE` et `DECODE` dans `store.ts`) et les alias d'import (`projectIO.ts`).
 
 ### Ajouter un graphique
 
-1. Créez un composant dans `charts.tsx` qui reçoit `out: SimOutput` et les `strategies` (pour les couleurs).
-2. Insérez-le dans un chapitre de `src/app/results/page.tsx` à l'intérieur d'un `<Card>`.
-3. Utilisez `isAnimationActive={false}` pour garder les mises à jour en temps réel fluides.
+1. Créez un composant dans `charts.ts` qui reçoit `out: SimOutput` et les `strategies` (pour les couleurs) ; `chartkit.ts` fournit axes, échelles, grille et infobulles.
+2. Insérez-le dans un chapitre de `src/app/pages/results.ts` à l'intérieur d'un `<ds-card>`.
+3. Dérivez la géométrie avec `computed()` : le tracé se met à jour en temps réel sans animation.
 
 ### Ajouter un modèle de verger
 
-Dans `store.ts`, ajoutez un cas à `buildTemplate()` et une entrée à `TEMPLATES` dans `GridEditor.tsx`.
+Dans `store.ts`, ajoutez un cas à `buildTemplate()` et une entrée à `TEMPLATES` dans `GridEditor.ts`.
 
 ### Ajouter un format d'export
 
-Dans `projectIO.ts` : ajoutez un `case` à `exportProject()` qui embarque `projectPayload()` (le projet compressé), puis la détection correspondante dans `importText()` ou `importFile()`. Ajoutez enfin l'entrée dans `EXPORTS` (`AppHeader.tsx`).
+Dans `projectIO.ts` : ajoutez un `case` à `exportProject()` qui embarque `projectPayload()` (le projet compressé), puis la détection correspondante dans `importText()` ou `importFile()`. Ajoutez enfin l'entrée dans `EXPORTS` (`AppHeader.ts`).
 
 ## 4. Conventions
 
@@ -131,7 +131,7 @@ Dans `projectIO.ts` : ajoutez un `case` à `exportProject()` qui embarque `proje
 
 ### Vercel / Netlify
 
-Importez le dépôt tel quel (le projet est à la racine). Ajoutez au besoin les variables `NEXT_PUBLIC_SIM_BACKEND` et `NEXT_PUBLIC_SIM_BACKEND_URL`.
+Importez le dépôt tel quel (le projet est à la racine). Commande de build : `npm run build`, dossier publié : `dist/browser`, avec une réécriture de toutes les routes vers `/index.html` (application monopage). Ajoutez au besoin les variables `SIM_BACKEND` et `SIM_BACKEND_URL`.
 
 ### VPS avec Caddy
 

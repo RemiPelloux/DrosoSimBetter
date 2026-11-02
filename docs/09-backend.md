@@ -12,7 +12,7 @@ DrosoSim Next calcule par défaut **dans le navigateur** avec son moteur TypeScr
 ## 1. Principe
 
 ```
-Éditeur + leviers ──► useSimulation() ──► backend.run(SimRequest) ──► SimOutput ──► Résultats
+Éditeur + leviers ──► injectSimulation() ──► backend.run(SimRequest) ──► SimOutput ──► Résultats
                                            │
                                            ├─ local : moteur TS (Web Worker) — par défaut
                                            ├─ http  : POST JSON vers votre serveur
@@ -31,11 +31,11 @@ DrosoSim Next calcule par défaut **dans le navigateur** avec son moteur TypeScr
 Copiez `.env.example` en `.env.local` à la racine du projet, puis adaptez :
 
 ```bash
-NEXT_PUBLIC_SIM_BACKEND=http                               # local | http | ws
-NEXT_PUBLIC_SIM_BACKEND_URL=https://api.mon-labo.fr/simulate
+SIM_BACKEND=http                               # local | http | ws
+SIM_BACKEND_URL=https://api.mon-labo.fr/simulate
 ```
 
-puis relancez `npm run dev` (ou reconstruisez avec `npm run build`).
+puis reconstruisez avec `npm run build` : ces valeurs sont injectées au build (`ng build --define`). En développement, `npx ng serve --define SIM_BACKEND="'http'" --define SIM_BACKEND_URL="'…'"`, ou plus simplement `?backend=` ci-dessous.
 
 ### À chaud, sans reconstruire (développement, démonstration)
 

@@ -6,13 +6,17 @@
 //   • local : moteur TypeScript dans un Web Worker (par défaut, hors ligne)
 //   • http  : POST JSON vers un serveur (FastAPI, Express, Rust…)
 //   • ws    : WebSocket (adapté aux calculs longs côté serveur)
-// Sélection : variables NEXT_PUBLIC_SIM_BACKEND / NEXT_PUBLIC_SIM_BACKEND_URL,
+// Sélection : constantes de build SIM_BACKEND / SIM_BACKEND_URL (angular.json → define),
 // ou à chaud via `?backend=<url>` dans l'adresse (voir docs/09-backend.md).
 // =============================================================================
 import {
   isCherry, PHENOLOGY, CHERRY_TYPES,
   type CellType, type ParcelInfo, type StrategyInput, type SimParams, type Economics, type SimOutput, type StrategyResult,
 } from './engine';
+
+/** Constantes injectées au build (angular.json → define, ou `ng build --define`). */
+declare const SIM_BACKEND: string;
+declare const SIM_BACKEND_URL: string;
 
 export const CONTRACT_VERSION = 1;
 
@@ -50,8 +54,8 @@ export function getBackendConfig(): BackendConfig {
     const saved = localStorage.getItem(LS_KEY);
     if (saved) try { return JSON.parse(saved) as BackendConfig; } catch { /* ignore */ }
   }
-  const mode = (process.env.NEXT_PUBLIC_SIM_BACKEND as BackendMode) || 'local';
-  return { mode, url: process.env.NEXT_PUBLIC_SIM_BACKEND_URL };
+  const mode = (SIM_BACKEND as BackendMode) || 'local';
+  return { mode, url: SIM_BACKEND_URL || undefined };
 }
 
 export function setBackendConfig(cfg: BackendConfig | null) {
@@ -81,7 +85,7 @@ class LocalBackend implements SimulationBackend {
   readonly label = 'Moteur local';
   run(req: SimRequest) {
     if (!worker) {
-      worker = new Worker(new URL('./sim.worker.ts', import.meta.url), { type: 'module' });
+      worker = new Worker(new URL('./sim.worker', import.meta.url), { type: 'module' });
       worker.onmessage = (e: MessageEvent<{ id: number; out: SimOutput }>) => { pending.get(e.data.id)?.(e.data.out); pending.delete(e.data.id); };
     }
     const id = ++seq;

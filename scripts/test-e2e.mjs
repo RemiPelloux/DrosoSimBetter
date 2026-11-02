@@ -64,9 +64,9 @@ try {
   await page.waitForURL(/results/); await page.waitForTimeout(2500); await shot(page, '5-resultats'); await shot(page, '6-resultats-complet', true);
   const verdict = await page.locator('h2').first().textContent();
   t.check('résultats : verdict calculé', !!verdict && verdict.length > 3, verdict);
-  t.check('résultats : graphiques rendus', (await page.locator('.recharts-wrapper').count()) >= 6);
+  t.check('résultats : graphiques rendus', (await page.locator('.chart-wrapper').count()) >= 6);
   await page.getByRole('button', { name: /Superposition/ }).click(); await page.waitForTimeout(500);
-  t.check('mode superposition', (await page.locator('#dynamique .recharts-line').count()) >= 4);
+  t.check('mode superposition', (await page.locator('#dynamique .chart-line').count()) >= 4);
 
   // 6. Lien de partage rejoué dans un navigateur vierge
   const p2 = await (await browser.newContext()).newPage(); watch(p2);

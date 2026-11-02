@@ -2,8 +2,8 @@ import { simulate, type CellType, type ParcelInfo, type StrategyInput, type SimP
 
 export interface SimRequest { id: number; grid: CellType[]; parcels: ParcelInfo[]; strategies: StrategyInput[]; params: SimParams; eco: Economics; }
 
-self.onmessage = (e: MessageEvent<SimRequest>) => {
+addEventListener('message', (e: MessageEvent<SimRequest>) => {
   const { id, grid, parcels, strategies, params, eco } = e.data;
   const out = simulate(grid, parcels, strategies, params, eco);
-  (self as unknown as Worker).postMessage({ id, out });
-};
+  postMessage({ id, out });
+});

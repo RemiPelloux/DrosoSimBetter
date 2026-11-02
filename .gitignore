@@ -8,11 +8,10 @@
 !.yarn/releases
 !.yarn/versions
 
-# Next.js / build
-/.next/
-/out/
-/build
-next-env.d.ts
+# Angular / build
+/dist/
+/out-tsc/
+/.angular/
 *.tsbuildinfo
 
 # Tests et captures

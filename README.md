@@ -3,8 +3,7 @@
 </p>
 
 <p align="center">
-  <img alt="Next.js 16" src="https://img.shields.io/badge/Next.js-16-000?logo=nextdotjs">
-  <img alt="React 19" src="https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white">
+  <img alt="Angular 22" src="https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white">
   <img alt="Tailwind CSS 4" src="https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white">
   <img alt="Calcul" src="https://img.shields.io/badge/calcul-temps%20réel-10B981">
@@ -146,8 +145,8 @@ http://localhost:3000/simulator?backend=http://localhost:8788/simulate
 ou de façon permanente, en copiant `.env.example` en `.env.local` :
 
 ```bash
-NEXT_PUBLIC_SIM_BACKEND=http                 # local | http | ws
-NEXT_PUBLIC_SIM_BACKEND_URL=https://api.mon-labo.fr/simulate
+SIM_BACKEND=http                             # local | http | ws (lu par npm run build)
+SIM_BACKEND_URL=https://api.mon-labo.fr/simulate
 ```
 
 **3. Implémenter le contrat.** Votre serveur reçoit le verger, les parcelles, les stratégies et les paramètres, puis renvoie au minimum le pourcentage de récolte saine par parcelle :
@@ -170,21 +169,17 @@ Structure du dépôt — tout est à la racine :
 ```
 DrosoSimBetter/
 ├── src/
-│   ├── app/                    pages Next.js
-│   │   ├── page.tsx            accueil (landing)
-│   │   ├── simulator/          cockpit : éditeur, leviers, aperçu temps réel
-│   │   ├── results/            résultats, comparateur, Fiche Conseil
-│   │   ├── docs/               documentation intégrée (/docs)
-│   │   ├── docs-assets/        médias de docs/assets servis à l'application
-│   │   ├── not-found.tsx       page 404
-│   │   └── icon.svg            icône d'onglet
-│   ├── components/             éditeur, leviers, graphiques, icônes et illustrations SVG maison
+│   ├── app/                    application Angular : racine, routes, pages
+│   │   └── pages/              home, simulator, results, docs, not-found
+│   ├── components/             éditeur, leviers, graphiques SVG, icônes et illustrations maison
+│   │   └── ui/                 directives partagées (animations, icônes Lucide)
+│   ├── index.html · main.ts · styles.css
 │   └── lib/
 │       ├── engine.ts           ⭐ modèle biologique, leviers, économie (pur, sans dépendance)
 │       ├── backend.ts          contrat et backends (local, HTTP, WebSocket)
 │       ├── store.ts            état, historique, persistance, partage
 │       ├── projectIO.ts        import / export universel
-│       └── useSimulation.ts    calcul temps réel
+│       └── simulation.ts       calcul temps réel
 ├── docs/                       documentation (index : docs/README.md, rendue sur /docs)
 │   └── assets/                 bannière, schémas animés, démo GIF/MP4, captures
 ├── examples/                   backends d'exemple (index : examples/README.md)
@@ -192,10 +187,10 @@ DrosoSimBetter/
 │   ├── backend-python/         squelette sans dépendance + version FastAPI
 │   └── requete-exemple.json    requête réelle pour tester un backend
 ├── scripts/                    tests et médias (index : scripts/README.md)
-├── public/partners/            logos des partenaires
+├── public/                     favicon et logos des partenaires (docs/assets est servi sur /docs-assets)
 ├── .env.example                configuration du backend de simulation
 ├── package.json                dépendances et commandes npm
-└── next.config.ts · tsconfig.json · eslint.config.mjs · .editorconfig · .nvmrc
+└── angular.json · tsconfig*.json · eslint.config.mjs · .editorconfig · .nvmrc
 ```
 
 Recettes pas à pas dans **[docs/10-developpement.md](docs/10-developpement.md)** :

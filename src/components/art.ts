@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, input, untracked, viewChild } from '@angular/core';
 import { animate, inView } from 'framer-motion/dom';
 import type { CellType } from '@/lib/engine';
@@ -219,7 +220,7 @@ const W = 34, H = 17; // demi-losange
 
 @Component({
   selector: 'ds-iso-orchard',
-  imports: [Motion],
+  imports: [Motion, NgTemplateOutlet],
   host: { style: 'display: contents' },
   template: `
     <svg [attr.viewBox]="viewBox()" [attr.class]="className() || null" role="img" aria-label="Vue isométrique du verger">
@@ -256,20 +257,30 @@ const W = 34, H = 17; // demi-losange
           }
         </g>
       }
-      @if (flies()) {
-        @for (c of hot(); track c.i; let k = $index) {
-          <g motion [initial]="{ opacity: 0 }" [animate]="flyTarget"
-            [transition]="{ opacity: { delay: 0.8 + k * 0.05 }, duration: 2 + (k % 4) * 0.4, repeat: 1e9, ease: 'easeInOut' }">
-            <g [attr.transform]="flyTransform(c, k)">
-              <ellipse cx="-3.5" cy="-2" rx="4" ry="2.2" fill="#E0F2FE" opacity="0.85" transform="rotate(-25)" />
-              <ellipse cx="3.5" cy="-2" rx="4" ry="2.2" fill="#E0F2FE" opacity="0.85" transform="rotate(25)" />
-              <ellipse cx="0" cy="0" rx="2.2" ry="3.4" fill="#B45309" />
-              <circle cx="-1" cy="-3" r="0.9" fill="#DC2626" /><circle cx="1" cy="-3" r="0.9" fill="#DC2626" />
-            </g>
+      <ng-template #fliesTpl>
+      @for (c of hot(); track c.i; let k = $index) {
+        <g motion [initial]="{ opacity: 0 }" [animate]="flyTarget"
+          [transition]="{ opacity: { delay: 0.8 + k * 0.05 }, duration: 2 + (k % 4) * 0.4, repeat: 1e9, ease: 'easeInOut' }">
+          <g [attr.transform]="flyTransform(c, k)">
+            <ellipse cx="-3.5" cy="-2" rx="4" ry="2.2" fill="#E0F2FE" opacity="0.85" transform="rotate(-25)" />
+            <ellipse cx="3.5" cy="-2" rx="4" ry="2.2" fill="#E0F2FE" opacity="0.85" transform="rotate(25)" />
+            <ellipse cx="0" cy="0" rx="2.2" ry="3.4" fill="#B45309" />
+            <circle cx="-1" cy="-3" r="0.9" fill="#DC2626" /><circle cx="1" cy="-3" r="0.9" fill="#DC2626" />
           </g>
-        }
+        </g>
       }
+      </ng-template>
+      @if (flies() && !splitFlies()) { <ng-container [ngTemplateOutlet]="fliesTpl" /> }
     </svg>
+    <!-- Avec une ombre portée (drop-shadow), les mouches passent dans un calque à part, sans filtre :
+         le verger, statique, n'est rastérisé qu'une fois au lieu d'être redessiné avec son ombre à
+         chaque image. Le verger est alors le seul enfant en flux de son parent positionné ou animé,
+         ce qui place ce calque exactement dessus. -->
+    @if (splitFlies()) {
+      <svg [attr.viewBox]="viewBox()" aria-hidden="true" class="pointer-events-none absolute left-0 top-0 w-full" style="will-change: transform">
+        <ng-container [ngTemplateOutlet]="fliesTpl" />
+      </svg>
+    }
   `,
 })
 export class IsoOrchard {
@@ -318,6 +329,9 @@ export class IsoOrchard {
     }
     return out;
   });
+
+  /** Mouches dans un calque séparé quand le verger porte une ombre portée (voir le template). */
+  protected splitFlies = computed(() => this.flies() && /drop-shadow/.test(this.className() ?? ''));
 
   protected hot = computed(() => this.cells().filter(c => c.v > 0.55 && c.t !== 'neutral').sort((a, b) => b.v - a.v).slice(0, 14));
 

@@ -11,7 +11,7 @@
 // Comme <MotionConfig reducedMotion="user">, les transformations deviennent
 // instantanées quand le système demande de réduire les animations.
 // =============================================================================
-import { Directive, ElementRef, afterNextRender, afterEveryRender, effect, inject, input, untracked, DestroyRef, type AnimationCallbackEvent } from '@angular/core';
+import { Directive, ElementRef, afterNextRender, effect, inject, input, untracked, DestroyRef, type AnimationCallbackEvent } from '@angular/core';
 import { animate as fmAnimate, inView } from 'framer-motion/dom';
 
 export type MotionValue = number | string;
@@ -51,6 +51,27 @@ export function setMotionStyles(el: Element, target: MotionTarget) {
   }
 }
 
+// ---------------------------------------------------------------- Boucles hors écran
+// Les animations répétées à l'infini (mouches, battements d'ailes, flottements) sont mises
+// en pause tant que leur élément est hors de l'écran : invisible pour l'utilisateur, mais
+// autant de recalculs de style et de rendus en moins pendant le défilement.
+type Controls = ReturnType<typeof fmAnimate>;
+const loops = new WeakMap<Element, Set<Controls>>();
+let loopObserver: IntersectionObserver | undefined;
+function trackLoop(el: Element, controls: Controls) {
+  if (typeof IntersectionObserver === 'undefined') return;
+  loopObserver ??= new IntersectionObserver(entries => {
+    for (const e of entries) for (const c of loops.get(e.target) ?? []) { if (e.isIntersecting) c.play(); else c.pause(); }
+  });
+  let set = loops.get(el);
+  if (!set) { set = new Set(); loops.set(el, set); loopObserver.observe(el); }
+  set.add(controls);
+  Promise.resolve(controls.finished).finally(() => {
+    set!.delete(controls);
+    if (!set!.size) { loops.delete(el); loopObserver?.unobserve(el); }
+  });
+}
+
 /** Anime un élément vers une cible (gère height: 'auto' et le mouvement réduit). */
 export function motionAnimate(el: Element, target: MotionTarget, transition: MotionTransition = {}, from?: MotionTarget): Promise<void> {
   // les templates Angular ne connaissent pas `Infinity` : `repeat: 1e9` en tient lieu
@@ -74,6 +95,7 @@ export function motionAnimate(el: Element, target: MotionTarget, transition: Mot
   if (Object.keys(instant).length) fmAnimate(el, instant, { duration: 0 });
   if (!Object.keys(kf).length) return Promise.resolve();
   const controls = fmAnimate(el, kf, transition);
+  if (transition['repeat'] === Infinity) trackLoop(el, controls);
   return Promise.resolve(controls.finished).then(() => {
     for (const k of ['height', 'width'] as const) if (target[k] === 'auto') (el as HTMLElement).style[k] = 'auto';
   });
@@ -164,7 +186,7 @@ const layoutRects = new Map<string, { el?: Element; rect?: DOMRect }>();
  * Équivalent de `layoutId` : l'élément portant la même clé glisse de son
  * ancienne position vers la nouvelle (FLIP animé par un ressort).
  */
-@Directive({ selector: '[layoutId]' })
+@Directive({ selector: '[layoutId]', host: { '(animate.leave)': 'leave($event)' } })
 export class LayoutId {
   readonly layoutId = input.required<string>();
   readonly layoutTransition = input<MotionTransition>({ type: 'spring', stiffness: 500, damping: 38 });
@@ -185,13 +207,12 @@ export class LayoutId {
       this.el.style.transformOrigin = '0 0';
       fmAnimate(this.el, { x: [dx, 0], y: [dy, 0], scaleX: [sx, 1], scaleY: [sy, 1] }, this.layoutTransition());
     });
-    // dernière position connue, relevée après chaque rendu (l'élément peut être détaché avant sa destruction)
-    let rect: DOMRect | undefined;
-    afterEveryRender({ read: () => { if (this.el.isConnected) rect = this.el.getBoundingClientRect(); } });
-    inject(DestroyRef).onDestroy(() => {
-      const key = this.layoutId();
-      const cur = layoutRects.get(key);
-      if (cur?.el === this.el) layoutRects.set(key, { rect: this.el.isConnected ? this.el.getBoundingClientRect() : rect });
-    });
+  }
+
+  /** Position relevée une seule fois, au moment où l'élément quitte le DOM (il y est encore). */
+  protected leave(e: AnimationCallbackEvent) {
+    const key = this.layoutId();
+    if (layoutRects.get(key)?.el === this.el) layoutRects.set(key, { rect: this.el.getBoundingClientRect() });
+    e.animationComplete();
   }
 }

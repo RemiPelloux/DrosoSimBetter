@@ -5,7 +5,7 @@
 // Les algorithmes (graduations, masquage des graduations qui se chevauchent,
 // position des barres, coupure des étiquettes) sont portés de Recharts 3.10.
 // =============================================================================
-import { Component, Directive, DestroyRef, ElementRef, afterNextRender, afterRenderEffect, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
+import { Component, Directive, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 
 export interface Box { x: number; y: number; width: number; height: number }
 export interface Margin { top: number; right: number; bottom: number; left: number }
@@ -287,17 +287,24 @@ export class ChartTooltip {
   readonly coord = input<{ x: number; y: number } | null>(null);
   readonly viewBox = input.required<Box>();
   private box = viewChild.required<ElementRef<HTMLDivElement>>('box');
+  private destroyRef = inject(DestroyRef);
   private size = signal({ w: 0, h: 0 });
   private last = signal<{ x: number; y: number } | null>(null);
   protected animated = signal(false);
 
   constructor() {
-    afterRenderEffect(() => {
-      this.coord();
-      const el = this.box().nativeElement;
-      const w = el.offsetWidth, h = el.offsetHeight;
-      const s = untracked(this.size);
-      if (s.w !== w || s.h !== h) this.size.set({ w, h });
+    // taille de la boîte via ResizeObserver : la lire (offsetWidth) après chaque rendu forçait
+    // une mise en page synchrone de toute la page à chaque mouvement de souris
+    afterNextRender(() => {
+      const ro = new ResizeObserver(([entry]) => {
+        const b = entry.borderBoxSize?.[0];
+        const w = b ? b.inlineSize : (entry.target as HTMLElement).offsetWidth;
+        const h = b ? b.blockSize : (entry.target as HTMLElement).offsetHeight;
+        const s = untracked(this.size);
+        if (s.w !== w || s.h !== h) this.size.set({ w, h });
+      });
+      ro.observe(this.box().nativeElement);
+      this.destroyRef.onDestroy(() => ro.disconnect());
     });
     effect(() => {
       const p = this.pos();

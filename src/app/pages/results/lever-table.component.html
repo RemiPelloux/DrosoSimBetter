@@ -1,0 +1,35 @@
+<div class="overflow-x-auto">
+  <table class="w-full text-xs">
+    <thead>
+      <tr class="border-b border-slate-200 text-left text-[10px] uppercase tracking-wide text-slate-500">
+        <th class="py-2 pr-3">Parcelle</th><th class="py-2 pr-3">Surface</th>
+        @for (s of strategies(); track s.id) { <th class="py-2 pr-3"><span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full" [style.background-color]="s.color"></span>{{ s.isBaseline ? 'Témoin' : s.name }}</span></th> }
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      @for (p of parcels(); track p.id) {
+        <tr>
+          <td class="py-2 pr-3 font-semibold text-slate-800"><span class="flex items-center gap-2"><span [class]="cn('h-3 w-3 rounded', p.type === 'forest' && 'hatch')" [style.background-color]="p.color"></span>{{ p.name }}</span></td>
+          <td class="py-2 pr-3 font-mono text-slate-500">{{ (p.area * haPerCell()).toFixed(2) }} ha</td>
+          @for (s of strategies(); track s.id) {
+            @let lv = s.leversByParcel[p.id];
+            @let on = activeLevers(s, p);
+            @let h = resultById().get(s.id)?.harvestByParcel?.[p.id];
+            <td class="py-2 pr-3">
+              <div class="flex flex-wrap items-center gap-1">
+                @for (l of on; track l.key) {
+                  <span class="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-white" [style.background-color]="l.color" [title]="l.label">
+                    <ng-container *ngComponentOutlet="l.icon; inputs: { className: 'h-3 w-3' }" />{{ l.short }}
+                    @if (l.key === 'treatment' && lv) {<span class="opacity-80">×{{ lv.treatmentPasses }}{{ lv.treatmentMode === 'biocontrol' ? ' bio' : '' }}</span>}
+                    @if (l.key === 'netting' && lv) {<span class="opacity-80">{{ lv.netType === 'monorang' ? 'mono' : 'parc.' }}</span>}
+                  </span>
+                } @empty {<span class="text-slate-300">—</span>}
+                @if (h !== undefined) {<span [class]="cn('ml-1 font-mono text-[10px] font-bold', h >= 90 ? 'text-emerald-600' : h >= 70 ? 'text-amber-600' : 'text-red-600')">{{ h.toFixed(0) }}%</span>}
+              </div>
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

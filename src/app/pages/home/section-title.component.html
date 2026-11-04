@@ -1,0 +1,6 @@
+<div motion [initial]="{ opacity: 0, y: 18 }" [whileInView]="{ opacity: 1, y: 0 }" [viewport]="{ once: true }" [transition]="{ duration: 0.6 }" [class]="align() === 'center' ? 'text-center' : ''">
+  <p [class]="cn('flex items-center gap-3 text-[11px] font-extrabold uppercase tracking-[0.3em]', align() === 'center' && 'justify-center', dark() ? 'text-emerald-300' : 'text-emerald-700')">
+    <span class="font-display text-base italic tracking-normal">{{ n() }}</span><span [class]="cn('h-px w-8', dark() ? 'bg-emerald-300/50' : 'bg-emerald-700/40')"></span>{{ kicker() }}
+  </p>
+  <h2 [class]="cn('font-display mt-4 text-4xl font-semibold leading-tight tracking-tight md:text-6xl', dark() ? 'text-white' : 'text-slate-900')"><ng-content /></h2>
+</div>

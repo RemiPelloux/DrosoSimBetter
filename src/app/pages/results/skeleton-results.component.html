@@ -1,0 +1,8 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-center gap-3 py-6 text-sm font-semibold text-slate-500"><ds-buzzing-fly [size]="40" /> Simulation en cours…</div>
+  <div class="grid gap-4 md:grid-cols-3">
+    @for (k of [0, 1, 2]; track k) { <div class="shimmer h-28 rounded-2xl" [style.animation-delay]="k * 0.15 + 's'"></div> }
+    <div class="shimmer col-span-full h-72 rounded-3xl"></div>
+    <div class="shimmer h-56 rounded-3xl md:col-span-2"></div><div class="shimmer h-56 rounded-3xl"></div>
+  </div>
+</div>

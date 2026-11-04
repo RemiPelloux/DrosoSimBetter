@@ -1,0 +1,23 @@
+<svg viewBox="-44 0 764 236" class="w-full" role="img" aria-label="Pas de temps journalier">
+
+  <defs>
+    <marker [attr.id]="id" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#475569" />
+    </marker>
+  </defs>
+  @for (s of steps; track s.t; let i = $index) {
+    <g motion [initial]="{ opacity: 0, y: 10 }" [whileInView]="{ opacity: 1, y: 0 }" [viewport]="{ once: true }" [transition]="{ delay: i * 0.1 }">
+      <rect [attr.x]="s.x" [attr.y]="s.y" width="200" height="78" rx="14" [attr.fill]="s.c" stroke="#0F172A" stroke-opacity="0.12" />
+      <text [attr.x]="s.x + 14" [attr.y]="s.y + 30" font-size="14" font-weight="800" fill="#0F172A">{{ s.t }}</text>
+      <foreignObject [attr.x]="s.x + 14" [attr.y]="s.y + 38" width="180" height="40"><p style="font-size: 10.5px; color: #475569; line-height: 1.3; margin: 0px">{{ s.d }}</p></foreignObject>
+    </g>
+  }
+  <path d="M212 59 H 246" stroke="#475569" stroke-width="2" [attr.marker-end]="url" />
+  <path d="M452 59 H 486" stroke="#475569" stroke-width="2" [attr.marker-end]="url" />
+  <path d="M570 99 V 127" stroke="#475569" stroke-width="2" [attr.marker-end]="url" />
+  <path d="M486 169 H 452" stroke="#475569" stroke-width="2" [attr.marker-end]="url" />
+  <path d="M246 169 H 212" stroke="#475569" stroke-width="2" [attr.marker-end]="url" />
+  <path motion d="M8 169 C -34 169, -34 59, 8 59" stroke="#10B981" stroke-width="2.5" fill="none" stroke-dasharray="5 5" [attr.marker-end]="url"
+    [animate]="{ strokeDashoffset: [0, -20] }" [transition]="{ duration: 1, repeat: 1e9, ease: 'linear' }" />
+  <text x="360" y="225" text-anchor="middle" font-size="11" fill="#047857" font-weight="700">répété chaque jour, de 365 à 1 187 fois selon la durée</text>
+</svg>

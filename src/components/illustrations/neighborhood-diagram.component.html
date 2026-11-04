@@ -1,0 +1,31 @@
+<svg viewBox="0 0 640 300" class="w-full" role="img" aria-label="Dispersion vers les 8 voisines">
+
+  <defs>
+    <marker [attr.id]="id" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#0F172A" />
+    </marker>
+  </defs>
+  @for (c of cells; track c.key) {
+    <g>
+      <rect [attr.x]="20 + c.x * 90" [attr.y]="20 + c.y * 90" width="86" height="86" rx="10" [attr.fill]="c.fill" [attr.fill-opacity]="c.v === null ? 1 : 0.85" />
+      <text [attr.x]="63 + c.x * 90" [attr.y]="56 + c.y * 90" text-anchor="middle" font-size="16" font-weight="800" fill="#fff">{{ c.v === null ? 'A·D' : '×' + c.v }}</text>
+      <foreignObject [attr.x]="24 + c.x * 90" [attr.y]="64 + c.y * 90" width="78" height="40"><p style="font-size: 9px; color: #fff; text-align: center; line-height: 1.15; margin: 0px">{{ c.label }}</p></foreignObject>
+      @if (c.v !== null) {
+        <line motion x1="153" y1="153" [attr.x2]="c.x2" [attr.y2]="c.y2" stroke="#0F172A" [attr.stroke-width]="max1(c.v)" [attr.marker-end]="'url(#' + id + ')'"
+          [initial]="{ pathLength: 0 }" [whileInView]="{ pathLength: 1 }" [viewport]="{ once: true }" [transition]="{ duration: 0.8, delay: 0.1 * (c.x + c.y) }" />
+      }
+    </g>
+  }
+  <g font-size="12" fill="#334155">
+    <text x="320" y="40" font-weight="800" font-size="14" fill="#0F172A">Règle de répartition</text>
+    <text x="320" y="66">• Chaque jour, D = 12 % des femelles quittent la case</text>
+    <text x="332" y="82">(3 % si T ≤ 10 °C).</text>
+    <text x="320" y="106">• Part reçue par la voisine n :  w(n) / Σw</text>
+    <text x="320" y="130">• Ici Σw = {{ sum.toFixed(2) }} → une voisine en véraison</text>
+    <text x="332" y="146">reçoit {{ (3 / sum * 100).toFixed(0) }} % des émigrantes, la forêt {{ (0.6 / sum * 100).toFixed(0) }} %.</text>
+    <text x="320" y="172">• Filet actif sur la voisine : 70 % × efficacité</text>
+    <text x="332" y="188">de la part est refoulée vers la case source.</text>
+    <text x="320" y="214">• Effet net : les adultes « coulent » des zones</text>
+    <text x="332" y="230">refuges vers les vergers mûrs.</text>
+  </g>
+</svg>

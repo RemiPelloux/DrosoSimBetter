@@ -1,0 +1,1 @@
+<div><p class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">@if (node(); as n) { <svg [lucide]="n" class="h-3.5 w-3.5"></svg> } @else { <ng-container *ngComponentOutlet="comp(); inputs: { className: 'h-3.5 w-3.5' }" /> } {{ label() }}</p><ng-content /></div>

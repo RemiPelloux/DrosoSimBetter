@@ -1,0 +1,4 @@
+<div class="rounded-lg border border-slate-200 bg-white p-2.5">
+  <div class="mb-2 flex items-center gap-1.5 text-[11px] font-bold" [style.color]="l().color"><ng-container *ngComponentOutlet="l().icon; inputs: { className: 'h-3.5 w-3.5' }" /> {{ l().label }}<span class="ml-auto font-normal text-slate-400">{{ l().cost }}</span></div>
+  <div class="space-y-2"><ng-content /></div>
+</div>

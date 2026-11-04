@@ -1,0 +1,59 @@
+<div>
+  <div [style.height.px]="height()">
+    <div #wrap class="recharts-responsive-container" style="width: 100%; height: 100%; min-width: 0">
+      @if (g(); as g) {
+        <div class="chart-wrapper recharts-wrapper" style="position: relative; cursor: default" [style.width.px]="g.W" [style.height.px]="g.H" (mousemove)="onMove($event)" (mouseleave)="onLeave()">
+          <svg class="recharts-surface" [attr.width]="g.W" [attr.height]="g.H" [attr.viewBox]="'0 0 ' + g.W + ' ' + g.H" style="width: 100%; height: 100%">
+            <defs>
+              <linearGradient id="gForest" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#15803D" stop-opacity="0.25" /><stop offset="100%" stop-color="#15803D" stop-opacity="0" /></linearGradient>
+            </defs>
+            <g [dsGrid]="g.plot" [ys]="g.gridYs" />
+            @for (b of g.bands; track $index) { <path class="recharts-rectangle recharts-reference-area-rect" [attr.d]="b.d" [attr.fill]="b.fill" fill-opacity="0.35" stroke="none" /> }
+            @for (s of g.areas; track s.id) {
+              <g class="recharts-layer recharts-area">
+                <path class="recharts-curve recharts-area-area" [attr.d]="s.area" fill="url(#gForest)" fill-opacity="0.6" stroke="none" />
+                <path class="recharts-curve recharts-area-curve chart-line" [attr.d]="s.d" [attr.stroke]="s.color" stroke-width="2" fill="none" />
+              </g>
+            }
+            @if (g.threshold; as t) { <line class="recharts-reference-line-line" [attr.x1]="g.plot.x" [attr.x2]="g.plot.x + g.plot.width" [attr.y1]="t.y" [attr.y2]="t.y" stroke="#DC2626" stroke-dasharray="6 4" fill="none" stroke-width="1" /> }
+            @for (e of g.events; track $index) { <line class="recharts-reference-line-line" [attr.x1]="e.x" [attr.x2]="e.x" [attr.y1]="g.plot.y" [attr.y2]="g.plot.y + g.plot.height" [attr.stroke]="e.color" stroke-opacity="0.5" stroke-dasharray="2 3" fill="none" stroke-width="1" /> }
+            @for (s of g.lines; track s.id) { <path class="recharts-curve recharts-line-curve chart-line" [attr.d]="s.d" [attr.stroke]="s.color" stroke-width="2.5" fill="none" /> }
+            <g [dsAxis]="g.xAxis" />
+            <g [dsAxis]="g.yAxis" />
+            @if (active(); as a) {
+              <path class="recharts-curve recharts-tooltip-cursor" [attr.d]="'M' + a.x + ',' + g.plot.y + 'L' + a.x + ',' + (g.plot.y + g.plot.height)" stroke="#ccc" fill="none" pointer-events="none" />
+              @for (d of a.dots; track $index) { <circle class="recharts-dot" [attr.cx]="d.x" [attr.cy]="d.y" r="4" [attr.fill]="d.color" stroke="#fff" stroke-width="2" /> }
+            }
+            @for (l of g.labels; track $index) { <g [dsText]="l" /> }
+          </svg>
+          <ds-chart-tooltip [coord]="active()?.coord ?? null" [viewBox]="g.plot">
+            @if (tip(); as t) {
+              <div class="min-w-56 rounded-xl border border-slate-200 bg-white/95 p-3 text-xs shadow-xl backdrop-blur">
+                <p class="mb-2 font-bold text-slate-900">{{ t.title }}</p>
+                @for (r of t.rows; track r.id) {
+                  <div class="flex items-center justify-between gap-4 py-0.5">
+                    <span class="flex items-center gap-1.5 text-slate-600"><span class="h-2 w-2 rounded-full" [style.background-color]="r.color"></span>{{ r.name }}</span>
+                    <span class="font-mono font-semibold text-slate-900">{{ r.value }}<span class="text-slate-400">/ha</span>@if (r.healthy !== null) {<span [class]="cn('ml-2', r.healthy < 80 ? 'text-red-600' : 'text-emerald-600')">{{ r.healthy.toFixed(0) }}% sains</span>}</span>
+                  </div>
+                }
+                @if (t.events.length) { <div class="mt-2 border-t border-slate-100 pt-1.5 text-[11px] text-slate-600">@for (e of t.events; track $index) {<div>{{ e }}</div>}</div> }
+              </div>
+            }
+          </ds-chart-tooltip>
+        </div>
+      }
+    </div>
+  </div>
+  @if (!compact()) {
+    <div class="mt-3 flex flex-wrap gap-1.5">
+      @for (p of lineParcels(); track p.id) {
+        <ds-legend-chip [active]="!hidden()[p.id]" (toggle)="flip(p.id)" [label]="(p.type === 'forest' ? '🌲' : '🍒') + ' ' + p.name + ' ' + (p.type === 'forest' ? '(réservoir sauvage)' : '(femelles adultes)')">
+          <span class="h-0.5 w-5 rounded" [style.background-color]="p.color" style="height: 3px"></span>
+        </ds-legend-chip>
+      }
+      <ds-legend-chip [active]="!hidden()['threshold']" (toggle)="flip('threshold')" label="⚠️ Seuil de risque économique"><span class="w-5 border-t-2 border-dashed border-red-600"></span></ds-legend-chip>
+      @if (showEvents()) { <ds-legend-chip [active]="!hidden()['events']" (toggle)="flip('events')" label="Interventions (🚜 🛡️ 🧺 🐝 🧬)"><span class="text-xs">📍</span></ds-legend-chip> }
+      @if (bands().length > 0) { <span class="flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-900"><span class="h-3 w-5 rounded-sm bg-amber-200"></span> Période de sensibilité (véraison → récolte)</span> }
+    </div>
+  }
+</div>

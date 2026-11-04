@@ -1,0 +1,3 @@
+<select (change)="pick($event)" class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700" [style.border-left]="'4px solid ' + (value() ? color()(value()!) : '#ccc')">
+  @for (r of results(); track r.id) { <option [value]="r.id" [selected]="r.id === value()">{{ r.isBaseline ? 'Témoin' : r.name }}</option> }
+</select>

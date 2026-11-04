@@ -1,0 +1,12 @@
+<div class="absolute inset-0 flex flex-col justify-center gap-2.5 px-10">
+  @for (it of items; track it[0]; let k = $index) {
+    <div motion [initial]="{ opacity: 0, x: -20 }" [whileInView]="{ opacity: 1, x: 0 }" [viewport]="{ once: true }" [transition]="{ delay: 0.15 * k }"
+      class="flex items-center justify-between rounded-xl bg-white px-3 py-2 shadow-sm">
+      <span class="text-sm font-semibold text-slate-700">{{ it[0] }}</span>
+      <span class="relative h-5 w-9 rounded-full bg-slate-200">
+        <span motion class="absolute inset-0 rounded-full" [style.background-color]="it[1]" [initial]="{ opacity: 0 }" [whileInView]="{ opacity: k === 2 ? 0 : 1 }" [viewport]="{ once: true }" [transition]="{ delay: 0.6 + 0.2 * k }"></span>
+        <span motion class="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow" [initial]="{ left: 2 }" [whileInView]="{ left: k === 2 ? 2 : 18 }" [viewport]="{ once: true }" [transition]="{ delay: 0.6 + 0.2 * k, type: 'spring', stiffness: 400, damping: 25 }"></span>
+      </span>
+    </div>
+  }
+</div>

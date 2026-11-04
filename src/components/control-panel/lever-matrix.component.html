@@ -1,0 +1,67 @@
+@if (active(); as a) {
+  @if (a.isBaseline) {
+    <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+      <svg [lucide]="I.Lock" class="mb-2 h-8 w-8 text-slate-300"></svg>
+      <p class="text-sm font-bold text-slate-700">Témoin sans protection</p>
+      <p class="mt-1 max-w-xs text-xs text-slate-500">Toujours calculé en filigrane pour mesurer ce qu'il se passe si l'on ne fait rien. Sélectionnez ou créez une stratégie pour activer des leviers.</p>
+    </div>
+  } @else if (parcels().length === 0) {
+    <p class="rounded-xl border border-dashed border-slate-300 p-6 text-center text-xs italic text-slate-400">Dessinez des parcelles pour configurer les leviers.</p>
+  } @else {
+    <div class="space-y-3">
+      <!-- Appliquer à toutes les parcelles -->
+      <div class="rounded-xl border border-emerald-100 bg-emerald-50/60 p-2.5">
+        <p class="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-emerald-800"><svg [lucide]="I.Wand2" class="h-3.5 w-3.5"></svg> Appliquer à toutes les parcelles</p>
+        <div class="flex flex-wrap gap-1.5">
+          @for (l of levers; track l.key) {
+            @let on = allOn()[l.key];
+            <button (click)="applyAll(l, on)" [attr.data-on]="on"
+              [class]="cn('ico-host press flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[11px] font-semibold transition-all', on ? 'border-transparent text-white shadow' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300')"
+              [style.background-color]="on ? l.color : null">
+              <ng-container *ngComponentOutlet="l.icon; inputs: { className: 'h-4 w-4' }" /> {{ l.short }}
+            </button>
+          }
+        </div>
+      </div>
+
+      @for (p of parcels(); track p.id) {
+        @let lv = a.leversByParcel[p.id] ?? defaults;
+        @let expanded = open() === p.id;
+        <div [class]="cn('overflow-hidden rounded-xl border bg-white transition-shadow', p.id === selectedParcelId() ? 'border-slate-900 shadow-md' : 'border-slate-200')">
+          <button class="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-50" (click)="open.set(expanded ? null : p.id); store.selectParcel(p.id)">
+            <span [class]="cn('h-4 w-4 rounded', p.type === 'forest' && 'hatch')" [style.background-color]="p.color"></span>
+            @if (p.type === 'forest') { <ds-icon-forest className="h-3.5 w-3.5 text-slate-400" /> } @else { <ds-icon-cherry className="h-3.5 w-3.5 text-slate-400" /> }
+            <span class="flex-1 truncate text-xs font-bold text-slate-800">{{ p.name }}</span>
+            <div class="flex gap-0.5">
+              @for (l of levers; track l.key) {
+                @if (lv[l.key]) { <span [title]="l.short" class="flex h-5 w-5 items-center justify-center rounded-md text-white" [style.background-color]="l.color"><ng-container *ngComponentOutlet="l.icon; inputs: { className: 'h-3.5 w-3.5' }" /></span> }
+              }
+            </div>
+            <span class="text-[10px] text-slate-400">{{ count(lv) }}/{{ targetCount[p.type] ?? 0 }}</span>
+            <svg [lucide]="I.ChevronDown" [class]="cn('h-4 w-4 text-slate-400 transition-transform', expanded && 'rotate-180')"></svg>
+          </button>
+          <div class="grid grid-cols-5 gap-1 border-t border-slate-100 px-2 py-2">
+            @for (l of levers; track l.key) {
+              @let allowed = l.targets(p.type);
+              @let on = !!lv[l.key];
+              <button [disabled]="!allowed" (click)="toggle(p.id, l, on)" [attr.data-on]="on"
+                [title]="allowed ? l.label + ' — ' + l.note : 'Non applicable à ce type de parcelle'"
+                [class]="cn('ico-host press flex flex-col items-center gap-1 rounded-lg border py-1.5 text-[10px] font-semibold transition-all',
+                  !allowed && 'cursor-not-allowed border-transparent bg-slate-50 text-slate-300',
+                  allowed && !on && 'border-slate-200 text-slate-600 hover:border-slate-400',
+                  on && 'lever-pop border-transparent text-white shadow')"
+                [style.background-color]="on ? l.color : null">
+                <ng-container *ngComponentOutlet="l.icon; inputs: { className: 'h-5 w-5' }" /> {{ l.short }}
+              </button>
+            }
+          </div>
+          @if (expanded) {
+            <div motion [initial]="{ height: 0 }" [animate]="{ height: 'auto' }" [exit]="{ height: 0 }" class="overflow-hidden">
+              <ds-advanced-levers [parcel]="p" [lv]="lv" (leverChange)="store.updateLever(p.id, $event)" />
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+}

@@ -1,0 +1,5 @@
+<div (pointerdown)="down.emit($event)" (dblclick)="reset.emit()" title="Glisser pour redimensionner · double-clic pour réinitialiser"
+  class="group relative hidden w-4 shrink-0 cursor-col-resize items-start justify-center pt-24 lg:flex">
+  <div class="absolute inset-y-2 left-1/2 w-px -translate-x-1/2 bg-transparent transition-colors group-hover:bg-emerald-400"></div>
+  <span class="relative z-10 flex h-10 w-3 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm group-hover:border-emerald-400 group-hover:text-emerald-600"><svg [lucide]="I.GripVertical" class="h-3 w-3"></svg></span>
+</div>

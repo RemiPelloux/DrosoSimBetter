@@ -1,0 +1,50 @@
+<div [style.height.px]="height()">
+  <div #wrap class="recharts-responsive-container" style="width: 100%; height: 100%; min-width: 0">
+    @if (g(); as g) {
+      <div class="chart-wrapper recharts-wrapper" style="position: relative; cursor: default" [style.width.px]="g.W" [style.height.px]="g.H" (mousemove)="onMove($event)" (mouseleave)="onLeave()">
+        <svg class="recharts-surface" [attr.width]="g.W" [attr.height]="g.H" [attr.viewBox]="'0 0 ' + g.W + ' ' + g.H" style="width: 100%; height: 100%">
+          <g [dsGrid]="g.plot" [ys]="g.gridYs" />
+          @for (s of g.bars; track s.key) {
+            <g class="recharts-layer recharts-bar"><g class="recharts-layer recharts-bar-rectangles">
+              @for (d of s.paths; track $index) { @if (d) { <path class="recharts-rectangle" [attr.d]="d" [attr.fill]="s.fill" /> } }
+            </g></g>
+          }
+          <line class="recharts-reference-line-line" [attr.x1]="g.plot.x" [attr.x2]="g.plot.x + g.plot.width" [attr.y1]="g.zero" [attr.y2]="g.zero" stroke="#0F172A" fill="none" stroke-width="1" />
+          <g class="recharts-layer recharts-line">
+            <path class="recharts-curve recharts-line-curve chart-line" [attr.d]="g.balance" stroke="#0F172A" stroke-width="2" fill="none" />
+            <g class="recharts-layer recharts-line-dots">
+              @for (p of g.points; track $index) { <circle class="recharts-dot recharts-line-dot" [attr.cx]="p[0]" [attr.cy]="p[1]" r="5" fill="#0F172A" stroke="#0F172A" stroke-width="2" /> }
+            </g>
+          </g>
+          <g [dsAxis]="g.xAxis" />
+          <g [dsAxis]="g.yAxis" />
+          @if (activeIndex() >= 0) {
+            <path class="recharts-curve recharts-tooltip-cursor" [attr.d]="'M' + g.center(activeIndex()) + ',' + g.plot.y + 'L' + g.center(activeIndex()) + ',' + (g.plot.y + g.plot.height)" stroke="#ccc" fill="none" pointer-events="none" />
+            <circle class="recharts-dot" [attr.cx]="g.points[activeIndex()][0]" [attr.cy]="g.points[activeIndex()][1]" r="4" fill="#0F172A" stroke="#fff" stroke-width="2" />
+          }
+        </svg>
+        <div #legend class="recharts-legend-wrapper" style="position: absolute; height: auto; left: 8px; bottom: 0px; font-size: 11px" [style.width.px]="g.W - 16">
+          <ul class="recharts-default-legend" style="padding: 0px; margin: 0px; text-align: center">
+            @for (k of legendKeys; track k; let i = $index) {
+              <li [class]="'recharts-legend-item legend-item-' + i" style="display: inline-block; margin-right: 10px; white-space: nowrap">
+                <svg class="recharts-surface" width="14" height="14" viewBox="0 0 32 32" style="display: inline-block; vertical-align: middle; margin-right: 4px">
+                  @if (k === 'balance') {
+                    <path stroke-width="4" fill="none" stroke="#0F172A" d="M0,16h10.666666666666666
+        A5.333333333333333,5.333333333333333,0,1,1,21.333333333333332,16
+        H32M21.333333333333332,16
+        A5.333333333333333,5.333333333333333,0,1,1,10.666666666666666,16" class="recharts-legend-icon" />
+                  } @else { <path stroke="none" [attr.fill]="fill[k]" d="M0,4h32v24h-32z" class="recharts-legend-icon" /> }
+                </svg>
+                <span class="recharts-legend-item-text" style="white-space: normal; overflow-wrap: break-word" [style.color]="fill[k]">{{ legendLabels[k] }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+        <ds-chart-tooltip [coord]="tipCoord()" [viewBox]="g.plot">
+          @if (tip(); as t) { <ds-default-tooltip [label]="t.label" [items]="t.items" /> }
+        </ds-chart-tooltip>
+      </div>
+    }
+  </div>
+  <span class="sr-only">{{ strategies().length }}</span>
+</div>

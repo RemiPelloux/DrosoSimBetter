@@ -1,0 +1,9 @@
+@if (over()) {
+  <div motion [initial]="{ opacity: 0 }" [animate]="{ opacity: 1 }" [exit]="{ opacity: 0 }" class="pointer-events-none fixed inset-0 z-[90] flex items-center justify-center bg-[#03241C]/70 p-8 backdrop-blur-sm">
+    <div motion [initial]="{ scale: 0.92 }" [animate]="{ scale: 1 }" class="flex h-full max-h-96 w-full max-w-2xl flex-col items-center justify-center rounded-[36px] border-4 border-dashed border-emerald-300/70 bg-white/10 text-center text-white">
+      <svg [lucide]="I.UploadCloud" class="h-14 w-14 text-emerald-300"></svg>
+      <p class="font-display mt-4 text-3xl font-semibold">Déposez votre fichier</p>
+      <p class="mt-2 text-sm text-emerald-50/80">Projet JSON, .drososim, image PNG, CSV, lien .txt ou grille 20×20</p>
+    </div>
+  </div>
+}

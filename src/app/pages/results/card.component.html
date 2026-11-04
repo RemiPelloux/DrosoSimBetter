@@ -1,0 +1,9 @@
+<section motion [initial]="{ opacity: 0, y: 16 }" [whileInView]="{ opacity: 1, y: 0 }" [viewport]="{ once: true, margin: '-40px' }" [transition]="{ duration: 0.45, ease: ease }"
+  [class]="cn('ico-host break-inside-avoid rounded-[28px] border border-white bg-white/90 p-5 shadow-[0_30px_60px_-35px_rgba(2,44,34,.3)] backdrop-blur transition-shadow duration-300 hover:shadow-[0_34px_70px_-30px_rgba(2,44,34,.4)] md:p-6', className())">
+  <div class="mb-4 flex items-start gap-3">
+    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-800 ring-1 ring-emerald-200/60"><ds-any-icon [icon]="icon()" className="h-5 w-5" /></span>
+    <div class="min-w-0 flex-1"><h3 class="font-display text-lg font-semibold text-slate-900">{{ heading() }}</h3>@if (subtitle()) {<p class="text-[11px] text-slate-500">{{ subtitle() }}</p>}</div>
+    <ng-content select="[right]" />
+  </div>
+  <ng-content />
+</section>

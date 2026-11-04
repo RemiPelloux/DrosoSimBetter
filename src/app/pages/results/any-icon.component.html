@@ -1,0 +1,2 @@
+@if (isNode()) { <svg [lucide]="$any(icon())" [class]="className()"></svg> }
+@else { <ng-container *ngComponentOutlet="$any(icon()); inputs: { className: className() }" /> }

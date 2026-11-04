@@ -1,0 +1,106 @@
+<div class="min-h-screen bg-slate-50">
+  <ds-app-header [title]="'Verger & leviers'" [subtitle]="subtitle()" [step]="1" />
+
+  <!-- Onglets mobile -->
+  <div class="sticky top-16 z-30 flex gap-1 border-b border-slate-200 bg-white p-1.5 lg:hidden">
+    @for (t of tabs; track t[0]) {
+      <button (click)="mobileTab.set(t[0])" [class]="cn('flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold', mobileTab() === t[0] ? 'bg-slate-900 text-white' : 'text-slate-600')"><svg [lucide]="t[2]" class="h-4 w-4"></svg>{{ t[1] }}</button>
+    }
+  </div>
+
+  <!-- Préréglages de mise en page -->
+  <div class="no-print mx-auto hidden max-w-[1920px] items-center justify-end gap-1 px-4 pt-3 lg:flex">
+    <span class="mr-1 text-[11px] font-semibold text-slate-400">Disposition</span>
+    @for (p of presets; track p[0]) {
+      <button (click)="setLayout([p[1][0], p[1][1]])" [class]="cn('flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold', isPreset(p[1]) ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-white')"><svg [lucide]="p[2]" class="h-3.5 w-3.5"></svg>{{ p[0] }}</button>
+    }
+  </div>
+  <main #main class="mx-auto flex max-w-[1920px] flex-col gap-4 p-4 lg:flex-row lg:gap-0" [style.--l]="layout()[0] + '%'" [style.--c]="layout()[1] + '%'">
+    <!-- Colonne gauche : éditeur -->
+    <section motion [initial]="{ opacity: 0, x: -16 }" [animate]="{ opacity: 1, x: 0 }" [class]="cn('min-w-0 space-y-3 lg:w-[var(--l)] lg:shrink-0', mobileTab() !== 'map' && 'hidden lg:block')">
+      <ds-panel heading="Éditeur parcellaire" [icon]="I.Paintbrush"><ds-grid-editor /></ds-panel>
+    </section>
+
+    <ds-resize-handle (down)="startDrag(0, $event)" (reset)="setLayout([32, 36])" />
+
+    <!-- Colonne centrale : contrôles en haut, leviers en bas -->
+    <section motion [initial]="{ opacity: 0, y: 16 }" [animate]="{ opacity: 1, y: 0 }" [transition]="{ delay: 0.05 }" [class]="cn('min-w-0 space-y-3 lg:w-[var(--c)] lg:shrink-0', mobileTab() !== 'levers' && 'hidden lg:block')">
+      <ds-panel heading="Simulation" [icon]="I.Zap">
+        <ds-live-badge right [running]="running()" [ms]="out()?.computeMs" [source]="source()" />
+        <ds-simulation-settings />
+        <button (click)="showEco.set(!showEco())" class="mt-3 flex w-full items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-600 hover:bg-slate-100">
+          <span class="flex items-center gap-1.5"><svg [lucide]="I.Euro" class="h-3.5 w-3.5"></svg> Hypothèses économiques</span>
+          <svg [lucide]="I.ChevronDown" [class]="cn('h-4 w-4 transition-transform', showEco() && 'rotate-180')"></svg>
+        </button>
+        @if (showEco()) {
+          <div motion [initial]="{ height: 0, opacity: 0 }" [animate]="{ height: 'auto', opacity: 1 }" [exit]="{ height: 0, opacity: 0 }" class="overflow-hidden pt-2"><ds-economics-settings /></div>
+        }
+      </ds-panel>
+      <ds-panel heading="Stratégies & leviers par parcelle" [icon]="I.SlidersHorizontal">
+        <ds-strategy-bar />
+        <div class="mt-3"><ds-lever-matrix /></div>
+      </ds-panel>
+    </section>
+
+    <ds-resize-handle (down)="startDrag(1, $event)" (reset)="setLayout([32, 36])" />
+
+    <!-- Colonne droite : aperçu temps réel -->
+    <section motion [initial]="{ opacity: 0, x: 16 }" [animate]="{ opacity: 1, x: 0 }" [transition]="{ delay: 0.1 }" [class]="cn('min-w-0 flex-1 space-y-3', mobileTab() !== 'live' && 'hidden lg:block')">
+      <div class="lg:sticky lg:top-20 space-y-3">
+        <ds-panel heading="Aperçu temps réel" [icon]="I.Activity">
+          <ds-live-badge right [running]="running()" [ms]="out()?.computeMs" [source]="source()" />
+          @if (!out() || parcels().length === 0) {
+            <div class="flex h-64 flex-col items-center justify-center gap-2 text-center text-xs text-slate-400">
+              <div motion [animate]="bounce.animate" [transition]="bounce.transition"><ds-drosophila [size]="56" /></div>Dessinez un verger (ou choisissez un modèle) : les résultats apparaissent instantanément ici.
+            </div>
+          } @else if (active() && base()) {
+            <div class="mb-3 flex items-center gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs">
+              <span class="h-2.5 w-2.5 rounded-full" [style.background-color]="activeColor()"></span>
+              <b class="truncate text-slate-800">{{ active()!.isBaseline ? 'Témoin sans protection' : active()!.name }}</b>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <ds-mini-kpi label="Récolte préservée" [value]="active()!.globalHarvest.toFixed(0) + ' %'" [delta]="harvestDelta()" unit="pts" />
+              <ds-mini-kpi label="Bilan vs témoin" [value]="fmtEur(net())" [tone]="net() >= 0 ? 'good' : 'bad'" />
+              <ds-mini-kpi label="Pic femelles/ha" [value]="active()!.peakDensity.toLocaleString('fr-FR')" [tone]="active()!.peakDensity > threshold ? 'bad' : 'good'" />
+              <ds-mini-kpi label="IFT chimique" [value]="active()!.ift.toFixed(1)" [tone]="active()!.ift > 2 ? 'bad' : 'good'" />
+            </div>
+            <div class="mt-3"><ds-population-chart [out]="out()!" [result]="active()!" [parcels]="parcels()" [height]="190" [compact]="true" /></div>
+            <div class="mt-2"><ds-harvest-by-parcel-chart [out]="out()!" [parcels]="parcels()" [strategies]="strategies()" [height]="170" /></div>
+          }
+          <a routerLink="/results" class="mt-3 flex items-center justify-center gap-2 rounded-xl bg-emerald-700 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-900/20 transition-transform hover:-translate-y-0.5 hover:bg-emerald-800">
+            Voir l'analyse complète <svg [lucide]="I.ArrowRight" class="h-4 w-4"></svg>
+          </a>
+        </ds-panel>
+      </div>
+    </section>
+  </main>
+
+  @if (fullscreen()) {
+    <div motion [initial]="{ opacity: 0, scale: 0.98 }" [animate]="{ opacity: 1, scale: 1 }" [exit]="{ opacity: 0, scale: 0.98 }" [transition]="{ duration: 0.18 }"
+      class="fixed inset-0 z-50 flex flex-col bg-slate-50">
+      <div class="flex h-14 items-center gap-3 border-b border-slate-200 bg-white px-4">
+        <svg [lucide]="I.Paintbrush" class="h-4 w-4 text-slate-500"></svg>
+        <span class="text-sm font-extrabold text-slate-900">Éditeur parcellaire — plein écran</span>
+        <span class="hidden text-[11px] text-slate-400 md:inline">Échap ou Maj+F pour quitter · [ ] taille du pinceau · 1-4 types · B R F E V outils</span>
+        <span class="ml-auto"><ds-live-badge [running]="running()" [ms]="out()?.computeMs" [source]="source()" /></span>
+        <button (click)="exitFullscreen()" class="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white"><svg [lucide]="I.Minimize2" class="h-4 w-4"></svg> Réduire</button>
+      </div>
+      <div class="flex min-h-0 flex-1 gap-4 overflow-auto p-4">
+        <div class="min-w-0 flex-1"><ds-grid-editor variant="fullscreen" /></div>
+        <aside class="hidden w-[380px] shrink-0 space-y-3 overflow-y-auto xl:block">
+          @if (active() && base()) {
+            <ds-panel heading="Impact en direct" [icon]="I.Activity">
+              <div class="grid grid-cols-2 gap-2">
+                <ds-mini-kpi label="Récolte préservée" [value]="active()!.globalHarvest.toFixed(0) + ' %'" [delta]="harvestDelta()" unit="pts" />
+                <ds-mini-kpi label="Bilan vs témoin" [value]="fmtEur(net())" [tone]="net() >= 0 ? 'good' : 'bad'" />
+              </div>
+              <div class="mt-2"><ds-harvest-by-parcel-chart [out]="out()!" [parcels]="parcels()" [strategies]="strategies()" [height]="170" /></div>
+            </ds-panel>
+          }
+          <ds-panel heading="Leviers de la stratégie active" [icon]="I.SlidersHorizontal"><ds-strategy-bar /><div class="mt-3"><ds-lever-matrix /></div></ds-panel>
+        </aside>
+      </div>
+    </div>
+  }
+  <ds-onboarding />
+</div>

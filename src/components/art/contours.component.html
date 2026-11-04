@@ -1,0 +1,6 @@
+<svg aria-hidden="true" viewBox="0 0 800 400" [attr.class]="className() || null" preserveAspectRatio="xMidYMid slice">
+  @for (p of paths; track $index) {
+    <path motion fill="none" [attr.stroke]="color()" [attr.stroke-opacity]="p.op" stroke-width="1" [attr.d]="p.d"
+      [initial]="{ pathLength: 0 }" [animate]="{ pathLength: 1 }" [transition]="p.transition" />
+  }
+</svg>

@@ -1,0 +1,25 @@
+<div [style.height.px]="height()">
+  <div #wrap class="recharts-responsive-container" style="width: 100%; height: 100%; min-width: 0">
+    @if (g(); as g) {
+      <div class="chart-wrapper recharts-wrapper" style="position: relative; cursor: default" [style.width.px]="g.W" [style.height.px]="g.H" (mousemove)="onMove($event)" (mouseleave)="onLeave()">
+        <svg class="recharts-surface" [attr.width]="g.W" [attr.height]="g.H" [attr.viewBox]="'0 0 ' + g.W + ' ' + g.H" style="width: 100%; height: 100%">
+          <g [dsGrid]="g.plot" [ys]="g.gridYs" />
+
+  @for (b of g.bands; track $index) { <path class="recharts-rectangle recharts-reference-area-rect" [attr.d]="b" fill="#FEE2E2" fill-opacity="0.5" stroke="none" /> }
+  @if (g.threshold !== null) { <line class="recharts-reference-line-line" [attr.x1]="g.plot.x" [attr.x2]="g.plot.x + g.plot.width" [attr.y1]="g.threshold" [attr.y2]="g.threshold" stroke="#DC2626" stroke-dasharray="6 4" fill="none" stroke-width="1" /> }
+
+          @for (s of g.lines; track s.id) { <path class="recharts-curve recharts-line-curve chart-line" [attr.d]="s.d" [attr.stroke]="s.color" [attr.stroke-width]="s.width" [attr.stroke-dasharray]="s.dash" fill="none" /> }
+          <g [dsAxis]="g.xAxis" />
+          <g [dsAxis]="g.yAxis" />
+          @if (active(); as a) {
+            <path class="recharts-curve recharts-tooltip-cursor" [attr.d]="'M' + a.x + ',' + g.plot.y + 'L' + a.x + ',' + (g.plot.y + g.plot.height)" stroke="#ccc" fill="none" pointer-events="none" />
+            @for (d of a.dots; track $index) { <circle class="recharts-dot" [attr.cx]="d.x" [attr.cy]="d.y" r="4" [attr.fill]="d.color" stroke="#fff" stroke-width="2" /> }
+          }
+        </svg>
+        <ds-chart-tooltip [coord]="active()?.coord ?? null" [viewBox]="g.plot">
+          @if (active(); as a) { <ds-default-tooltip [label]="a.label" [items]="a.items" /> }
+        </ds-chart-tooltip>
+      </div>
+    }
+  </div>
+</div>

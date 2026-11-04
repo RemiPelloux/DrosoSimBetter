@@ -1,0 +1,17 @@
+<div class="relative" (mouseleave)="open.set(false)">
+  <ds-hbtn [outline]="true" (press)="open.set(!open())" title="Exporter le projet (Ctrl+S = JSON)" label="Exporter"><svg [lucide]="I.Download" class="h-4 w-4"></svg><span class="hidden lg:inline">Exporter</span><svg [lucide]="I.ChevronDown" class="h-3 w-3"></svg></ds-hbtn>
+  @if (open()) {
+    <div motion [initial]="{ opacity: 0, y: -6 }" [animate]="{ opacity: 1, y: 0 }" [exit]="{ opacity: 0, y: -6 }"
+      class="absolute right-0 top-full z-50 w-72 pt-1">
+      <div class="rounded-2xl border border-slate-200 bg-white p-1.5 shadow-2xl">
+        <p class="px-2.5 pb-1 pt-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Tous les formats sont rechargeables</p>
+        @for (e of exports; track e.f) {
+          <button (click)="run(e)" class="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left hover:bg-slate-50">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700"><svg [lucide]="e.icon" class="h-4 w-4"></svg></span>
+            <span><span class="block text-xs font-bold text-slate-800">{{ e.label }}</span><span class="block text-[11px] text-slate-500">{{ e.desc }}</span></span>
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>

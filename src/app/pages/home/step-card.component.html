@@ -1,0 +1,12 @@
+<div motion [initial]="{ opacity: 0, y: 30 }" [whileInView]="{ opacity: 1, y: 0 }" [viewport]="{ once: true }" [transition]="{ delay: i() * 0.12 }" [whileHover]="{ y: -6 }"
+  class="group relative overflow-hidden rounded-[32px] border border-white bg-white shadow-[0_30px_60px_-35px_rgba(2,44,34,.3)]">
+  <div class="relative h-52 overflow-hidden bg-gradient-to-br from-[#F3EEDF] to-emerald-50"><ng-content /></div>
+  <div class="p-7">
+    <div class="flex items-center gap-3">
+      <span class="font-display text-4xl font-black italic text-emerald-700/20">0{{ i() + 1 }}</span>
+      <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-white"><svg [lucide]="icon()" class="h-5 w-5"></svg></span>
+      <h3 class="font-display text-2xl font-semibold">{{ title() }}</h3>
+    </div>
+    <p class="mt-4 text-sm leading-relaxed text-slate-600">{{ text() }}</p>
+  </div>
+</div>

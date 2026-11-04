@@ -1,0 +1,5 @@
+<svg:g class="recharts-cartesian-grid-horizontal">
+  @for (y of ys(); track $index) {
+    <svg:line stroke="#E2E8F0" stroke-dasharray="3 3" fill="none" [attr.x1]="plot().x" [attr.y1]="y" [attr.x2]="plot().x + plot().width" [attr.y2]="y" />
+  }
+</svg:g>

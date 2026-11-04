@@ -1,0 +1,14 @@
+<svg aria-hidden="true" viewBox="0 0 1440 320" preserveAspectRatio="none" [attr.class]="className() || null">
+  <defs>
+    <linearGradient id="h1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#065F46" /><stop offset="100%" stop-color="#022C22" /></linearGradient>
+    <linearGradient id="h2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#047857" /><stop offset="100%" stop-color="#064E3B" /></linearGradient>
+  </defs>
+  <path d="M0 210 C 240 140, 420 230, 720 170 S 1200 120, 1440 190 L1440 320 L0 320 Z" fill="url(#h2)" opacity="0.55" />
+  @for (t of trees; track $index) {
+    <g [attr.transform]="t" opacity="0.55">
+      <rect x="-1" y="0" width="2" height="8" fill="#022C22" /><circle cx="0" cy="-3" r="7" fill="#065F46" />
+      <circle cx="-3" cy="-4" r="1.3" fill="#F43F5E" /><circle cx="3" cy="-2" r="1.3" fill="#F43F5E" />
+    </g>
+  }
+  <path d="M0 260 C 300 200, 540 290, 860 240 S 1260 210, 1440 250 L1440 320 L0 320 Z" fill="url(#h1)" />
+</svg>

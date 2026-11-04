@@ -1,0 +1,10 @@
+<div class="recharts-default-tooltip" style="margin: 0px; padding: 10px; background-color: rgb(255, 255, 255); border: 1px solid rgb(204, 204, 204); white-space: nowrap; border-radius: 12px; font-size: 12px">
+  <p class="recharts-tooltip-label" style="margin: 0px">{{ label() }}</p>
+  <ul class="recharts-tooltip-item-list" style="padding: 0px; margin: 0px">
+    @for (it of items(); track $index) {
+      <li class="recharts-tooltip-item" style="display: block; padding-top: 4px; padding-bottom: 4px" [style.color]="it.color">
+        @if (it.name !== undefined) {<span class="recharts-tooltip-item-name">{{ it.name }}</span><span class="recharts-tooltip-item-separator">{{ ' : ' }}</span>}<span class="recharts-tooltip-item-value">{{ it.value }}</span><span class="recharts-tooltip-item-unit"></span>
+      </li>
+    }
+  </ul>
+</div>

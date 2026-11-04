@@ -1,0 +1,12 @@
+<section [id]="id()" [class]="cn('scroll-mt-32', className())">
+  <div motion [initial]="{ opacity: 0, y: 18 }" [whileInView]="{ opacity: 1, y: 0 }" [viewport]="{ once: true, margin: '-60px' }" [transition]="{ duration: 0.6 }"
+    class="mb-6 flex items-end gap-5">
+    <span class="font-display text-[64px] font-black leading-none text-transparent md:text-[88px]" style="-webkit-text-stroke: 1.5px #CBD5E1">{{ n() }}</span>
+    <div class="pb-2">
+      <p class="text-[11px] font-extrabold uppercase tracking-[0.25em] text-emerald-700">{{ kicker() }}</p>
+      <h2 class="font-display text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">{{ title() }}<ng-content select="[chapterTitle]" /></h2>
+    </div>
+    <div class="mb-4 hidden h-px flex-1 bg-gradient-to-r from-slate-300 to-transparent md:block"></div>
+  </div>
+  <ng-content />
+</section>

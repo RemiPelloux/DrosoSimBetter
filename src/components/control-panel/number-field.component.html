@@ -1,0 +1,8 @@
+<label class="block rounded-lg border border-slate-200 bg-white px-2 py-1.5">
+  <span class="flex items-center gap-1 text-[10px] font-semibold text-slate-500"><svg [lucide]="I.Euro" class="h-3 w-3"></svg>{{ label() }}</span>
+  <span class="flex items-baseline gap-1">
+    <input type="number" [value]="value()" [step]="step()" [min]="min()" [max]="max()" (input)="onInput($event)"
+      class="w-full bg-transparent text-sm font-bold text-slate-900 focus:outline-none" />
+    <span class="text-[10px] text-slate-400">{{ unit() }}</span>
+  </span>
+</label>

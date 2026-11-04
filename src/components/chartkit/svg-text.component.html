@@ -1,0 +1,5 @@
+@let s = dsText();
+<svg:text [attr.x]="s.x" [attr.y]="s.y" [attr.text-anchor]="s.anchor" [attr.fill]="s.fill" [attr.font-size]="s.fontSize" [attr.font-weight]="s.fontWeight"
+  [attr.transform]="s.transform" [attr.class]="s.cls ?? 'recharts-text'" stroke="none">
+  @for (l of s.lines; track $index) { <svg:tspan [attr.x]="s.x" [attr.dy]="$index ? '1em' : s.dy0">{{ l }}</svg:tspan> }
+</svg:text>

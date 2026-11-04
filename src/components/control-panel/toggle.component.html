@@ -1,0 +1,6 @@
+<button (click)="valueChange.emit(!value())" class="flex w-full items-center justify-between text-[11px] font-semibold text-slate-600">
+  {{ label() }}
+  <span [class]="cn('relative h-5 w-9 rounded-full transition-colors', value() ? 'bg-emerald-600' : 'bg-slate-300')">
+    <span [class]="cn('absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all', value() ? 'left-[18px]' : 'left-0.5')"></span>
+  </span>
+</button>

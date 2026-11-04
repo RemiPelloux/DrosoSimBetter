@@ -1,0 +1,31 @@
+<div [style.height.px]="height()">
+  <div #wrap class="recharts-responsive-container" style="width: 100%; height: 100%; min-width: 0">
+    @if (g(); as g) {
+      <div class="chart-wrapper recharts-wrapper" style="position: relative; cursor: default" [style.width.px]="g.W" [style.height.px]="g.H" (mousemove)="onMove($event)" (mouseleave)="onLeave()">
+        <svg class="recharts-surface" [attr.width]="g.W" [attr.height]="g.H" [attr.viewBox]="'0 0 ' + g.W + ' ' + g.H" style="width: 100%; height: 100%">
+          <g class="recharts-polar-grid">
+            <g class="recharts-polar-grid-angle">
+              @for (p of g.spokes; track $index) { <line stroke="#E2E8F0" fill="none" [attr.x1]="g.cx" [attr.y1]="g.cy" [attr.x2]="p.x" [attr.y2]="p.y" /> }
+            </g>
+            <g class="recharts-polar-grid-concentric">
+              @for (d of g.rings; track $index) { <path class="recharts-polar-grid-concentric-polygon" stroke="#E2E8F0" fill="none" [attr.d]="d" /> }
+            </g>
+          </g>
+          @for (s of g.polys; track s.id) {
+            <g class="recharts-layer recharts-radar"><path class="recharts-polygon chart-line" [attr.d]="s.d" [attr.stroke]="s.color" [attr.fill]="s.color" [attr.fill-opacity]="s.opacity" stroke-width="2" /></g>
+          }
+          <g class="recharts-layer recharts-polar-angle-axis angleAxis">
+            @for (t of g.ticks; track $index) { <g [dsText]="t" /> }
+          </g>
+          @if (active(); as a) {
+            <path class="recharts-curve recharts-tooltip-cursor" [attr.d]="'M' + g.cx + ',' + g.cy + 'L' + a.edge.x + ',' + a.edge.y" stroke="#ccc" fill="none" pointer-events="none" />
+            @for (d of a.dots; track $index) { <circle class="recharts-dot" [attr.cx]="d.x" [attr.cy]="d.y" r="4" [attr.fill]="d.color" stroke="#fff" stroke-width="2" /> }
+          }
+        </svg>
+        <ds-chart-tooltip [coord]="active()?.coord ?? null" [viewBox]="g.box">
+          @if (active(); as a) { <ds-default-tooltip [label]="a.label" [items]="a.items" /> }
+        </ds-chart-tooltip>
+      </div>
+    }
+  </div>
+</div>

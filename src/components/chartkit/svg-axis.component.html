@@ -1,0 +1,28 @@
+@let s = a();
+@if (s.orient === 'bottom') {
+  <svg:line class="recharts-cartesian-axis-line" stroke="#666" fill="none" [attr.x1]="s.box.x" [attr.y1]="s.box.y" [attr.x2]="s.box.x + s.box.width" [attr.y2]="s.box.y" />
+} @else {
+  <svg:line class="recharts-cartesian-axis-line" stroke="#666" fill="none" [attr.x1]="s.box.x + s.box.width" [attr.y1]="s.box.y" [attr.x2]="s.box.x + s.box.width" [attr.y2]="s.box.y + s.box.height" />
+}
+<svg:g class="recharts-cartesian-axis-ticks">
+  @for (t of s.ticks; track $index) {
+    <svg:g class="recharts-layer recharts-cartesian-axis-tick">
+      @if (s.orient === 'bottom') {
+        <svg:line class="recharts-cartesian-axis-tick-line" stroke="#666" fill="none" [attr.x1]="t.coord" [attr.y1]="s.box.y + 6" [attr.x2]="t.coord" [attr.y2]="s.box.y" />
+        @if (s.wrap) {
+          <svg:text [attr.x]="t.tickCoord" [attr.y]="s.box.y + 8 + 10" text-anchor="middle" font-size="10" font-weight="600" fill="#334155">
+            @for (l of t.lines; track $index) { <svg:tspan [attr.x]="t.tickCoord" [attr.dy]="$index ? 12 : 0">{{ l }}</svg:tspan> }
+          </svg:text>
+        } @else {
+          <svg:text class="recharts-text recharts-cartesian-axis-tick-value" [attr.x]="t.tickCoord" [attr.y]="s.box.y + 8" text-anchor="middle" stroke="none"
+            [attr.fill]="s.fill" [attr.font-size]="s.fontSize" [attr.font-weight]="s.fontWeight"><svg:tspan [attr.x]="t.tickCoord" dy="0.71em">{{ t.label }}</svg:tspan></svg:text>
+        }
+      } @else {
+        <svg:line class="recharts-cartesian-axis-tick-line" stroke="#666" fill="none" [attr.x1]="s.box.x + s.box.width - 6" [attr.y1]="t.coord" [attr.x2]="s.box.x + s.box.width" [attr.y2]="t.coord" />
+        <svg:text class="recharts-text recharts-cartesian-axis-tick-value" [attr.x]="s.box.x + s.box.width - 8" [attr.y]="t.tickCoord" text-anchor="end" stroke="none"
+          [attr.fill]="s.fill" [attr.font-size]="s.fontSize" [attr.font-weight]="s.fontWeight"><svg:tspan [attr.x]="s.box.x + s.box.width - 8" dy="0.355em">{{ t.label }}</svg:tspan></svg:text>
+      }
+    </svg:g>
+  }
+</svg:g>
+@if (s.label) { <svg:g [dsText]="s.label" /> }

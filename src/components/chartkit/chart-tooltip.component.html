@@ -1,0 +1,5 @@
+<div #box class="recharts-tooltip-wrapper" tabindex="-1"
+  style="pointer-events: none; position: absolute; top: 0px; left: 0px"
+  [style.visibility]="visible() ? 'visible' : 'hidden'" [style.transform]="transform()" [style.transition]="animated() ? 'transform 400ms ease' : null">
+  @if (coord()) { <ng-content /> }
+</div>

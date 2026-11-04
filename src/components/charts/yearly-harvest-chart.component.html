@@ -1,0 +1,26 @@
+@if (!years()) { <ds-empty>Aucune récolte simulée.</ds-empty> } @else {
+  <div [style.height.px]="height()">
+    <div #wrap class="recharts-responsive-container" style="width: 100%; height: 100%; min-width: 0">
+      @if (g(); as g) {
+        <div class="chart-wrapper recharts-wrapper" style="position: relative; cursor: default" [style.width.px]="g.W" [style.height.px]="g.H" (mousemove)="onMove($event)" (mouseleave)="onLeave()">
+          <svg class="recharts-surface" [attr.width]="g.W" [attr.height]="g.H" [attr.viewBox]="'0 0 ' + g.W + ' ' + g.H" style="width: 100%; height: 100%">
+
+            <g [dsGrid]="g.plot" [ys]="g.gridYs" />
+            @if (activeIndex() >= 0) { <path class="recharts-rectangle recharts-tooltip-cursor" [attr.d]="cursorPath()" [attr.fill]="cursorFill" stroke="none" pointer-events="none" /> }
+            @for (s of g.series; track s.id) {
+              <g class="recharts-layer recharts-bar"><g class="recharts-layer recharts-bar-rectangles">
+                @for (b of s.bars; track $index) { @if (b.d) { <path class="recharts-rectangle" [attr.d]="b.d" [attr.fill]="b.fill" /> } }
+              </g></g>
+            }
+            <g [dsAxis]="g.xAxis" />
+            <g [dsAxis]="g.yAxis" />
+            @for (s of g.series; track s.id) { @for (b of s.bars; track $index) { <g [dsText]="b.label" /> } }
+          </svg>
+          <ds-chart-tooltip [coord]="tipCoord()" [viewBox]="g.plot">
+            @if (tip(); as t) { <ds-default-tooltip [label]="t.label" [items]="t.items" /> }
+          </ds-chart-tooltip>
+        </div>
+      }
+    </div>
+  </div>
+ }

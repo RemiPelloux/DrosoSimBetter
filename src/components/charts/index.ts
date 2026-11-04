@@ -1,0 +1,12 @@
+export { THRESHOLD, colorMap } from './charts.utils';
+export { fmtEur, EconomicsChart } from './economics-chart.component';
+export { LegendChip } from './legend-chip.component';
+export { PopulationChart } from './population-chart.component';
+export { StrategyLegend } from './strategy-legend.component';
+export { Empty } from './empty.component';
+export { HarvestByParcelChart } from './harvest-by-parcel-chart.component';
+export { OverlayChart } from './overlay-chart.component';
+export { scoreStrategies, RadarScore } from './radar-score.component';
+export { HealthyFruitChart } from './healthy-fruit-chart.component';
+export { YearlyHarvestChart } from './yearly-harvest-chart.component';
+export { TYPE_LABEL } from '@/lib/engine';

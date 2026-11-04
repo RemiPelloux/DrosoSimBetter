@@ -1,0 +1,26 @@
+<svg viewBox="-10 0 620 350" class="w-full" role="img" aria-label="Cycle biologique de D. suzukii">
+
+  <defs>
+    <marker [attr.id]="id" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#475569" />
+    </marker>
+  </defs>
+  <circle motion cx="300" cy="170" r="118" fill="none" stroke="#CBD5E1" stroke-width="2" stroke-dasharray="6 8"
+    [animate]="{ strokeDashoffset: [0, -56] }" [transition]="{ duration: 3, repeat: 1e9, ease: 'linear' }" />
+  <text x="300" y="160" text-anchor="middle" font-size="15" font-weight="800" fill="#0F172A">Immatures S₁ → S₂ → S₃</text>
+  <text x="300" y="180" text-anchor="middle" font-size="11" fill="#475569">trois sous-stades (délai gamma)</text>
+  <text x="300" y="198" text-anchor="middle" font-size="11" fill="#475569">≈ 210 degrés-jours &gt; 8 °C</text>
+  @for (d of arrows; track $index) {
+    <path [attr.d]="d" stroke="#475569" stroke-width="2" fill="none" [attr.marker-end]="'url(#' + id + ')'" />
+  }
+  @for (s of stages; track s.l; let i = $index) {
+    <g motion [initial]="{ scale: 0.8, opacity: 0 }" [whileInView]="{ scale: 1, opacity: 1 }" [viewport]="{ once: true }" [transition]="{ delay: i * 0.12 }">
+      <rect [attr.x]="s.x - 78" [attr.y]="s.y - 32" width="156" height="64" rx="16" [attr.fill]="s.c" stroke="#0F172A" stroke-opacity="0.15" />
+      <text [attr.x]="s.x - 66" [attr.y]="s.y + 7" font-size="22">{{ s.e }}</text>
+      <text [attr.x]="s.x - 34" [attr.y]="s.y - 3" font-size="14" font-weight="800" fill="#0F172A">{{ s.l }}</text>
+      <text [attr.x]="s.x - 34" [attr.y]="s.y + 14" font-size="10" fill="#475569">{{ s.s }}</text>
+    </g>
+  }
+  <text x="440" y="92" font-size="11" fill="#B45309" font-weight="700">ponte × survie des œufs</text>
+  <text x="40" y="92" font-size="11" fill="#15803D" font-weight="700">émergence = 3·δ(T) × S₃</text>
+</svg>

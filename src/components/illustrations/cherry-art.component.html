@@ -1,0 +1,9 @@
+<svg viewBox="0 0 64 64" [attr.width]="size()" [attr.height]="size()" [attr.class]="className() || null">
+  <defs>
+    <radialGradient [attr.id]="'c' + id" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="#fff" stop-opacity="0.55" /><stop offset="35%" [attr.stop-color]="color()" /><stop offset="100%" stop-color="#4C0519" /></radialGradient>
+  </defs>
+  <path d="M22 40 C 26 24, 32 14, 40 8 M44 38 C 42 26, 41 16, 40 8" stroke="#3F6212" stroke-width="2.4" fill="none" stroke-linecap="round" />
+  <path d="M40 8 C 48 4, 56 8, 58 14 C 50 16, 44 13, 40 8 Z" fill="#65A30D" />
+  <circle cx="20" cy="46" r="11" [attr.fill]="'url(#c' + id + ')'" />
+  <circle cx="45" cy="45" r="11" [attr.fill]="'url(#c' + id + ')'" />
+</svg>

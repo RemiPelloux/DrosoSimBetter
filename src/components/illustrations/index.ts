@@ -1,0 +1,12 @@
+export { Drosophila } from './drosophila.component';
+export { CherryArt } from './cherry-art.component';
+export { Logo } from './logo.component';
+export { FlyingFlies } from './flying-flies.component';
+export { BuzzingFly } from './buzzing-fly.component';
+export { LifeCycleDiagram } from './life-cycle-diagram.component';
+export { DailyStepDiagram } from './daily-step-diagram.component';
+export { NeighborhoodDiagram } from './neighborhood-diagram.component';
+export { PhenologyTimeline } from './phenology-timeline.component';
+export { LeverMapDiagram } from './lever-map-diagram.component';
+export { EconomicsDiagram } from './economics-diagram.component';
+export { DIAGRAMS } from './illustrations.registry';

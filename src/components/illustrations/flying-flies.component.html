@@ -1,0 +1,9 @@
+<div [class]="'pointer-events-none absolute inset-0 ' + (className() ?? '')" aria-hidden="true">
+  @for (p of paths().slice(0, count()); track $index; let i = $index) {
+    <div motion class="absolute -translate-x-1/2 -translate-y-1/2" [animate]="p.target" [transition]="p.transition">
+      <div motion [animate]="{ y: [0, -4, 0, 3, 0] }" [transition]="{ duration: 0.8, repeat: 1e9 }">
+        <ds-drosophila [size]="22 + (i % 3) * 6" />
+      </div>
+    </div>
+  }
+</div>

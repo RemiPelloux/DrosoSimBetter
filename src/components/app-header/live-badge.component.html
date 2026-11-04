@@ -1,0 +1,4 @@
+<span [title]="source()?.error ?? source()?.label ?? ''" [class]="cn('flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold', tone())">
+  @if (running()) { <svg [lucide]="I.Loader2" class="h-3 w-3 animate-spin"></svg> } @else { <span [class]="cn('relative h-1.5 w-1.5 rounded-full', dot(), !fallback() && 'live-ring text-emerald-500', remote() && 'text-sky-500')"></span> }
+  {{ running() ? 'Calcul…' : label() + (ms() !== undefined ? ' · ' + ms()!.toFixed(0) + ' ms' : '') }}
+</span>

@@ -1,0 +1,141 @@
+@if (parcels().length === 0) {
+  <div class="min-h-screen bg-slate-50">
+    <ds-app-header [title]="'Résultats'" [step]="2" />
+    <div class="mx-auto mt-24 max-w-md text-center">
+      <ds-buzzing-fly [size]="72" />
+      <h2 class="mt-4 text-xl font-extrabold text-slate-900">Aucun verger à analyser</h2>
+      <p class="mt-2 text-sm text-slate-500">Dessinez d'abord vos parcelles, ou chargez la démo.</p>
+      <div class="mt-6 flex justify-center gap-2">
+        <a routerLink="/simulator" class="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white">Dessiner mon verger</a>
+        <button (click)="loadDemo()" class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700">Charger la démo</button>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="min-h-screen bg-[#F6F4EE]">
+    <ds-app-header [title]="'Résultats & comparateur'" subtitle="Bilan technico-économique multi-stratégies" [step]="2" [csv]="true" (exportCsv)="exportCsv()">
+      <button right (click)="print()" aria-label="Fiche Conseil PDF" class="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white hover:bg-slate-800"><svg [lucide]="I.Printer" class="h-4 w-4"></svg> <span class="hidden sm:inline">Fiche Conseil PDF</span></button>
+    </ds-app-header>
+
+    <!-- En-tête impression -->
+    <div class="hidden px-6 pt-4 print:block">
+      <div class="flex items-start justify-between border-b-2 border-emerald-700 pb-3">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-emerald-700">Fiche Conseil — Drosophila suzukii</p>
+          <h1 class="text-2xl font-extrabold text-slate-900">Comparatif de stratégies de protection</h1>
+          <p class="text-xs text-slate-500">Édité le {{ today }} · DrosoSim Next · {{ parcels().length }} parcelles · {{ cherryHa().toFixed(2) }} ha de cerisiers · {{ simParams().durationYears }} an(s) · {{ climateLabel() }}</p>
+        </div>
+        <ds-mini-map [grid]="grid()" [size]="110" />
+      </div>
+    </div>
+
+    @if (!shown() || !base()) { <main class="mx-auto max-w-[1500px] p-6"><ds-skeleton-results /></main> }
+    @else {
+      @let sh = shown()!;
+      @let b = base()!;
+      <ds-hero [best]="best()?.r" [net]="best()?.net ?? 0" [base]="b" [count]="ranked().length" [color]="best() ? color(best()!.r.id) : '#10B981'" [grid]="grid()"
+        [running]="running()" [ms]="out()?.computeMs" [source]="source()" [chips]="chips()"
+        [settingsOpen]="showSettings()" (toggleSettings)="showSettings.set(!showSettings())" />
+
+      @if (showSettings()) {
+        <div motion [initial]="{ opacity: 0, y: -8 }" [animate]="{ opacity: 1, y: 0 }" class="no-print relative z-20 mx-auto -mt-6 grid max-w-[1400px] gap-6 rounded-[28px] border border-white bg-white/95 p-6 shadow-2xl shadow-emerald-950/10 backdrop-blur md:grid-cols-2">
+          <ds-simulation-settings />
+          <div><p class="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">Hypothèses économiques</p><ds-economics-settings /><p class="mt-2 text-[11px] text-slate-500">Toute modification relance instantanément la simulation des {{ strategies().length }} stratégies.</p></div>
+        </div>
+      }
+
+      <ds-chapter-nav />
+
+      <main class="relative mx-auto max-w-[1500px] space-y-24 px-4 pb-24 pt-12 md:px-8">
+        <ds-chapter [id]="'synthese'" n="01" kicker="Synthèse" [title]="'Le classement des '"><em chapterTitle class="text-emerald-700">stratégies</em>
+          <div class="no-print mb-5 flex flex-wrap items-center gap-2">
+            <span class="mr-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">Comparer</span>
+            @for (r of out()!.results; track r.id) {
+              <button [disabled]="r.isBaseline" (click)="toggleExcluded(r.id)"
+                [class]="cn('flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all', excluded()[r.id] ? 'border-dashed border-slate-300 bg-transparent text-slate-400 line-through' : 'border-white bg-white text-slate-800 shadow-sm hover:shadow', r.isBaseline && 'cursor-default')">
+                <span class="h-2.5 w-2.5 rounded-full" [style.background-color]="color(r.id)"></span>{{ r.isBaseline ? 'Témoin' : r.name }}
+              </button>
+            }
+            <div class="ml-auto flex rounded-full bg-white p-1 shadow-sm">
+              <button (click)="mode.set('columns')" [class]="modeBtn(mode() === 'columns')"><svg [lucide]="I.Columns3" class="h-3.5 w-3.5"></svg>Côte à côte</button>
+              <button (click)="mode.set('overlay')" [class]="modeBtn(mode() === 'overlay')"><svg [lucide]="I.Layers" class="h-3.5 w-3.5"></svg>Superposition</button>
+            </div>
+          </div>
+          @if (ranked().length > 1) { <ds-podium [ranked]="ranked()" [color]="color" [base]="b" /> }
+          <div class="mt-6 grid gap-5" [style.grid-template-columns]="'repeat(auto-fit, minmax(' + (sh.results.length > 3 ? 270 : 300) + 'px, 1fr))'">
+            @for (r of sh.results; track r.id; let i = $index) {
+              <ds-strategy-card [r]="r" [base]="b" [color]="color(r.id)" [best]="best()?.r?.id === r.id" [delay]="i * 0.07" (focus)="focusId.set(r.id)" [focused]="focus()?.id === r.id" />
+            }
+          </div>
+        </ds-chapter>
+
+        <ds-chapter [id]="'recolte'" n="02" kicker="Récolte" [title]="'Ce que chaque levier '"><em chapterTitle class="text-emerald-700">sauve</em>
+          <div class="grid gap-6 xl:grid-cols-3">
+            <ds-card className="xl:col-span-2" heading="Récolte saine par parcelle" [icon]="I.BarChart3" subtitle="Valeur exacte au sommet de chaque barre · barre hachurée = témoin sans levier">
+              <ds-harvest-by-parcel-chart [out]="sh" [parcels]="parcels()" [strategies]="strategies()" [height]="320" />
+            </ds-card>
+            <ds-card heading="Année après année" [icon]="I.TrendingUp" [subtitle]="focus() ? 'Stratégie : ' + (focus()!.isBaseline ? 'Témoin' : focus()!.name) : ''">
+              <div right class="no-print"><ds-focus-picker [results]="sh.results" [value]="focus()?.id" (valueChange)="focusId.set($event)" [color]="color" /></div>
+              @if (focus()) { <ds-yearly-harvest-chart [result]="focus()!" [parcels]="parcels()" [height]="320" /> }
+            </ds-card>
+          </div>
+        </ds-chapter>
+
+        <ds-chapter [id]="'dynamique'" n="03" kicker="Dynamique" [title]="'La vie de la '"><em chapterTitle class="text-emerald-700">population</em>
+          <ds-card [heading]="mode() === 'overlay' ? 'Pression moyenne sur les cerisiers — toutes stratégies' : 'Femelles adultes par parcelle'" [icon]="I.Activity"
+            [subtitle]="mode() === 'overlay' ? 'Bandes rouges = périodes de sensibilité des fruits' : 'Légende cliquable · bandes = maturité des fruits · 🚜 traitement 🛡️ filet 🧺 récolte 🐝 parasitoïdes 🧬 TIS'">
+            @if (mode() === 'columns') { <div right class="no-print"><ds-focus-picker [results]="sh.results" [value]="focus()?.id" (valueChange)="focusId.set($event)" [color]="color" /></div> }
+            @if (mode() === 'overlay') {
+              <ds-overlay-chart [out]="sh" [strategies]="strategies()" [height]="400" /><ds-strategy-legend [results]="sh.results" [strategies]="strategies()" />
+            } @else if (focus()) {
+              <ds-population-chart [out]="sh" [result]="focus()!" [parcels]="parcels()" [height]="420" />
+            }
+            <p class="mt-3 flex items-center gap-1.5 text-[11px] text-slate-500"><svg [lucide]="I.Info" class="h-3.5 w-3.5"></svg> Le pic de juillet détruit la cerise tardive mais épargne la précoce, déjà récoltée : les bandes colorées matérialisent ces fenêtres de sensibilité.</p>
+          </ds-card>
+        </ds-chapter>
+
+        <ds-chapter [id]="'economie'" n="04" kicker="Économie" [title]="'Le bilan, '" className="print-break"><em chapterTitle class="text-emerald-700">euro par euro</em>
+          <div class="grid gap-6 lg:grid-cols-2">
+            <ds-card heading="Bilan économique annuel" [icon]="I.Euro" subtitle="CA sauvé vs témoin (vert) face aux coûts des leviers · ● bilan net">
+              <ds-economics-chart [out]="sh" [strategies]="strategies()" [height]="340" />
+            </ds-card>
+            <ds-card heading="Profil multicritère" [icon]="I.RadarIcon" subtitle="0-100 : plus la surface est grande, meilleure est la stratégie">
+              <ds-radar-score [out]="sh" [strategies]="strategies()" [height]="320" />
+              <ds-strategy-legend [results]="sh.results" [strategies]="strategies()" />
+            </ds-card>
+          </div>
+        </ds-chapter>
+
+        <ds-chapter [id]="'territoire'" n="05" kicker="Territoire" [title]="'Où la mouche '"><em chapterTitle class="text-emerald-700">frappe</em>
+          <div class="grid gap-6 lg:grid-cols-5">
+            <ds-card className="lg:col-span-3" heading="Carte de pression maximale" [icon]="I.MapIcon" subtitle="Pic de femelles/ha par case, échelle commune au témoin — les drosophiles survolent les zones les plus touchées">
+              <div right class="no-print"><ds-focus-picker [results]="sh.results" [value]="focus()?.id" (valueChange)="focusId.set($event)" [color]="color" /></div>
+              @if (focus()) { <ds-heat-panel [focus]="focus()!" [base]="b" [grid]="grid()" /> }
+            </ds-card>
+            <ds-card className="lg:col-span-2" heading="Fruits sains au fil du temps" [icon]="IconHarvest" subtitle="% de fruits indemnes (cerisiers), pondéré par la surface">
+              <ds-healthy-fruit-chart [out]="sh" [parcels]="parcels()" [strategies]="strategies()" [height]="340" />
+              <ds-strategy-legend [results]="sh.results" [strategies]="strategies()" />
+            </ds-card>
+          </div>
+        </ds-chapter>
+
+        <ds-chapter [id]="'leviers'" n="06" kicker="Décision" [title]="'Leviers, coûts & '"><em chapterTitle class="text-emerald-700">conseils</em>
+          <div class="space-y-6">
+            <ds-card heading="Leviers retenus par stratégie" [icon]="I.Layers" subtitle="Leviers actifs par parcelle et récolte saine correspondante">
+              <ds-lever-table [strategies]="shownStrategies()" [parcels]="parcels()" [results]="sh.results" [haPerCell]="haPerCell()" />
+            </ds-card>
+            <div class="grid gap-6 lg:grid-cols-2">
+              <ds-recommendations [results]="sh.results" [base]="b" [parcels]="parcels()" />
+              <ds-card heading="Détail des coûts & contraintes" [icon]="I.Users" subtitle="Par an, sur l'ensemble de l'exploitation">
+                <ds-cost-table [results]="nonBaseline()" [base]="b" [color]="color" />
+              </ds-card>
+            </div>
+            <ds-hypotheses />
+          </div>
+        </ds-chapter>
+      </main>
+
+      <ds-final-cta />
+    }
+  </div>
+}

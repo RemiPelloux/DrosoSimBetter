@@ -1,0 +1,5 @@
+<div class="flex rounded-lg bg-slate-100 p-0.5">
+  @for (o of options(); track o.v) {
+    <button (click)="valueChange.emit(o.v)" [class]="cn('flex-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-all', value() === o.v ? 'bg-white text-slate-900 shadow' : 'text-slate-500 hover:text-slate-800')">{{ o.l }}</button>
+  }
+</div>

@@ -1,0 +1,43 @@
+@if (!activeLevers().length) {
+  <p class="border-t border-slate-100 bg-slate-50 px-3 py-3 text-[11px] italic text-slate-500">Activez un levier pour accéder à ses réglages avancés.</p>
+} @else {
+  <div class="space-y-3 border-t border-slate-100 bg-slate-50/70 px-3 py-3">
+    @if (cherry() && lv().prophylaxis) {
+      <ds-adv [l]="levers[0]">
+        <ds-row [label]="'Taux de récolte : ' + lv().harvestRate + ' %'">
+          <input type="range" [min]="80" [max]="99" [value]="lv().harvestRate" (input)="leverChange.emit({ harvestRate: +$any($event.target).value })" class="w-full accent-teal-600" />
+          <div class="flex justify-between text-[9px] text-slate-400"><span>Standard 80 %</span><span>Sanitaire 98 %</span></div>
+        </ds-row>
+        <ds-toggle label="Destruction des fruits tombés au sol" [value]="lv().groundFruitDestruction" (valueChange)="leverChange.emit({ groundFruitDestruction: $event })" />
+      </ds-adv>
+    }
+    @if (cherry() && lv().netting) {
+      <ds-adv [l]="levers[1]">
+        <ds-row label="Type"><ds-segmented [value]="lv().netType" (valueChange)="leverChange.emit({ netType: $event })" [options]="o.netType" /></ds-row>
+        <ds-row label="Déploiement"><ds-segmented [value]="lv().netDeploy" (valueChange)="leverChange.emit({ netDeploy: $event })" [options]="o.netDeploy" /></ds-row>
+      </ds-adv>
+    }
+    @if (cherry() && lv().treatment) {
+      <ds-adv [l]="levers[2]">
+        <ds-row label="Mode"><ds-segmented [value]="lv().treatmentMode" (valueChange)="leverChange.emit({ treatmentMode: $event })" [options]="o.treatmentMode" /></ds-row>
+        <ds-row label="Nombre de passages"><ds-segmented [value]="'' + lv().treatmentPasses" (valueChange)="leverChange.emit({ treatmentPasses: +$event })" [options]="o.passes" /></ds-row>
+        <ds-row label="Déclenchement"><ds-segmented [value]="lv().treatmentTrigger" (valueChange)="leverChange.emit({ treatmentTrigger: $event })" [options]="o.trigger" /></ds-row>
+        <p class="text-[10px] text-slate-500">{{ lv().treatmentMode === 'conventional' ? 'Spinosad / Exirel — rémanence 7 j, comptabilisé dans l’IFT.' : 'Argile / huiles — rémanence 4 j, hors IFT chimique.' }} DAR respecté (arrêt 3 j avant récolte).</p>
+      </ds-adv>
+    }
+    @if (lv().parasitoids) {
+      <ds-adv [l]="levers[3]">
+        <ds-row label="Période de lâcher"><ds-segmented [value]="lv().parasitoidSeason" (valueChange)="leverChange.emit({ parasitoidSeason: $event })" [options]="o.season" /></ds-row>
+        <ds-row label="Intensité"><ds-segmented [value]="lv().parasitoidDose" (valueChange)="leverChange.emit({ parasitoidDose: $event })" [options]="o.dose" /></ds-row>
+      </ds-adv>
+    }
+    @if (cherry() && lv().tis) {
+      <ds-adv [l]="levers[4]">
+        <ds-row [label]="'Ratio stériles / sauvages : ' + lv().tisRatio + ':1'">
+          <input type="range" [min]="2" [max]="20" [value]="lv().tisRatio" (input)="leverChange.emit({ tisRatio: +$any($event.target).value })" class="w-full accent-pink-600" />
+        </ds-row>
+        <p class="text-[10px] text-slate-500">Lâchers hebdomadaires de mars à septembre.</p>
+      </ds-adv>
+    }
+  </div>
+}

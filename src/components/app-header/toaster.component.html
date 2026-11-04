@@ -1,0 +1,8 @@
+<div class="pointer-events-none fixed bottom-5 left-1/2 z-[100] flex -translate-x-1/2 flex-col items-center gap-2">
+  @for (t of items(); track t.id) {
+    <div motion [initial]="{ opacity: 0, y: 20, scale: 0.95 }" [animate]="{ opacity: 1, y: 0, scale: 1 }" [exit]="{ opacity: 0, y: 10 }"
+      [class]="cn('flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-xl', t.kind === 'ok' ? 'bg-slate-900' : 'bg-red-600')">
+      @if (t.kind === 'ok') { <svg [lucide]="I.Check" class="h-4 w-4 text-emerald-400"></svg> } @else { <svg [lucide]="I.AlertCircle" class="h-4 w-4"></svg> } {{ t.msg }}
+    </div>
+  }
+</div>

@@ -1,0 +1,18 @@
+<div class="rounded-[28px] border border-white bg-white/80 p-5 shadow-[0_30px_60px_-30px_rgba(2,44,34,.25)] backdrop-blur">
+  <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Classement par bilan net annuel</p>
+  <ol class="space-y-3">
+    @for (x of ranked(); track x.r.id; let i = $index) {
+      <li motion [initial]="{ opacity: 0, x: -16 }" [whileInView]="{ opacity: 1, x: 0 }" [viewport]="{ once: true }" [transition]="{ delay: i * 0.08 }" class="grid grid-cols-[48px_1fr_auto] items-center gap-4">
+        <span [class]="cn('font-display text-4xl font-black italic leading-none', i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-orange-700/70' : 'text-slate-300')">{{ i + 1 }}</span>
+        <div>
+          <div class="mb-1 flex items-center justify-between text-sm"><span class="font-bold text-slate-800">{{ x.r.name }}</span><span class="text-[11px] text-slate-500">{{ x.r.globalHarvest.toFixed(0) }} % récolte · {{ (x.r.globalHarvest - base().globalHarvest).toFixed(0) }} pts vs témoin</span></div>
+          <div class="relative h-3 overflow-hidden rounded-full bg-slate-100">
+            <div motion class="absolute inset-y-0 left-0 rounded-full" [style.background]="'linear-gradient(90deg, ' + color()(x.r.id) + '88, ' + color()(x.r.id) + ')'"
+              [initial]="{ width: '0%' }" [whileInView]="{ width: barWidth(x.net) }" [viewport]="{ once: true }" [transition]="{ duration: 1, delay: 0.1 + i * 0.08, ease: ease }"></div>
+          </div>
+        </div>
+        <span [class]="cn('font-display text-xl font-semibold tabular-nums', x.net >= 0 ? 'text-emerald-700' : 'text-rose-600')"><ds-count-up [value]="x.net" suffix=" €" [signed]="true" /></span>
+      </li>
+    }
+  </ol>
+</div>

@@ -1,0 +1,21 @@
+<svg viewBox="0 0 720 220" class="w-full" role="img" aria-label="Chaîne de calcul économique">
+
+  <defs>
+    <marker [attr.id]="id" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#475569" />
+    </marker>
+  </defs>
+  @for (b of boxes; track b.t) {
+    <g>
+      <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.w" height="58" rx="12" [attr.fill]="b.c" stroke="#0F172A" stroke-opacity="0.1" />
+      <text [attr.x]="b.x + b.w / 2" [attr.y]="b.y + 25" text-anchor="middle" font-size="13" font-weight="800" fill="#0F172A">{{ b.t }}</text>
+      <text [attr.x]="b.x + b.w / 2" [attr.y]="b.y + 43" text-anchor="middle" font-size="10" fill="#475569">{{ b.s }}</text>
+    </g>
+  }
+  <text x="590" y="105" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">Bilan net = CA sauvé − coûts</text>
+  <text x="590" y="123" text-anchor="middle" font-size="10" fill="#CBD5E1">ROI = CA sauvé / coûts</text>
+  <path d="M180 49 C 220 49, 215 100, 248 105" stroke="#475569" stroke-width="2" fill="none" [attr.marker-end]="url" />
+  <path d="M180 169 C 220 169, 215 115, 248 112" stroke="#475569" stroke-width="2" fill="none" [attr.marker-end]="url" />
+  <path d="M410 109 H 478" stroke="#475569" stroke-width="2" [attr.marker-end]="url" />
+  <path d="M410 189 C 450 189, 450 125, 478 118" stroke="#475569" stroke-width="2" fill="none" [attr.marker-end]="url" />
+</svg>

@@ -1,0 +1,58 @@
+<svg [attr.viewBox]="viewBox()" [attr.class]="className() || null" role="img" aria-label="Vue isométrique du verger">
+  <defs>
+    <radialGradient id="canopy" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#A7E08A" /><stop offset="60%" stop-color="#4D9A3F" /><stop offset="100%" stop-color="#2C6B2A" /></radialGradient>
+    <radialGradient id="pine" cx="40%" cy="20%" r="90%"><stop offset="0%" stop-color="#4C9A5B" /><stop offset="100%" stop-color="#173F23" /></radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2" /></filter>
+  </defs>
+  <!-- socle -->
+  <path [attr.d]="base().top" fill="#CBBF9E" />
+  <path [attr.d]="base().front" fill="#A8956B" />
+  <path [attr.d]="base().side" fill="#8E7B55" />
+  @for (c of cells(); track c.i) {
+    <g>
+      <path [attr.d]="c.d" [attr.fill]="c.ground" stroke="rgba(0,0,0,.06)" stroke-width="0.6" />
+      @if (c.v > 0.05 && c.t !== 'neutral') { <path [attr.d]="c.d" [attr.fill]="c.heat" [attr.opacity]="0.25 + c.v * 0.55" /> }
+      @if (c.t === 'forest') {
+        <g [attr.transform]="c.tr">
+          <ellipse cx="3" cy="4" rx="16" ry="6" fill="#000" opacity="0.18" filter="url(#soft)" />
+          <path [attr.d]="'M0 ' + (-46 - (c.i % 3) * 6) + ' L13 -8 L-13 -8 Z'" fill="url(#pine)" />
+          <path [attr.d]="'M0 ' + (-34 - (c.i % 3) * 6) + ' L16 2 L-16 2 Z'" fill="url(#pine)" />
+          <rect x="-2" y="2" width="4" height="6" fill="#4A2F1B" />
+        </g>
+      }
+      @if (c.t === 'early-cherry' || c.t === 'season-cherry' || c.t === 'late-cherry') {
+        <g [attr.transform]="c.tr">
+          <ellipse cx="3" cy="4" rx="13" ry="5" fill="#000" opacity="0.2" filter="url(#soft)" />
+          <rect x="-1.8" y="-14" width="3.6" height="17" rx="1.5" fill="#5B3A24" />
+          <circle cx="0" cy="-22" r="14" fill="url(#canopy)" />
+          @for (f of fruitPos; track $index) {
+            <circle [attr.cx]="f[0]" [attr.cy]="f[1]" r="2.1" [attr.fill]="c.fruit" stroke="#fff" stroke-opacity="0.4" stroke-width="0.5" />
+          }
+        </g>
+      }
+    </g>
+  }
+  <ng-template #fliesTpl>
+  @for (c of hot(); track c.i; let k = $index) {
+    <g motion [initial]="{ opacity: 0 }" [animate]="flyTarget"
+      [transition]="{ opacity: { delay: 0.8 + k * 0.05 }, duration: 2 + (k % 4) * 0.4, repeat: 1e9, ease: 'easeInOut' }">
+      <g [attr.transform]="flyTransform(c, k)">
+        <ellipse cx="-3.5" cy="-2" rx="4" ry="2.2" fill="#E0F2FE" opacity="0.85" transform="rotate(-25)" />
+        <ellipse cx="3.5" cy="-2" rx="4" ry="2.2" fill="#E0F2FE" opacity="0.85" transform="rotate(25)" />
+        <ellipse cx="0" cy="0" rx="2.2" ry="3.4" fill="#B45309" />
+        <circle cx="-1" cy="-3" r="0.9" fill="#DC2626" /><circle cx="1" cy="-3" r="0.9" fill="#DC2626" />
+      </g>
+    </g>
+  }
+  </ng-template>
+  @if (flies() && !splitFlies()) { <ng-container [ngTemplateOutlet]="fliesTpl" /> }
+</svg>
+<!-- Avec une ombre portée (drop-shadow), les mouches passent dans un calque à part, sans filtre :
+     le verger, statique, n'est rastérisé qu'une fois au lieu d'être redessiné avec son ombre à
+     chaque image. Le verger est alors le seul enfant en flux de son parent positionné ou animé,
+     ce qui place ce calque exactement dessus. -->
+@if (splitFlies()) {
+  <svg [attr.viewBox]="viewBox()" aria-hidden="true" class="pointer-events-none absolute left-0 top-0 w-full" style="will-change: transform">
+    <ng-container [ngTemplateOutlet]="fliesTpl" />
+  </svg>
+}

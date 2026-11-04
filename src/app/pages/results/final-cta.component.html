@@ -1,0 +1,16 @@
+<section class="no-print relative overflow-hidden bg-[#03241C] py-20 text-white">
+  <ds-contours className="absolute inset-0 h-full w-full" color="#6EE7B7" />
+  <ds-grain [opacity]="0.12" />
+  <div class="relative mx-auto flex max-w-[1200px] flex-col items-start gap-6 px-6 md:flex-row md:items-center md:justify-between">
+    <div>
+      <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-emerald-300">Et maintenant ?</p>
+      <h3 class="font-display mt-2 text-4xl font-semibold md:text-5xl">Affinez, comparez, <em class="text-amber-200">partagez.</em></h3>
+      <p class="mt-3 max-w-lg text-emerald-50/70">Ajustez un levier dans l'éditeur : tous les résultats se recalculent instantanément. Exportez une Fiche Conseil pour votre prochain tour de plaine.</p>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <a routerLink="/simulator" class="rounded-2xl bg-white px-6 py-4 font-bold text-slate-900 hover:bg-emerald-50">Retour à l'éditeur</a>
+      <button (click)="print()" class="flex items-center gap-2 rounded-2xl border border-white/30 px-6 py-4 font-bold hover:bg-white/10"><svg [lucide]="I.Printer" class="h-5 w-5"></svg> Fiche Conseil PDF</button>
+      <a routerLink="/docs/modele" class="rounded-2xl border border-white/30 px-6 py-4 font-bold hover:bg-white/10">Comprendre le modèle</a>
+    </div>
+  </div>
+</section>

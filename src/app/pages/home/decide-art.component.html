@@ -1,0 +1,11 @@
+<div class="absolute inset-0 flex flex-col justify-center gap-2 px-8">
+  <div class="flex items-center justify-between text-[11px] font-bold"><span class="text-rose-600">● Sans protection</span><span class="text-emerald-700">● Protection intégrée</span></div>
+  <div class="relative h-28 rounded-xl bg-white p-2 shadow-sm">
+    <ds-sparkline [data]="a()" [max]="max()" color="#E11D48" [width]="300" [height]="96" className="absolute inset-2 h-[calc(100%-16px)] w-[calc(100%-16px)]" />
+    <ds-sparkline [data]="b()" [max]="max()" color="#10B981" [width]="300" [height]="96" className="absolute inset-2 h-[calc(100%-16px)] w-[calc(100%-16px)]" />
+  </div>
+  <div class="flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-white">
+    <svg [lucide]="I.Trophy" class="h-4 w-4 text-amber-300"></svg><span class="text-xs font-bold">Protection intégrée</span>
+    <span class="font-display ml-auto text-sm">{{ run().pbi.globalHarvest.toFixed(0) }} % récolte</span>
+  </div>
+</div>

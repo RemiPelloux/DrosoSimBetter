@@ -1,0 +1,9 @@
+<ds-card heading="Recommandations" [icon]="I.Lightbulb" subtitle="Générées automatiquement à partir des résultats de la simulation">
+  <ul class="space-y-2">
+    @for (r of recs(); track $index; let i = $index) {
+      <li motion [initial]="{ opacity: 0, x: -8 }" [animate]="{ opacity: 1, x: 0 }" [transition]="{ delay: i * 0.04 }" class="flex gap-2.5 rounded-xl border border-slate-100 p-2.5 text-xs leading-relaxed text-slate-700">
+        <span [class]="cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-lg', C[r.tone])"><svg [lucide]="TONE_ICON[r.tone]" class="h-3.5 w-3.5"></svg></span><span>@for (p of r.parts; track $index) {@if (p.b) {<b>{{ p.t }}</b>} @else {<ng-container>{{ p.t }}</ng-container>}}</span>
+      </li>
+    }
+  </ul>
+</ds-card>

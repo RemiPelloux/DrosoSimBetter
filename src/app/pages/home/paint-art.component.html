@@ -1,0 +1,8 @@
+<div class="absolute inset-0 flex items-center justify-center">
+  <div #grid class="grid h-40 w-40 rotate-[-6deg] overflow-hidden rounded-xl shadow-xl ring-4 ring-white" style="grid-template-columns: repeat(20,1fr)">
+    @for (t of g; track $index) { <div style="background-color: #EDE7D6"></div> }
+  </div>
+  <div motion class="absolute" [initial]="{ x: -60, y: 50 }" [whileInView]="{ x: 60, y: -40 }" [viewport]="{ once: true }" [transition]="{ duration: 1.6, delay: 0.3, ease: 'easeInOut' }">
+    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white shadow-xl"><svg [lucide]="I.Paintbrush" class="h-5 w-5"></svg></span>
+  </div>
+</div>

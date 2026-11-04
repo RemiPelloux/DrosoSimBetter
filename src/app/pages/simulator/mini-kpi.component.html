@@ -1,0 +1,9 @@
+<div class="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
+  <p class="text-[10px] font-semibold text-slate-500">{{ label() }}</p>
+  @for (v of [value()]; track v) {
+    <p motion [initial]="{ opacity: 0.4, y: -2 }" [animate]="{ opacity: 1, y: 0 }" [class]="cn('text-lg font-extrabold', tone() === 'bad' ? 'text-red-600' : tone() === 'good' ? 'text-emerald-700' : 'text-slate-900')">{{ v }}</p>
+  }
+  @if (delta() !== undefined) {
+    <p [class]="cn('text-[10px] font-bold', delta()! >= 0 ? 'text-emerald-600' : 'text-red-600')">{{ delta()! >= 0 ? '+' : '' }}{{ delta()!.toFixed(1) }} {{ unit() }} vs témoin</p>
+  }
+</div>

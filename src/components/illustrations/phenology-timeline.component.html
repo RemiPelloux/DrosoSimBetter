@@ -1,0 +1,21 @@
+<svg viewBox="0 0 720 250" class="w-full" role="img" aria-label="Phénologie et pression">
+  @for (m of months; track $index) {
+    <g>
+      <line [attr.x1]="m.x" y1="20" [attr.x2]="m.x" y2="226" stroke="#E2E8F0" />
+      <text [attr.x]="m.tx" y="244" text-anchor="middle" font-size="11" fill="#64748B">{{ m.m }}</text>
+    </g>
+  }
+  @for (b of bands; track b.l) { <rect [attr.x]="b.x" y="20" [attr.width]="b.w" height="135" [attr.fill]="b.c" opacity="0.12" /> }
+  <polyline motion [attr.points]="pts" fill="none" stroke="#0F172A" stroke-width="2.5" [initial]="{ pathLength: 0 }" [whileInView]="{ pathLength: 1 }" [viewport]="{ once: true }" [transition]="{ duration: 1.6 }" />
+  <text [attr.x]="X(222)" y="26" font-size="11" font-weight="700" fill="#0F172A">pic estival</text>
+  <text [attr.x]="X(282)" y="100" font-size="10" fill="#475569">rebond post-récolte (résidus)</text>
+  <line x1="40" y1="110" x2="680" y2="110" stroke="#DC2626" stroke-dasharray="5 4" />
+  <text x="684" y="113" font-size="9" fill="#DC2626">seuil</text>
+  @for (b of bands; track b.l) {
+    <g>
+      <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.w" height="16" rx="5" [attr.fill]="b.c" />
+      <text [attr.x]="b.tx" [attr.y]="b.y + 12" font-size="11" font-weight="700" [attr.fill]="b.c">{{ b.l }} : véraison → récolte</text>
+    </g>
+  }
+  <text [attr.x]="X(10)" y="40" font-size="10" fill="#64748B">hivernage en forêt</text>
+</svg>

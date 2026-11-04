@@ -1,0 +1,7 @@
+<svg viewBox="0 0 24 24" [attr.width]="size()" [attr.height]="size()" fill="none" stroke="currentColor"
+  stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" [attr.aria-hidden]="title() ? null : true" [attr.role]="title() ? 'img' : null" [attr.class]="className() || null">
+  @if (title()) { <title>{{ title() }}</title> }
+  <circle cx="12" cy="9" r="4" fill="currentColor" fill-opacity="0.22"></circle>
+  <path class="ico-rays" d="M12 2v1.6M12 14.4V16M5 9H3.4M20.6 9H19M7.1 4.1 6 3M18 15l-1.1-1.1M6 15l1.1-1.1M16.9 4.1 18 3"></path>
+  <path class="ico-heat" d="M5 19.5c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0" stroke-width="1.4"></path>
+</svg>

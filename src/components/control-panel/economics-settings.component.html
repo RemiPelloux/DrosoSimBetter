@@ -1,0 +1,20 @@
+<div class="space-y-2">
+  <div class="grid grid-cols-3 gap-2">
+    <ds-number-field label="Rendement" unit="t/ha" [value]="eco().yieldTPerHa" [step]="0.5" [min]="1" [max]="30" (valueChange)="set({ yieldTPerHa: $event })" />
+    <ds-number-field label="Prix" unit="€/kg" [value]="eco().pricePerKg" [step]="0.1" [min]="0.5" [max]="15" (valueChange)="set({ pricePerKg: $event })" />
+    <ds-number-field label="1 case" unit="m²" [value]="eco().cellAreaM2" [step]="25" [min]="25" [max]="2500" (valueChange)="set({ cellAreaM2: $event })" />
+  </div>
+  <button (click)="open.set(!open())" class="flex w-full items-center justify-between rounded-lg px-1 py-1 text-[11px] font-bold text-slate-600 hover:text-slate-900">
+    <span>Coûts des leviers @if (isDefault()) { <span class="font-normal text-slate-400">(valeurs indicatives)</span> } @else { <span class="font-normal text-amber-600">(personnalisés)</span> }</span>
+    <svg [lucide]="I.ChevronDown" [class]="cn('h-3.5 w-3.5 transition-transform', open() && 'rotate-180')"></svg>
+  </button>
+  @if (open()) {
+    <div class="space-y-2">
+      <div class="grid grid-cols-2 gap-2">
+        @for (f of fields; track f[0]) { <ds-number-field [label]="f[1]" [unit]="f[2]" [value]="costs()[f[0]]" [step]="f[3]" [min]="0" [max]="20000" (valueChange)="setCost(f[0], $event)" /> }
+      </div>
+      @if (!isDefault()) { <button (click)="set({ costs: defaults() })" class="text-[11px] font-semibold text-slate-500 underline hover:text-slate-800">Rétablir les valeurs par défaut</button> }
+      <p class="text-[10px] text-slate-400">Toute la main-d’œuvre (pose des filets 40 h/ha, passages 1,5 h/ha, prophylaxie) est valorisée au taux horaire.</p>
+    </div>
+  }
+</div>

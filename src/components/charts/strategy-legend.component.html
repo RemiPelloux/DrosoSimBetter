@@ -1,0 +1,8 @@
+<div class="mt-2 flex flex-wrap justify-center gap-3">
+  @for (r of results(); track r.id) {
+    <span class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700">
+      <span [class]="cn('h-3 w-3 rounded-sm', r.isBaseline && 'bg-[repeating-linear-gradient(45deg,#CBD5E1_0_2px,#94A3B8_2px_4px)]')" [style.background-color]="r.isBaseline ? null : colors().get(r.id)"></span>
+      {{ r.isBaseline ? 'Témoin sans levier' : r.name }}
+    </span>
+  }
+</div>

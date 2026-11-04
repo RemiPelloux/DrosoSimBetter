@@ -1,0 +1,11 @@
+<div class="relative shrink-0" [style.width.px]="size()" [style.height.px]="size()">
+  <svg [attr.width]="size()" [attr.height]="size()" class="-rotate-90">
+    <defs>
+      <linearGradient [attr.id]="'g' + id" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" [attr.stop-color]="color()" stop-opacity="0.55" /><stop offset="100%" [attr.stop-color]="color()" /></linearGradient>
+    </defs>
+    <circle [attr.cx]="size() / 2" [attr.cy]="size() / 2" [attr.r]="r()" fill="none" [attr.stroke]="track()" [attr.stroke-width]="stroke()" />
+    <circle motion [attr.cx]="size() / 2" [attr.cy]="size() / 2" [attr.r]="r()" fill="none" [attr.stroke]="'url(#g' + id + ')'" [attr.stroke-width]="stroke()" stroke-linecap="round"
+      [attr.stroke-dasharray]="c()" [initial]="{ strokeDashoffset: c() }" [animate]="{ strokeDashoffset: c() * (1 - pct()) }" [transition]="{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }" />
+  </svg>
+  <div class="absolute inset-0 flex flex-col items-center justify-center"><ng-content /></div>
+</div>

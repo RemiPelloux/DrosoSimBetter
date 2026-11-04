@@ -1,0 +1,42 @@
+<button motion [initial]="{ opacity: 0, y: 24 }" [whileInView]="{ opacity: 1, y: 0 }" [viewport]="{ once: true }" [transition]="{ delay: delay(), duration: 0.5 }" (click)="focus.emit()"
+  [whileHover]="{ y: -4 }"
+  [class]="cn('group relative overflow-hidden rounded-[28px] border bg-white p-5 text-left shadow-[0_24px_50px_-30px_rgba(15,23,42,.35)] transition-shadow', focused() ? 'border-transparent ring-2' : 'border-white')"
+  [style.--tw-ring-color]="focused() ? c() : null">
+  <div class="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full opacity-25 blur-2xl transition-opacity group-hover:opacity-40" [style.background-color]="c()"></div>
+  @if (r().isBaseline) { <div class="absolute inset-x-0 top-0 h-1.5 bg-[repeating-linear-gradient(45deg,#CBD5E1_0_6px,#94A3B8_6px_12px)]"></div> }
+  <div class="relative mb-4 flex items-start gap-2">
+    <div class="min-w-0">
+      <p class="text-[10px] font-bold uppercase tracking-[0.2em]" [style.color]="c()">{{ r().isBaseline ? 'Référence' : 'Stratégie' }}</p>
+      <p class="font-display truncate text-xl font-semibold text-slate-900">{{ r().isBaseline ? 'Témoin sans protection' : r().name }}</p>
+    </div>
+    @if (best()) { <span class="ml-auto flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-amber-300 to-amber-400 px-2.5 py-1 text-[10px] font-black text-amber-950 shadow"><svg [lucide]="I.Trophy" class="h-3 w-3"></svg> N°1</span> }
+  </div>
+  <div class="relative flex items-center gap-4">
+    <ds-ring-gauge [value]="r().globalHarvest" [color]="c()" [size]="96">
+      <span class="font-display text-2xl font-semibold text-slate-900"><ds-count-up [value]="r().globalHarvest" /></span>
+      <span class="-mt-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">% récolte</span>
+    </ds-ring-gauge>
+    <div class="min-w-0 flex-1 space-y-2">
+      <div class="flex items-baseline justify-between gap-2 border-b border-dashed border-slate-200 pb-1.5 last:border-0">
+        <span class="text-[11px] text-slate-500">Bilan net / an</span>
+        <span [class]="metric(r().isBaseline ? 'neutral' : net() >= 0 ? 'good' : 'bad')">@if (r().isBaseline) {<ng-container>CA {{ fmtEur(r().revenue) }}</ng-container>} @else {<ds-count-up [value]="net()" suffix=" €" [signed]="true" />}</span>
+      </div>
+      <div class="flex items-baseline justify-between gap-2 border-b border-dashed border-slate-200 pb-1.5 last:border-0">
+        <span class="text-[11px] text-slate-500">vs témoin</span>
+        <span [class]="metric(r().isBaseline ? 'neutral' : d() > 0.5 ? 'good' : d() < -0.5 ? 'bad' : 'neutral')">{{ r().isBaseline ? '—' : (d() >= 0 ? '+' : '') + d().toFixed(1) + ' pts' }}</span>
+      </div>
+      <div class="flex items-baseline justify-between gap-2 border-b border-dashed border-slate-200 pb-1.5 last:border-0">
+        <span class="text-[11px] text-slate-500">IFT chimique</span>
+        <span [class]="metric(r().ift === 0 ? 'good' : r().ift <= 2 ? 'neutral' : 'bad')">{{ r().ift.toFixed(1) }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="relative mt-4 rounded-2xl bg-slate-50 p-3">
+    <div class="mb-1 flex items-center justify-between text-[10px] font-semibold text-slate-500">
+      <span class="flex items-center gap-1"><ds-icon-fly className="h-3.5 w-3.5" /> Pression sur cerisiers</span>
+      <span>pic <b class="text-slate-800">{{ (r().peakDensity / 1000).toFixed(1) }}k</b>/ha@if (!r().isBaseline) {<b [class]="cn('ml-1', peakDelta() < 0 ? 'text-emerald-600' : 'text-rose-600')">{{ peakDelta() > 0 ? '+' : '' }}{{ peakDelta() }} %</b>}</span>
+    </div>
+    <ds-sparkline [data]="spark()" [color]="c()" [width]="300" [height]="38" className="w-full" />
+    <div class="mt-1 flex justify-between text-[10px] text-slate-400"><span>{{ fmtEur(r().totalCost) }} de leviers</span><span>{{ r().laborHours }} h de travail</span></div>
+  </div>
+</button>

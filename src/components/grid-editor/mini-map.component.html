@@ -1,0 +1,6 @@
+<div class="grid overflow-hidden rounded-lg border border-slate-200" [style.width.px]="size()" [style.height.px]="size()" [style.grid-template-columns]="cols">
+  @for (c of cells(); track $index) {
+    @if (c.plain) { <div [class]="c.cls" [style.background-color]="c.bg"></div> }
+    @else { <div [title]="c.title" [style.background-color]="c.bg" [style.box-shadow]="c.shadow"></div> }
+  }
+</div>

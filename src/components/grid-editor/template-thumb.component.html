@@ -1,0 +1,3 @@
+<div class="grid shrink-0 overflow-hidden rounded-md border border-slate-200" [style.width.px]="size()" [style.height.px]="size()" [style.grid-template-columns]="cols">
+  @for (t of g(); track $index) { <div [style.background-color]="bg[t]"></div> }
+</div>

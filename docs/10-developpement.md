@@ -39,13 +39,13 @@ Détails et variables d'environnement des scripts : [`scripts/README.md`](../scr
 | `src/lib/simulation.ts` | relance du calcul à chaque modification | changer le délai, filtrer des stratégies |
 | `src/lib/store.ts` | état global (Zustand), historique, persistance, modèles, démo, partage | ajouter un champ au projet, un modèle de verger |
 | `src/lib/projectIO.ts` | import/export de tous les formats | ajouter un format |
-| `src/components/GridEditor.ts` | éditeur 20×20 | outils de dessin, palette |
-| `src/components/ControlPanel.ts` | paramètres, stratégies, matrice des leviers, coûts | interface des leviers |
-| `src/components/charts.ts`, `chartkit.ts` | graphiques SVG (rendu Recharts) | ajouter ou modifier un graphique |
-| `src/components/art.ts`, `illustrations.ts` | SVG artistiques et animations | identité visuelle |
-| `src/app/pages/home.ts` | landing page | contenu marketing |
-| `src/app/pages/simulator.ts` | cockpit de simulation | disposition, onboarding |
-| `src/app/pages/results.ts` | page de résultats | sections, indicateurs |
+| `src/components/grid-editor/` | éditeur 20×20 | outils de dessin, palette |
+| `src/components/control-panel/` | paramètres, stratégies, matrice des leviers, coûts | interface des leviers |
+| `src/components/charts/`, `chartkit/` | graphiques SVG (rendu Recharts) | ajouter ou modifier un graphique |
+| `src/components/art/`, `illustrations/` | SVG artistiques et animations | identité visuelle |
+| `src/app/pages/home/` | landing page | contenu marketing |
+| `src/app/pages/simulator/` | cockpit de simulation | disposition, onboarding |
+| `src/app/pages/results/` | page de résultats | sections, indicateurs |
 | `docs/*.md` | cette documentation (rendue sur `/docs` ; seuls les fichiers numérotés sont des chapitres) | documenter vos changements |
 | `scripts/` | tests et génération des médias | ajouter une vérification |
 | `examples/` | backends d'exemple et requête de test | partir d'un squelette de backend |
@@ -94,30 +94,30 @@ export const PHENOLOGY = {
    mort += trapK[c];                             // dans la section « adultes » de la boucle
    ```
 3. **Coût** : ajoutez le poste dans le calcul des coûts (`costs.bio += …`) et, si besoin, un champ dans `LeverCosts` et `defaultCosts`.
-4. **Interface** : ajoutez une entrée dans `LEVERS` (`ControlPanel.ts`) — libellé, icône (une icône sur mesure dans `src/components/icons.ts`, ou une icône Lucide), couleur, parcelles cibles — puis un bloc de réglages dans `AdvancedLevers`. Pour une icône animée au survol, marquez la partie mobile d'une classe `ico-*` et ajoutez la règle correspondante dans `globals.css`.
-5. **Événements** (optionnel) : poussez `{ day, type: 'trap', parcelId }` dans `events` et ajoutez une entrée dans `EVENT_META` (`charts.ts`).
+4. **Interface** : ajoutez une entrée dans `LEVERS` (`control-panel/control-panel.utils.ts`) — libellé, icône (une icône sur mesure dans `src/components/icons/`, ou une icône Lucide), couleur, parcelles cibles — puis un bloc de réglages dans `AdvancedLevers` (`advanced-levers.component.html`). Pour une icône animée au survol, marquez la partie mobile d'une classe `ico-*` et ajoutez la règle correspondante dans `styles.css`.
+5. **Événements** (optionnel) : poussez `{ day, type: 'trap', parcelId }` dans `events` et ajoutez une entrée dans `EVENT_META` (`charts/population-chart.component.ts`).
 6. **Compatibilité** : les anciens projets restent lisibles, car `loadProject` complète les leviers manquants avec `defaultLeverConfig`.
 
 ### Ajouter un type de case (exemple : « fraise »)
 
 1. Ajoutez la valeur dans le type `CellType` et les dictionnaires `TYPE_LABEL`, `TYPE_COLOR` (`engine.ts`).
 2. Définissez sa phénologie et son comportement dans la boucle (`kind`, ressource, capacité d'accueil).
-3. Ajoutez-la à la palette (`PALETTE`, `SHORT`, `CELL_BG` dans `GridEditor.ts`).
+3. Ajoutez-la à la palette (`PALETTE` et `SHORT` dans `grid-editor/grid-editor.component.ts`, `CELL_BG` dans `grid-editor.utils.ts`).
 4. Mettez à jour l'encodage RLE du partage (`CODE` et `DECODE` dans `store.ts`) et les alias d'import (`projectIO.ts`).
 
 ### Ajouter un graphique
 
-1. Créez un composant dans `charts.ts` qui reçoit `out: SimOutput` et les `strategies` (pour les couleurs) ; `chartkit.ts` fournit axes, échelles, grille et infobulles.
-2. Insérez-le dans un chapitre de `src/app/pages/results.ts` à l'intérieur d'un `<ds-card>`.
+1. Créez un composant `charts/<nom>.component.ts` (+ `.component.html`), exporté par `charts/index.ts`, qui reçoit `out: SimOutput` et les `strategies` (pour les couleurs) ; `chartkit/` fournit axes, échelles, grille et infobulles.
+2. Insérez-le dans un chapitre de `src/app/pages/results/results-page.component.html` à l'intérieur d'un `<ds-card>`.
 3. Dérivez la géométrie avec `computed()` : le tracé se met à jour en temps réel sans animation.
 
 ### Ajouter un modèle de verger
 
-Dans `store.ts`, ajoutez un cas à `buildTemplate()` et une entrée à `TEMPLATES` dans `GridEditor.ts`.
+Dans `store.ts`, ajoutez un cas à `buildTemplate()` et une entrée à `TEMPLATES` dans `grid-editor/grid-editor.component.ts`.
 
 ### Ajouter un format d'export
 
-Dans `projectIO.ts` : ajoutez un `case` à `exportProject()` qui embarque `projectPayload()` (le projet compressé), puis la détection correspondante dans `importText()` ou `importFile()`. Ajoutez enfin l'entrée dans `EXPORTS` (`AppHeader.ts`).
+Dans `projectIO.ts` : ajoutez un `case` à `exportProject()` qui embarque `projectPayload()` (le projet compressé), puis la détection correspondante dans `importText()` ou `importFile()`. Ajoutez enfin l'entrée dans `EXPORTS` (`app-header/export-menu.component.ts`).
 
 ## 4. Conventions
 

@@ -12,9 +12,9 @@ icon: cpu
 | Framework | **Angular 22** (composants autonomes, signaux, sans zone.js) + **TypeScript** | application statique, hébergeable sur n'importe quel CDN ou VPS |
 | Style | **Tailwind CSS 4**, palette haute luminosité (Slate-50 / blanc / Slate-200) | lisible en plein soleil sur tablette |
 | Animations | **moteur de Framer Motion** (`framer-motion/dom`, piloté par la directive `motion`) + animations CSS | transitions de page, onboarding, illustrations ; micro-interactions (icônes animées au survol, cellules qui « claquent », badge temps réel) en CSS pur ; tout respecte `prefers-reduced-motion` |
-| Icônes | **Lucide** (interface) + **SVG maison** (`icons.ts` : leviers, climats, parcelles, drosophile) | vocabulaire agronomique reconnaissable à petite taille |
+| Icônes | **Lucide** (interface) + **SVG maison** (`components/icons/` : leviers, climats, parcelles, drosophile) | vocabulaire agronomique reconnaissable à petite taille |
 | État | **Zustand** (vanilla, exposé en signaux Angular) + historique façon **zundo** (`temporal.ts`) + `persist` (localStorage) | annuler/rétablir natif, sauvegarde automatique |
-| Graphiques | **SVG maison** (`chartkit.ts`, échelles et courbes **d3**) au rendu de Recharts | bandes de phénologie, lignes d'interventions, infobulles |
+| Graphiques | **SVG maison** (`components/chartkit/`, échelles et courbes **d3**) au rendu de Recharts | bandes de phénologie, lignes d'interventions, infobulles |
 | Calcul | **TypeScript pur dans un Web Worker** | aucun serveur, calcul hors du fil d'affichage |
 | Partage | **lz-string** + encodage RLE de la grille | liens d'environ 1,5 ko |
 | Documentation | **unified** (remark / rehype), **KaTeX** | formules mathématiques rendues dans l'application |
@@ -23,25 +23,28 @@ L'application est **100 % côté client** : aucune donnée ne quitte le navigate
 
 ## 2. Arborescence
 
+Chaque composant Angular suit la convention du framework : une classe dans `nom.component.ts` et son gabarit HTML dans `nom.component.html` (`templateUrl`). Les fonctions partagées d'un dossier vivent dans `<dossier>.utils.ts`, et `index.ts` réexporte ce que le reste de l'application importe (`@/components/charts`, etc.).
+
 ```
 src/
 ├── app/
-│   ├── app.ts               Racine : transition d'opacité entre les pages, toasts, dépôt de fichiers
+│   ├── app.component.ts     Racine : transition d'opacité entre les pages, toasts, dépôt de fichiers
 │   ├── app.routes.ts        Routes, titres et descriptions des pages
-│   └── pages/
-│       ├── home.ts          Accueil (hero animé, démo, personas)
-│       ├── simulator.ts     Cockpit : éditeur | paramètres & leviers | aperçu temps réel
-│       ├── results.ts       Résultats, comparateur, Fiche Conseil
-│       ├── docs.ts          Cette documentation
-│       └── not-found.ts     Page 404
-├── components/
-│   ├── GridEditor.ts        Éditeur 20×20 (outils, menu, plein écran, mini-cartes)
-│   ├── ControlPanel.ts      Paramètres, stratégies, matrice des leviers, coûts
-│   ├── charts.ts            Tous les graphiques (chartkit.ts : axes, échelles, infobulles SVG)
-│   ├── AppHeader.ts         En-tête, raccourcis globaux, toasts, partage
-│   ├── DocsShell.ts         Mise en page de la documentation
-│   ├── icons.ts             Icônes SVG sur mesure (leviers, climats, parcelles), animables en CSS
-│   ├── art.ts, illustrations.ts  SVG sur mesure (drosophile, logo, verger isométrique, schémas)
+│   └── pages/               Un dossier par page (index.ts réexporte la page)
+│       ├── home/            Accueil (hero animé, démo, personas)
+│       ├── simulator/       Cockpit : éditeur | paramètres & leviers | aperçu temps réel
+│       ├── results/         Résultats, comparateur, Fiche Conseil
+│       ├── docs/            Cette documentation
+│       └── not-found/       Page 404
+├── components/              Un dossier par famille de composants (index.ts = API publique)
+│   ├── grid-editor/         Éditeur 20×20 (outils, menu, plein écran, mini-cartes)
+│   ├── control-panel/       Paramètres, stratégies, matrice des leviers, coûts
+│   ├── charts/              Tous les graphiques
+│   ├── chartkit/            Briques SVG des graphiques : axes, échelles, grille, infobulles
+│   ├── app-header/          En-tête, raccourcis globaux, toasts, partage
+│   ├── docs-shell/          Mise en page de la documentation
+│   ├── icons/               Icônes SVG sur mesure (leviers, climats, parcelles), animables en CSS
+│   ├── art/, illustrations/ SVG sur mesure (drosophile, logo, verger isométrique, schémas)
 │   └── ui/                  Directives `motion` / `layoutId` (respect de « réduire les animations ») et icônes Lucide
 ├── lib/
 │   ├── engine.ts            Moteur de simulation (pur, sans dépendance)

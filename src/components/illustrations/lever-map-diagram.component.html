@@ -1,0 +1,14 @@
+<svg viewBox="0 0 720 170" class="w-full" role="img" aria-label="Points d'action des leviers">
+  <rect x="10" y="100" width="700" height="56" rx="14" fill="#F8FAFC" stroke="#E2E8F0" />
+  @for (t of labels; track t.t) {
+    <text [attr.x]="t.x" y="134" text-anchor="middle" font-size="13" font-weight="800" fill="#0F172A">{{ t.t }}</text>
+  }
+  @for (it of items; track it.l; let i = $index) {
+    <g motion [initial]="{ opacity: 0, y: -10 }" [whileInView]="{ opacity: 1, y: 0 }" [viewport]="{ once: true }" [transition]="{ delay: i * 0.1 }">
+      <rect [attr.x]="it.x" y="6" width="124" height="60" rx="10" [attr.fill]="it.c" />
+      <text [attr.x]="it.x + 62" y="26" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">{{ it.l }}</text>
+      <foreignObject [attr.x]="it.x + 6" y="31" width="112" height="32"><p style="font-size: 9px; color: #fff; text-align: center; margin: 0px; opacity: 0.92; line-height: 1.2">{{ it.on }}</p></foreignObject>
+      <path [attr.d]="it.d" [attr.stroke]="it.c" stroke-width="2" fill="none" stroke-dasharray="4 3" />
+    </g>
+  }
+</svg>
